@@ -61,7 +61,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # compiled output
-/dist
+dist
 
 # Logs
 logs
@@ -94,3 +94,5 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+**.env
