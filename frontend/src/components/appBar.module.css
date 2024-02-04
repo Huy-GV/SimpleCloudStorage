@@ -1,0 +1,13 @@
+.navContainer {
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.navContainer a {
+    text-decoration: none;
+    color: black;
+    margin: 1rem;
+}
