@@ -1,30 +1,45 @@
-import { Body, Controller, ForbiddenException, Get, Post } from '@nestjs/common';
-import { SignInViewModel } from 'src/data/viewmodels/signInViewModel';
-import { SignUpViewModel } from 'src/data/viewmodels/signUpViewModel';
+import { Body, Controller, ForbiddenException, Post, Request, Res } from '@nestjs/common';
+import { SignInViewModel } from 'src/data/viewModels/signInViewModel';
+import { SignUpViewModel } from 'src/data/viewModels/signUpViewModel';
 import { AuthenticationService } from './authentication.service';
-import { JwtTokenViewModel } from 'src/data/viewmodels/jwtTokenViewmodel';
+import { AllowAnonymous } from './authentication.decorator';
+import { Response } from 'express';
+import { JWT_COOKIE_KEY } from './constants';
+import { JwtDto } from 'src/data/dtos/jwtDto';
 
 @Controller('auth')
 export class AuthenticationController {
     constructor(private readonly jwtAuthenticator: AuthenticationService) {}
 
+    @AllowAnonymous()
     @Post('sign-in')
-    async signIn(@Body() viewModel: SignInViewModel): Promise<JwtTokenViewModel> {
-        const token = await this.jwtAuthenticator.signIn(viewModel);
-        if (!token) {
+    async signIn(
+            @Body() viewModel: SignInViewModel,
+            @Res({ passthrough: true }) response: Response): Promise<JwtDto> {
+
+        const tokenDto = await this.jwtAuthenticator.signIn(viewModel);
+        if (!tokenDto) {
             throw new ForbiddenException("Sign In Failed");
         }
 
-        return token
+        response.cookie(JWT_COOKIE_KEY, tokenDto.token, { httpOnly: true })
+
+        return tokenDto
     }
 
+    @AllowAnonymous()
     @Post('sign-up')
-    async signUp(@Body() viewModel: SignUpViewModel): Promise<JwtTokenViewModel>  {
-        const token = await this.jwtAuthenticator.signUp(viewModel);
-        if (!token) {
+    async signUp(
+        @Body() viewModel: SignUpViewModel,
+        @Res() response: Response): Promise<JwtDto>  {
+
+        const tokenDto = await this.jwtAuthenticator.signUp(viewModel);
+        if (!tokenDto) {
             throw new ForbiddenException("Sign Up Failed");
         }
 
-        return token
+        response.cookie(JWT_COOKIE_KEY, tokenDto.token, { httpOnly: true })
+
+        return tokenDto
     }
 }

@@ -23,7 +23,15 @@
     ```
 
 ### Backend
-- Set up environment file `dev.env` in `/backend/src:
+- Set up environment file `dev.env` in `/backend/src`:
+    ```env
+    JWT_SECRET=YOUR_32_CHARACTER_SECRET
+    ```
+- Set up environment file `.env` for Prisma in `/backend/src/data/models/`
+    ```env
+    DATABASE_URL="file:./dev.db"
+    ```
+
 - Start the backend:
     ```bash
     cd /dir/containing/frontend
