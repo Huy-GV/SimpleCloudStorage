@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
-import { AUTH_HEADER_KEY, IS_PUBLIC_KEY, JWT_COOKIE_KEY, USER_CONTEXT_KEY } from "./constants";
+import { AUTH_HEADER_KEY, ALLOW_ANONYMOUS_KEY, JWT_COOKIE_KEY, USER_CONTEXT_KEY } from "./constants";
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -10,15 +10,15 @@ export class AuthenticationGuard implements CanActivate {
     }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const isPublic = this.reflector.getAllAndOverride<boolean>(
-            IS_PUBLIC_KEY,
+        const allowAnonymous = this.reflector.getAllAndOverride<boolean>(
+            ALLOW_ANONYMOUS_KEY,
             [
                 context.getHandler(),
                 context.getClass(),
             ]
         );
 
-        if (isPublic) {
+        if (allowAnonymous) {
             return true;
         }
 
@@ -38,7 +38,8 @@ export class AuthenticationGuard implements CanActivate {
 
             // TODO: build a complex User model by loading info from the db?
             request[USER_CONTEXT_KEY] = payload;
-        } catch {
+        } catch (e) {
+            console.error(e);
             throw new UnauthorizedException();
         }
 

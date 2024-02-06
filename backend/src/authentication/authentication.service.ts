@@ -5,6 +5,7 @@ import { SignUpViewModel } from 'src/data/viewModels/signUpViewModel';
 import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { JwtDto } from 'src/data/dtos/jwtDto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthenticationService {
@@ -60,5 +61,6 @@ export class AuthenticationService {
 		return {
 			token: await this.jwtService.signAsync(payload),
 		};
-  	}
+	}
+
 }

@@ -1,4 +1,4 @@
 import { SetMetadata } from "@nestjs/common";
-import { IS_PUBLIC_KEY } from "./constants";
+import { ALLOW_ANONYMOUS_KEY } from "./constants";
 
-export const AllowAnonymous = () => SetMetadata(IS_PUBLIC_KEY, true);
+export const AllowAnonymous = () => SetMetadata(ALLOW_ANONYMOUS_KEY, true);

@@ -1,0 +1,3 @@
+interface DeleteFilesViewModel {
+    fileIds: number[]
+}
