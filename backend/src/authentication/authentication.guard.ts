@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
-import { AUTH_HEADER_KEY, ALLOW_ANONYMOUS_KEY, JWT_COOKIE_KEY, USER_CONTEXT_KEY } from "./constants";
+import { AUTH_HEADER_KEY, ALLOW_ANONYMOUS_KEY, JWT_COOKIE_KEY, USER_CONTEXT_KEY, BEARER_STR } from "./constants";
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -47,23 +47,26 @@ export class AuthenticationGuard implements CanActivate {
     }
 
     private extractJwt(request: Request): string | null {
-        if (request.cookies[JWT_COOKIE_KEY]) {
-
-            // try extracting the token from cookies first
-            return request.cookies[JWT_COOKIE_KEY]
+        const tokenFromCookie = this.extractTokenFromCookie(request);
+        if (tokenFromCookie) {
+            return tokenFromCookie;
         }
 
-        const authHeader = request.headers[AUTH_HEADER_KEY];
-        if (!authHeader || typeof authHeader != 'string') {
-            return null
-        }
-
-        const authHeaderString = request.headers[AUTH_HEADER_KEY].toString();
-        return this.extractJwtFromAuthHeader(authHeaderString)
+        const tokenFromHeader = this.extractTokenFromAuthHeader(request);
+        return tokenFromHeader;
     }
 
-    private extractJwtFromAuthHeader(authHeaderString: string) {
-        const [type, token] = authHeaderString?.split(' ') ?? [];
-        return type === 'Bearer' ? token : null;
+    private extractTokenFromCookie(request: Request): string | null {
+        return request.cookies[JWT_COOKIE_KEY] || null;
+    }
+
+    private extractTokenFromAuthHeader(request: Request): string | null {
+        const authHeader = request.headers[AUTH_HEADER_KEY];
+        if (!authHeader || typeof authHeader !== 'string') {
+            return null;
+        }
+
+        const [type, token] = authHeader?.split(' ') ?? [];
+        return type === BEARER_STR ? token : null;
     }
 }

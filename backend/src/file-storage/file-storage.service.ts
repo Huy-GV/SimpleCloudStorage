@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { FileDto } from 'src/data/dtos/fileDto';
-import { Result } from 'src/data/enums/Result';
+import { Result } from 'src/data/enums/result';
 import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
 import { DatabaseService } from 'src/database/database.service';
-import * as AWS from 'aws-sdk'
-import { ConfigService } from '@nestjs/config';
+import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
 
 @Injectable()
 export class FileStorageService {
 
-    constructor(private readonly database: DatabaseService, private readonly config: ConfigService) {
+    constructor(
+        private readonly database: DatabaseService,
+        private readonly s3Service: S3InterfaceService) {
     }
 
     async getAllFiles(userId: number): Promise<FileDto[]> {
@@ -26,46 +27,23 @@ export class FileStorageService {
         }));
     }
 
-    async uploadFile(uploadFileViewModel: UploadFileViewModel, userId: number) {
-        // TODO: move aws to another module
-        const awsCredentials = {
-            accessKeyId: this.config.get<string>('ACCESS_KEY'),
-            secretAccessKey: this.config.get<string>('SECRET_KEY'),
-        };
+    async uploadFile(uploadFileViewModel: UploadFileViewModel, userId: number): Promise<Result> {
 
-        const region = this.config.get<string>('REGION');
-        const bucket = this.config.get<string>('BUCKET');
-
-        const s3Client = new AWS.S3({
-            credentials: awsCredentials,
-            region: region,
-        });
-
-        const objectKey = Date.now() + '_' + uploadFileViewModel.file.originalname;
-
-        const params = {
-            Bucket: bucket,
-            Key: objectKey,
-            Body: uploadFileViewModel.file.buffer, // Assuming 'file' contains the file buffer
-        };
-
-        // TODO: build the URI for s3
-        s3Client.putObject(params, (error, data) => {
-            if (error) {
-                console.error("Error uploading object:", error);
-            } else {
-                console.log("Successfully uploaded object:", data);
-            }
-        });
+        const uri = await this.s3Service.uploadFile(uploadFileViewModel.file);
+        if (!uri) {
+            return Result.InvalidState;
+        }
 
         // TODO: check for success
         const newFile = await this.database.file.create({
             data: {
                 name: uploadFileViewModel.file.originalname,
-                uri: '/test',
+                uri: uri,
                 ownerUserId: userId,
             }
         })
+
+        return Result.Success;
     }
 
     async updateFileName(
@@ -86,21 +64,24 @@ export class FileStorageService {
     }
 
     async deleteFile(fileId: number, userId: number): Promise<Result> {
-        // TODO: handle errors here
-        await this.database.file.delete({
+        const deletedFile = await this.database.file.delete({
             where: {
                 ownerUserId: userId,
                 id: fileId,
             }
         });
 
-        // TODO: sync with s3
+        // TODO handle case where file isn't found
+        const s3Result = await this.s3Service.deleteFile(fileId, userId);
+        if (s3Result != Result.Success) {
+            return s3Result;
+        }
 
         return Result.Success;
     }
 
-    async deleteFiles(fileIds: number[], userId): Promise<Result> {
-        // TODO: handle errors here
+    async deleteFiles(fileIds: number[], userId: number): Promise<Result> {
+        // TODO handle case where file isn't found
         await this.database.file.deleteMany({
             where: {
                 ownerUserId: userId,
@@ -110,7 +91,10 @@ export class FileStorageService {
             }
         });
 
-        // TODO: sync with s3
+        const s3Result = await this.s3Service.deleteFiles(fileIds, userId);
+        if (s3Result != Result.Success) {
+            return s3Result;
+        }
 
         return Result.Success;
     }
