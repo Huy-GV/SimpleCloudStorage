@@ -40,15 +40,6 @@ export class FileStorageController {
 		return `Update file with ID: ${viewModel.id}`;
 	}
 
-	@Delete(':id')
-	async deleteFile(
-		@Req() request: Request,
-		@Param('id') id: number): Promise<string> {
-
-		await this.fileStorage.deleteFile(id, request[USER_CONTEXT_KEY].sub)
-		return `Delete file with ID: ${id}`;
-	}
-
 	@Delete('')
 	async deleteFiles(
 		@Req() request: Request,

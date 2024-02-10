@@ -1,12 +1,15 @@
+import { FileItemData } from './definitions';
 import styles from './files.module.css'
-import { FileItemData } from './page';
+export function FileListItem({ name, onFileSelect }: FileItemData) {
+    const handleFileSelect = () => {
+        onFileSelect();
+    }
 
-export function FileListItem({ name }: FileItemData) {
     return (
-        <div className={styles.singleFileContainer}>
-            <p className={styles.fileAttribute}>File Name: { name }</p>
-            <p className={styles.fileAttribute}>Upload Date: unimplemented</p>
-            <button className={styles.deleteFileBtn}>Delete</button>
-        </div>
+        <tr>
+            <td><input type='checkbox' className={styles.fileCheckbox} onChange={handleFileSelect}></input></td>
+            <td className={styles.nameCol}>{ name }</td>
+            <td className={styles.uploadDateCol}>unimplemented</td>
+        </tr>
     );
 }

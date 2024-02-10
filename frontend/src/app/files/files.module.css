@@ -27,22 +27,37 @@
     margin-left: auto;
 }
 
-.selectFileBtn {
+.selectFileToUploadBtn {
     background-color: blue;
     color: white;
     padding: 0.8rem;
     border: 0px;
     border-radius: 5px;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
-.uploadFileBtn {
-    background-color: green;
+.selectFileToUploadBtn:hover {
+    cursor: pointer;
+}
+
+.fileDownloadBtn {
+    background-color: blue;
     color: white;
     padding: 0.8rem;
     border: 0px;
     border-radius: 5px;
-    font-size: 0.8rem;
+    font-size: 1rem;
+    margin-inline-end: 0.5rem;
+}
+
+.fileDeleteBtn {
+    background-color: blue;
+    color: white;
+    padding: 0.8rem;
+    border: 0px;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-inline-end: 0.5rem;
 }
 
 .fileInput {
@@ -51,4 +66,24 @@
 
 .uploadForm {
     margin-block: 1rem;
+}
+
+.nameCol {
+    text-align: left;
+}
+
+.uploadDateCol {
+    text-align: right;
+}
+
+.fileCheckbox {
+    width: 2rem;
+    height: 2rem;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 5px;
+  }
+
+.fileCheckbox:checked {
+    background-color: #000;
 }

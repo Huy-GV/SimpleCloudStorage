@@ -3,25 +3,22 @@ import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
 import { useRouter } from "next/navigation";
 import styles from "./files.module.css"
 
-export function FileUploadForm() {
+export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promise<void> }) {
     const router = useRouter();
     const [error, setError] = useState<string>('');
-    const [file, setFile] = useState<File | null>(null);
 
-    const uploadFile = async () => {
-
-        if (!file) {
+    const uploadFile = async (fileToUpload: File) => {
+        if (!fileToUpload) {
             setError('No file selected')
             return;
         }
 
-        const formData = new FormData(); // Create a FormData object to append the file
-        formData.append('file', file); // Assuming 'file' is the File object you want to upload
+        const formData = new FormData();
+        formData.append('file', fileToUpload);
 
         const response = await fetch(`${SERVER_URL}/files/`, {
             method: 'POST',
             headers: {
-                // 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`
             },
             body: formData
@@ -36,21 +33,15 @@ export function FileUploadForm() {
             setError('Failed to upload file')
             return;
         }
-
-        // TODO: refresh page list
     }
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        uploadFile();
-    }
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0])
-            console.log("Changed file")
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files[0]) {
+            return;
         }
+
+        await uploadFile(e.target.files[0]);
+        await onFileUploaded();
     }
 
     return (
@@ -58,19 +49,15 @@ export function FileUploadForm() {
             {
                 error && <p>Error: {error}</p>
             }
-            <form className={styles.uploadForm} onSubmit={handleSubmit} encType="multipart/form-data">
+            <form className={styles.uploadForm} encType="multipart/form-data">
                 {
-                    file
-                        ? (<button type="submit" className={styles.uploadFileBtn}>Upload</button>)
-                        : (
-                            <>
-                                <label htmlFor="file" className={styles.selectFileBtn}>Select file</label>
-                                <input id='file' type="file"
-                                    className={styles.fileInput}
-                                    name="file"
-                                    onChange={handleFileChange} />
-                            </>
-                        )
+                    <>
+                        <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload File</label>
+                        <input id='file' type="file"
+                            className={styles.fileInput}
+                            name="file"
+                            onChange={handleFileChange} />
+                    </>
                 }
             </form>
 

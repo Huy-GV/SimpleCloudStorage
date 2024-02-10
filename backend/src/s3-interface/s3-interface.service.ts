@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Result } from 'src/data/enums/result';
-import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from 'src/database/database.service';
+import { File } from '@prisma/client';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+interface S3Object {
+    key: string
+    bucket: string,
+    region: string
+}
 
 @Injectable()
 export class S3InterfaceService {
@@ -30,8 +38,20 @@ export class S3InterfaceService {
         });
     }
 
-    async getSignedUri() {
-        // TODO: return uri from client
+    async getPublicUrl(objectUrl: string): Promise<string> {
+        const { bucket, key } = this.extractS3ObjectProperties(objectUrl);
+        const getObjectCommand = new GetObjectCommand({
+            Bucket: bucket,
+            Key: key,
+        });
+
+        const durationInSeconds = 60 * 60;
+        const presignedUrl = await getSignedUrl(
+            this.s3Client,
+            getObjectCommand,
+            { expiresIn: durationInSeconds });
+
+        return presignedUrl;
     }
 
     async uploadFile(fileToUpload: Express.Multer.File): Promise<string | null> {
@@ -51,57 +71,29 @@ export class S3InterfaceService {
             console.log("Successfully uploaded object");
         }
 
-        return 'uri'
+        return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${objectKey}`
     }
 
-    private extractS3ObjectProperties(s3Url: string) {
-        return '';
-    }
-
-    async deleteFile(fileId: number, userId: number): Promise<Result> {
-        const fileToDelete = await this.database.file.findUnique({
-            where: {
-                id: fileId,
-                ownerUserId: userId
-            }
-        });
-
-        if (!fileToDelete) {
-            return Result.NotFound;
-        }
-
-        const objectKey = this.extractS3ObjectProperties(fileToDelete.uri)
-        const deleteObjectCommand = new DeleteObjectCommand({
-            Bucket: this.bucket,
-            Key: objectKey,
-        })
-
-        const s3Result =  await this.s3Client.send(deleteObjectCommand);
-        if (s3Result.$metadata.httpStatusCode != 200 && s3Result.$metadata.httpStatusCode != 201) {
-            console.error("Error deleting object: ", s3Result.$metadata.httpStatusCode);
+    private extractS3ObjectProperties(s3Url: string): S3Object | null {
+        const pattern: RegExp = /https:\/\/([^\.]+)\.s3\.([^\.]+)\.amazonaws\.com\/([^\.]+)/;
+        const matches = s3Url.match(pattern);
+        if (!matches) {
             return null;
-        } else {
-            console.log("Successfully deleted object");
         }
 
-        return Result.Success;
+        const bucket: string = matches[1];
+        const region: string = matches[2];
+        const objectKey: string = matches[3];
+
+        return {
+            region: region,
+            bucket: bucket,
+            key: objectKey,
+        };
     }
 
-    async deleteFiles(fileIds: number[], userId: number): Promise<Result> {
-        const filesToDelete = await this.database.file.findMany({
-            where: {
-                id: {
-                    in: fileIds
-                },
-                ownerUserId: userId
-            }
-        });
-
-        if (filesToDelete.length != fileIds.length) {
-            return Result.NotFound;
-        }
-
-        const objectKeys = filesToDelete.map(fileToDelete => (this.extractS3ObjectProperties(fileToDelete.uri)))
+    async deleteObjects(objectUrls: string[], userId: number): Promise<Result> {
+        const objectKeys = objectUrls.map(x => (this.extractS3ObjectProperties(x).key))
         const deleteObjectsCommand = new DeleteObjectsCommand({
             Bucket: this.bucket,
             Delete: {
@@ -112,10 +104,10 @@ export class S3InterfaceService {
 
         const s3Result =  await this.s3Client.send(deleteObjectsCommand);
         if (s3Result.$metadata.httpStatusCode != 200 && s3Result.$metadata.httpStatusCode != 201) {
-            console.error(`Error deleting ${fileIds.length} objects: `, s3Result.$metadata.httpStatusCode);
+            console.error(`Error deleting ${objectUrls.length} objects: `, s3Result.$metadata.httpStatusCode);
             return null;
         } else {
-            console.log(`Successfully deleted ${fileIds.length} objects`);
+            console.log(`Successfully deleted ${objectUrls.length} objects`);
         }
 
         return Result.Success;

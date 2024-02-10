@@ -63,35 +63,30 @@ export class FileStorageService {
         return Result.Success;
     }
 
-    async deleteFile(fileId: number, userId: number): Promise<Result> {
-        const deletedFile = await this.database.file.delete({
-            where: {
-                ownerUserId: userId,
-                id: fileId,
-            }
-        });
-
-        // TODO handle case where file isn't found
-        const s3Result = await this.s3Service.deleteFile(fileId, userId);
-        if (s3Result != Result.Success) {
-            return s3Result;
-        }
-
-        return Result.Success;
-    }
-
     async deleteFiles(fileIds: number[], userId: number): Promise<Result> {
-        // TODO handle case where file isn't found
-        await this.database.file.deleteMany({
+        const filesToDelete = await this.database.file.findMany({
             where: {
-                ownerUserId: userId,
                 id: {
                     in: fileIds
-                }
+                },
+                ownerUserId: userId
             }
         });
 
-        const s3Result = await this.s3Service.deleteFiles(fileIds, userId);
+        if (filesToDelete.length != fileIds.length) {
+            return Result.NotFound;
+        }
+
+        await this.database.file.deleteMany({
+            where: {
+                id: {
+                    in: fileIds
+                },
+                ownerUserId: userId
+            }
+        });
+
+        const s3Result = await this.s3Service.deleteObjects(filesToDelete.map(x => x.uri), userId);
         if (s3Result != Result.Success) {
             return s3Result;
         }
