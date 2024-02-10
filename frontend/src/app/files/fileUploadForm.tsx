@@ -45,22 +45,16 @@ export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promi
     }
 
     return (
-        <div>
+        <form className={styles.uploadForm} encType="multipart/form-data">
             {
-                error && <p>Error: {error}</p>
+                <>
+                    <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload File</label>
+                    <input id='file' type="file"
+                        className={styles.fileInput}
+                        name="file"
+                        onChange={handleFileChange} />
+                </>
             }
-            <form className={styles.uploadForm} encType="multipart/form-data">
-                {
-                    <>
-                        <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload File</label>
-                        <input id='file' type="file"
-                            className={styles.fileInput}
-                            name="file"
-                            onChange={handleFileChange} />
-                    </>
-                }
-            </form>
-
-        </div>
+        </form>
     );
 }

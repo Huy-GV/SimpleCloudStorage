@@ -13,7 +13,6 @@ export default function Page() {
 	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
 	const [error, setError] = useState<string>('');
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
-	const [shouldRefresh, setShouldRefresh] = useState<boolean>(false);
 
 	const fetchAllFiles = async (): Promise<FileItemData[] | null> => {
 		const response = await fetch(`${SERVER_URL}/files/`, {
@@ -38,12 +37,11 @@ export default function Page() {
 		return files;
 	}
 
-	const reloadFileList = (): void => {
-		fetchAllFiles()
-			.then((files) => setFileItemList(files || []))
+	const reloadFileList = async (): Promise<void> => {
+		const files = await fetchAllFiles();
+		setFileItemList(files || []);
 	}
 
-	reloadFileList();
 
 	const handleFileSelected = (fileId: number) => {
 		const newFileSet = new Set(selectedFiles);
@@ -79,7 +77,7 @@ export default function Page() {
 		}
 
 		setSelectedFiles(new Set());
-		setShouldRefresh(!shouldRefresh);
+		await reloadFileList();
 	}
 
 	const handleFileDownload = () => {
@@ -87,19 +85,25 @@ export default function Page() {
 	}
 
 	const onFileUploaded = async () => {
-		setShouldRefresh(!shouldRefresh);
-	}
+		await reloadFileList();
+	};
 
 	useEffect(() => {
 		reloadFileList();
-	}, [shouldRefresh])
+	}, []);
 
 	return (
 		<main className={styles.fileListContainer}>
-			<FileUploadForm onFileUploaded={onFileUploaded}></FileUploadForm>
-			<div>
-				<button className={styles.fileDownloadBtn} onClick={handleFileDownload}>Download</button>
-				<button className={styles.fileDeleteBtn} onClick={handleFileDelete}>Delete</button>
+			<div className={styles.btnMenu}>
+				<FileUploadForm onFileUploaded={onFileUploaded}></FileUploadForm>
+				<button
+					disabled={selectedFiles.size == 0}
+					className={styles.fileDownloadBtn}
+					onClick={handleFileDownload}>Download</button>
+				<button
+					disabled={selectedFiles.size == 0}
+					className={styles.fileDeleteBtn}
+					onClick={handleFileDelete}>Delete</button>
 				{/* <button>Share</button> */}
 			</div>
 			{
@@ -121,6 +125,7 @@ export default function Page() {
 							key={item.id}
 							name={item.name}
 							id={item.id}
+							selected={selectedFiles.has(item.id)}
 							// uploadDate={item.uploadDate}
 						>
 						</FileListItem>

@@ -17,16 +17,16 @@ export class FileStorageController {
 
 	@Post()
 	@UseInterceptors(FileInterceptor('file'))
-	uploadFile(
+	async uploadFile(
 		@UploadedFile() file: Express.Multer.File,
-		@Req() request: Request): string {
+		@Req() request: Request): Promise<string> {
 
 		const viewModel: UploadFileViewModel = {
 			file: file
 		};
 
 		const userId: number = request[USER_CONTEXT_KEY].sub;
-		this.fileStorage.uploadFile(viewModel, userId)
+		await this.fileStorage.uploadFile(viewModel, userId)
 
 		return 'Create a file';
 	}
