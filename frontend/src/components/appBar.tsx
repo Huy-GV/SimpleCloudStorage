@@ -3,11 +3,15 @@
 import styles  from './appBar.module.css'
 import { JWT_STORAGE_KEY } from "@/app/constants";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AppBar() {
     const router = useRouter();
-    const [isSignedIn, setSignedIn] = useState<boolean>(localStorage[JWT_STORAGE_KEY])
+    const [isSignedIn, setSignedIn] = useState<boolean>(false)
+
+    useEffect(() => {
+        setSignedIn(localStorage[JWT_STORAGE_KEY])
+    }, [])
 
     const handleSignOut = () => {
         if (isSignedIn) {

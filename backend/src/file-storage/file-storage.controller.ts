@@ -1,11 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Body, Req, UploadedFile, UseInterceptors, Res, StreamableFile, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Req, UploadedFile, UseInterceptors, Res, StreamableFile } from '@nestjs/common';
 import { USER_CONTEXT_KEY } from 'src/authentication/constants';
 import { FileStorageService } from './file-storage.service';
 import { FileDto } from 'src/data/dtos/fileDto';
 import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
-import { Result } from 'src/data/enums/result';
-import { AllowAnonymous } from 'src/authentication/authentication.decorator';
 import throwHttpExceptionIfUnsuccessful from 'src/utils/HttpCodeConvertor';
 
 @Controller('files')
@@ -35,7 +33,7 @@ export class FileStorageController {
 		throwHttpExceptionIfUnsuccessful(result);
 	}
 
-	@Put(':id')
+	@Put('/update-name')
 	async updateFileName(
 		@Req() request: Request,
 		@Body() viewModel: UpdateFileNameViewModel): Promise<void> {

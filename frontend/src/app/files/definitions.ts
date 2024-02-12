@@ -3,5 +3,6 @@ export interface FileItemData {
     name: string,
     selected: boolean,
     onFileSelect: () => void
+    onFileNameChanged: () => void
     // uploadDate: Date
 }

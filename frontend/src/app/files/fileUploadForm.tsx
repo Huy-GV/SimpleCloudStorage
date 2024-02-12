@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
 import { useRouter } from "next/navigation";
 import styles from "./files.module.css"

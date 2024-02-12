@@ -131,6 +131,10 @@ export default function Page() {
 		await reloadFileList();
 	};
 
+	const onFileNameChanged = async () => {
+		await reloadFileList();
+	};
+
 	useEffect(() => {
 		reloadFileList();
 	}, []);
@@ -166,6 +170,7 @@ export default function Page() {
 				{
 					fileItemList.map(item => (
 						<FileListItem
+							onFileNameChanged={onFileNameChanged}
 							onFileSelect={() => handleFileSelected(item.id)}
 							key={item.id}
 							name={item.name}

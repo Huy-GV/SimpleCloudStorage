@@ -150,8 +150,8 @@ export class FileStorageService {
     async updateFileName(
         updateFileNameViewModel: UpdateFileNameViewModel,
         userId: number): Promise<Result> {
-        // TODO: handle errors here
-        const updatedFile = await this.database.file.update({
+
+        await this.database.file.update({
             where: {
                 id: updateFileNameViewModel.id,
                 ownerUserId: userId
