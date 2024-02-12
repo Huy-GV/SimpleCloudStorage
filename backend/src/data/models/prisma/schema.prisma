@@ -23,6 +23,8 @@ model File {
   id            Int      @default(autoincrement()) @id
   name          String
   uri           String
+  sizeKb        Int
+  creationTime  DateTime
 
   ownerUserId   Int
   parentFileId  Int?

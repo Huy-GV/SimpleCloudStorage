@@ -48,7 +48,7 @@ export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promi
         <form className={styles.uploadForm} encType="multipart/form-data">
             {
                 <>
-                    <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload File</label>
+                    <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload</label>
                     <input id='file' type="file"
                         className={styles.fileInput}
                         name="file"

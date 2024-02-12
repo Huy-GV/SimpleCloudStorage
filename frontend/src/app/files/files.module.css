@@ -1,8 +1,12 @@
 .fileListContainer {
     display: flex;
     flex-direction: column;
-    width: 70%;
+    width: 60%;
     margin: auto;
+
+    @media (max-width: 1024px){
+        width: 90%;
+    }
 }
 
 .selectFileToUploadBtn {
@@ -41,11 +45,11 @@
     display: none;
 }
 
-.nameCol {
+.alignLeftCol {
     text-align: left;
 }
 
-.uploadDateCol {
+.alignRightCol {
     text-align: right;
 }
 
@@ -66,6 +70,10 @@
     flex-direction: row;
     gap: 0.6rem;
     margin-block: 1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);;
+    border-radius: 10px;
+    padding: 1rem;
+    flex-wrap: wrap;
 }
 
 .fileTable {
@@ -73,7 +81,11 @@
 }
 
 .fileTable td, .fileTable th {
-    padding: 1rem;
+    padding: 0.6rem 0.3rem;
+}
+
+.fileTable thead th:first-child {
+    width: 10%;
 }
 
 .selectedRow {
@@ -87,4 +99,20 @@
     border-radius: 5px;
     border: 1px solid blue;
     width: 100%;
+}
+
+.deselectFilesBtn {
+    padding: 0.8rem;
+    border: 0px;
+    border-radius: 5px;
+    font-size: 1rem;
+
+
+    @media (min-width: 720px){
+        margin-left: auto;
+    }
+}
+
+.hidden {
+    display: none;
 }

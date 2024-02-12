@@ -127,6 +127,10 @@ export default function Page() {
 		setSelectedFiles(new Set());
 	}
 
+	const handleFilesDeselected = () => {
+		setSelectedFiles(new Set());
+	}
+
 	const onFileUploaded = async () => {
 		await reloadFileList();
 	};
@@ -141,6 +145,7 @@ export default function Page() {
 
 	return (
 		<main className={styles.fileListContainer}>
+			<h1>My Files</h1>
 			<div className={styles.btnMenu}>
 				<FileUploadForm onFileUploaded={onFileUploaded}></FileUploadForm>
 				<button
@@ -151,6 +156,10 @@ export default function Page() {
 					disabled={selectedFiles.size == 0}
 					className={styles.fileDeleteBtn}
 					onClick={handleFileDelete}>Delete</button>
+				<button
+					className={selectedFiles.size != 0 ? styles.deselectFilesBtn : styles.hidden}
+					onClick={handleFilesDeselected}>Deselect { selectedFiles.size }</button>
+
 				<a ref={downloadedFileRef}></a>
 
 				{/* <button>Share</button> */}
@@ -161,9 +170,10 @@ export default function Page() {
 			<table className={styles.fileTable}>
 				<thead>
 					<tr>
-						<th className={styles.nameCol}>Selected</th>
-						<th className={styles.nameCol}>Name</th>
-						<th className={styles.uploadDateCol}>Upload Date</th>
+						<th className={styles.alignLeftCol}></th>
+						<th className={styles.alignLeftCol}>Name</th>
+						<th className={styles.alignLeftCol}>Size</th>
+						<th className={styles.alignRightCol}>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -175,8 +185,9 @@ export default function Page() {
 							key={item.id}
 							name={item.name}
 							id={item.id}
+							size={item.size}
 							selected={selectedFiles.has(item.id)}
-							// uploadDate={item.uploadDate}
+							uploadDate={new Date(item.uploadDate)}
 						>
 						</FileListItem>
 					))

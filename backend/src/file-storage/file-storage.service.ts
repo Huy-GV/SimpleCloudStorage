@@ -28,6 +28,8 @@ export class FileStorageService {
         return files.map(x => ({
             id: x.id,
             name: x.name,
+            uploadDate: x.creationTime,
+            size: x.sizeKb
         }));
     }
 
@@ -43,6 +45,8 @@ export class FileStorageService {
                 name: uploadFileViewModel.file.originalname,
                 uri: uri,
                 ownerUserId: userId,
+                creationTime: new Date(),
+                sizeKb: uploadFileViewModel.file.size / 1000
             }
         })
 

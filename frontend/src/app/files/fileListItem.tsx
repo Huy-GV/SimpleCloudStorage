@@ -4,10 +4,33 @@ import styles from './files.module.css'
 import { JWT_STORAGE_KEY, SERVER_URL } from '../constants';
 import { useRouter } from 'next/navigation';
 
-export function FileListItem({ id, name, selected, onFileSelect, onFileNameChanged }: FileItemData) {
+export function FileListItem({ id, name, selected, uploadDate, size, onFileSelect, onFileNameChanged }: FileItemData) {
     const router = useRouter();
     const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
     const [newName, setNewName] = useState<string>(name);
+
+    const localDate = `${uploadDate.getDate()}/${uploadDate.getMonth()}/${uploadDate.getFullYear()} ${uploadDate.getHours()}:${uploadDate.getMinutes()}`;
+
+    const getFileSizeText = (sizeKb: number) => {
+        if (!sizeKb || Number.isNaN(size)) {
+            return '-'
+        }
+
+        if (sizeKb < 1) {
+            return '<1 KB'
+        }
+
+        if (sizeKb <= 1024) {
+            return `${Math.round(sizeKb)} KB`
+        }
+
+        // 1048576 = 1024 * 1024
+        if (sizeKb > 1024 && sizeKb < 1048576) {
+            return `${Math.round(sizeKb / 1024)} MB`
+        }
+
+        return `${Math.round(sizeKb / 1048576)} GB`
+    }
 
     const handleFileSelect = () => {
         onFileSelect();
@@ -24,6 +47,8 @@ export function FileListItem({ id, name, selected, onFileSelect, onFileNameChang
     const handleNameChangeSubmitted = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Escape') {
             setIsEditFormDisplayed(false);
+            e.preventDefault();
+            return;
         }
 
         if (e.key !== 'Enter') {
@@ -63,8 +88,10 @@ export function FileListItem({ id, name, selected, onFileSelect, onFileNameChang
                     type='checkbox'
                     className={styles.fileCheckbox}
                     onChange={handleFileSelect}
-                    checked={selected}></input></td>
-            <td className={styles.nameCol}>
+                    checked={selected}>
+                </input>
+            </td>
+            <td className={styles.alignLeftCol}>
                 {
                     isEditFormDisplayed
                         ?
@@ -84,7 +111,8 @@ export function FileListItem({ id, name, selected, onFileSelect, onFileNameChang
                         </span>
                 }
             </td>
-            <td className={styles.uploadDateCol}>unimplemented</td>
+            <td className={styles.alignLeftCol}>{ getFileSizeText(size) }</td>
+            <td className={styles.alignRightCol}>{ localDate }</td>
         </tr>
     );
 }
