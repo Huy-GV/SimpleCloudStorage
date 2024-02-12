@@ -56,7 +56,7 @@ export class S3InterfaceService {
 
     async uploadFile(fileToUpload: Express.Multer.File): Promise<string | null> {
 
-        const objectKey = Date.now() + '_' + fileToUpload.originalname;
+        const objectKey = encodeURI(Date.now() + '_' + fileToUpload.originalname);
         const putObjectCommand = new PutObjectCommand({
             Bucket: this.bucket,
             Key: objectKey,
@@ -75,7 +75,7 @@ export class S3InterfaceService {
     }
 
     private extractS3ObjectProperties(s3Url: string): S3Object | null {
-        const pattern: RegExp = /https:\/\/([^\.]+)\.s3\.([^\.]+)\.amazonaws\.com\/([^\.]+)/;
+        const pattern: RegExp = /https:\/\/([^\.]+)\.s3\.([^\.]+)\.amazonaws\.com\/([^\/]+)/;
         const matches = s3Url.match(pattern);
         if (!matches) {
             return null;

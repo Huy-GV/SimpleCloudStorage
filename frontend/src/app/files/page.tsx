@@ -42,7 +42,6 @@ export default function Page() {
 		setFileItemList(files || []);
 	}
 
-
 	const handleFileSelected = (fileId: number) => {
 		const newFileSet = new Set(selectedFiles);
 		if (selectedFiles.has(fileId)) {
@@ -80,8 +79,40 @@ export default function Page() {
 		await reloadFileList();
 	}
 
-	const handleFileDownload = () => {
+	const handleFileDownload = async () => {
+		const response = await fetch(`${SERVER_URL}/files/download`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				fileIds: Array.from(selectedFiles)
+			})
+		})
 
+		if (!response.ok) {
+			setError("Failed to download files");
+
+			if (response.status === 401 || response.status === 403) {
+				router.push('/auth');
+			}
+
+			return null;
+		}
+
+		const blob = await response.blob();
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = 'downloaded.zip';
+		document.body.appendChild(link);
+		link.click();
+
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+
+		setSelectedFiles(new Set());
 	}
 
 	const onFileUploaded = async () => {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Req, UploadedFile, UseInterceptors, Res, StreamableFile, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Req, UploadedFile, UseInterceptors, Res, StreamableFile, Headers, NotFoundException } from '@nestjs/common';
 import { USER_CONTEXT_KEY } from 'src/authentication/constants';
 import { FileStorageService } from './file-storage.service';
 import { FileDto } from 'src/data/dtos/fileDto';
@@ -11,10 +11,15 @@ import { Readable, pipeline } from 'stream';
 import { Response } from 'express';
 import axios from 'axios';
 import { mkdir, rm, unlink } from 'fs/promises';
+import { DatabaseService } from 'src/database/database.service';
+import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
 
 @Controller('files')
 export class FileStorageController {
-	constructor(private readonly fileStorage: FileStorageService) {}
+	constructor(
+		private readonly fileStorage: FileStorageService,
+		private readonly database: DatabaseService,
+		private readonly s3: S3InterfaceService) { }
 
 	@Get()
 	async getAllFiles(@Req() request: Request): Promise<FileDto[]> {
@@ -56,54 +61,101 @@ export class FileStorageController {
 		return `Delete file with ID: ${viewModel.fileIds}`;
 	}
 
-	@AllowAnonymous()
-	@Get('/download')
+	@Post('/download')
 	async getFile(
 		@Req() request: Request,
-		@Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+		@Res({ passthrough: true }) res: Response,
+		@Body() body: DownloadFileViewModel): Promise<StreamableFile> {
 		try {
-			const fileName = this.createFileName(request[USER_CONTEXT_KEY])
+			const fileName = this.createDownloadFileName(request[USER_CONTEXT_KEY].username);
 
 			// set up download directory
-			const folderPath = process.cwd() + `/downloaded_files//${fileName}`;
-			if (!existsSync(folderPath)) {
-				await mkdir(folderPath, { recursive: true });
+			const tempDirectoryPath = process.cwd() + `/downloaded_files//${fileName}`;
+			if (!existsSync(tempDirectoryPath)) {
+				await mkdir(tempDirectoryPath, { recursive: true });
 			}
 
-			const downloadDirectory = createWriteStream(process.cwd() + `\\${fileName}.zip`);
 			const archive = archiver('zip', { zlib: { level: 9 } });
-			archive.pipe(downloadDirectory);
 
-			// axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
-			const response = await axios('https://images.pexels.com/photos/36717/amazing-animal-beautiful-beautifull.jpg');
-			const downloadedFileStream = response.data;
-			const filePath = folderPath + '/file.jpg';
+			const downloadDirectoryStream = createWriteStream(`${tempDirectoryPath}.zip`);
+			archive.pipe(downloadDirectoryStream);
 
-			await new Promise<void>((resolve, reject) => {
-				pipeline(downloadedFileStream, createWriteStream(filePath), (err) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
+			const files = await this.database.file.findMany({
+				where: {
+					ownerUserId: request[USER_CONTEXT_KEY].sub,
+					id: {
+						in: body.fileIds
 					}
-				});
-			});
-
-			const fileReadStream = createReadStream(filePath);
-
-			archive.append(fileReadStream, { name: 'file.jpg' })
-			await archive.finalize();
-			const readStream = createReadStream(downloadDirectory.path);
-
-			readStream.on('close', async () => {
-				await unlink(downloadDirectory.path);
-				await rm(folderPath, { recursive: true, force: true })
+				},
+				select: {
+					uri: true,
+					name: true
+				}
 			})
 
-			res.set({
-				'Content-Type': 'application/json',
-				'Content-Disposition': `attachment; filename=${fileName}.zip`,
-			});
+			if (files.length != body.fileIds.length) {
+				throw new NotFoundException();
+			}
+
+			for (const file of files) {
+				const presignedUrl = await this.s3.getPublicUrl(file.uri);
+
+				// axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
+				const response = await axios({
+					method: 'get',
+					url: presignedUrl,
+					responseType: 'stream',
+				});
+
+				const downloadedFileStream = response.data;
+				const filePath = tempDirectoryPath + `//${file.name}`;
+				console.log(filePath)
+
+				await new Promise<void>((resolve, reject) => {
+					const fileWriteStream = createWriteStream(filePath);
+					downloadedFileStream.pipe (fileWriteStream);
+					fileWriteStream.on('close', () => resolve());
+					fileWriteStream.on('error', (err) => reject(err));
+				});
+
+				const fileReadStream = createReadStream(filePath);
+				archive.append(fileReadStream, { name: file.name })
+			}
+
+			// await Promise.all(
+			// 	files
+			// 		.map(async x => {
+			// 			const presignedUrl = await this.s3.getPublicUrl(x.uri);
+
+			// 			// axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
+			// 			const response = await axios(presignedUrl);
+			// 			const downloadedFileStream = response.data;
+			// 			const filePath = tempDirectoryPath + `//${x.name}`;
+			// 			console.log(filePath)
+			// 			await new Promise<void>((resolve, reject) => {
+			// 				pipeline(downloadedFileStream, createWriteStream(filePath), (err) => {
+			// 					if (err) {
+			// 						reject(err);
+			// 					} else {
+			// 						resolve();
+			// 					}
+			// 				});
+			// 			});
+
+			// 			const fileReadStream = createReadStream(filePath);
+			// 			archive.append(fileReadStream, { name: x.name })
+			// 		}))
+
+			await archive.finalize();
+			const readStream = createReadStream(`${tempDirectoryPath}.zip`);
+
+			readStream.on('close', async () => {
+				await unlink(`${tempDirectoryPath}.zip`);
+				await rm(tempDirectoryPath, { recursive: true, force: true })
+			})
+
+			res.setHeader('Content-Type', 'application/json')
+			res.setHeader('Content-Disposition', `attachment; filename=${fileName}.zip`)
 
 			const streamableFile = new StreamableFile(readStream);
 			return streamableFile;
@@ -113,7 +165,7 @@ export class FileStorageController {
 		}
 	}
 
-	private createFileName(userName: string) {
+	private createDownloadFileName(userName: string) {
 		const timestamp = new Date().toISOString().replace(/:/g, '-');
 		return `${userName}_${timestamp}`;
 	}
