@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
 import { FileItemData } from "./definitions";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function Page() {
 	const router = useRouter();
@@ -151,11 +153,17 @@ export default function Page() {
 				<button
 					disabled={selectedFiles.size == 0}
 					className={styles.fileDownloadBtn}
-					onClick={handleFileDownload}>Download</button>
+					onClick={handleFileDownload}>
+					<FontAwesomeIcon icon={faDownload} />
+					<span className={styles.btnLabel}>Download</span>
+				</button>
 				<button
 					disabled={selectedFiles.size == 0}
 					className={styles.fileDeleteBtn}
-					onClick={handleFileDelete}>Delete</button>
+					onClick={handleFileDelete}>
+					<FontAwesomeIcon icon={faTrash} />
+					<span className={styles.btnLabel}>Delete</span>
+				</button>
 				<button
 					className={selectedFiles.size != 0 ? styles.deselectFilesBtn : styles.hidden}
 					onClick={handleFilesDeselected}>Deselect { selectedFiles.size }</button>

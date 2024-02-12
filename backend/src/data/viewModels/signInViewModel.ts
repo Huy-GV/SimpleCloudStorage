@@ -1,4 +1,4 @@
 export interface SignInViewModel {
-    userName: string,
-    password: string,
+  userName: string;
+  password: string;
 }

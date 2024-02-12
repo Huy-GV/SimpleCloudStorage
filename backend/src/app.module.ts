@@ -7,17 +7,17 @@ import { ConfigModule } from '@nestjs/config';
 import { S3InterfaceModule } from './s3-interface/s3-interface.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      envFilePath: '.dev.env',
-      isGlobal: true
-    }),
-    AuthenticationModule,
-    FileStorageModule,
-    DatabaseModule,
-    S3InterfaceModule,
-  ],
-  controllers: [],
-  providers: [DatabaseService],
+    imports: [
+        ConfigModule.forRoot({
+            envFilePath: '.dev.env',
+            isGlobal: true,
+        }),
+        AuthenticationModule,
+        FileStorageModule,
+        DatabaseModule,
+        S3InterfaceModule,
+    ],
+    controllers: [],
+    providers: [DatabaseService],
 })
 export class AppModule {}

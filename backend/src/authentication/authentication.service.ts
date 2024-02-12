@@ -8,58 +8,57 @@ import { JwtDto } from 'src/data/dtos/jwtDto';
 
 @Injectable()
 export class AuthenticationService {
-	constructor(
-		private readonly database: DatabaseService,
-		private readonly jwtService: JwtService) {
-	}
+    constructor(
+    private readonly database: DatabaseService,
+    private readonly jwtService: JwtService,
+    ) {}
 
-	async signUp (signUpViewModel: SignUpViewModel): Promise<JwtDto|null> {
-		const user = await this.database.user.create({
-			data: {
-				name: signUpViewModel.userName,
-				password: await bcrypt.hash(signUpViewModel.password, 5),
-				email: signUpViewModel.email
-			}
-		});
+    async signUp(signUpViewModel: SignUpViewModel): Promise<JwtDto | null> {
+        const user = await this.database.user.create({
+            data: {
+                name: signUpViewModel.userName,
+                password: await bcrypt.hash(signUpViewModel.password, 5),
+                email: signUpViewModel.email,
+            },
+        });
 
-		const payload = {
-			sub: user.id,
-			username: user.name
-		};
+        const payload = {
+            sub: user.id,
+            username: user.name,
+        };
 
-		return {
-			token: await this.jwtService.signAsync(payload),
-		};
-  	}
+        return {
+            token: await this.jwtService.signAsync(payload),
+        };
+    }
 
-	async signIn(signInViewModel: SignInViewModel): Promise<JwtDto|null> {
-		const user = await this.database.user.findFirst({
-			where: {
-				name: signInViewModel.userName
-			}
-		});
+    async signIn(signInViewModel: SignInViewModel): Promise<JwtDto | null> {
+        const user = await this.database.user.findFirst({
+            where: {
+                name: signInViewModel.userName,
+            },
+        });
 
-		if (!user) {
-			return null;
-		}
+        if (!user) {
+            return null;
+        }
 
-		const isPasswordValid = await bcrypt.compare(
-			signInViewModel.password,
-			user.password
-		);
+        const isPasswordValid = await bcrypt.compare(
+            signInViewModel.password,
+            user.password,
+        );
 
-		if (!isPasswordValid) {
-			return null;
-		}
+        if (!isPasswordValid) {
+            return null;
+        }
 
-		const payload = {
-			sub: user.id,
-			username: user.name
-		};
+        const payload = {
+            sub: user.id,
+            username: user.name,
+        };
 
-		return {
-			token: await this.jwtService.signAsync(payload),
-		};
-	}
-
+        return {
+            token: await this.jwtService.signAsync(payload),
+        };
+    }
 }

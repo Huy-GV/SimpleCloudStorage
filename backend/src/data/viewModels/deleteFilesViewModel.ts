@@ -1,3 +1,3 @@
 interface DeleteFilesViewModel {
-    fileIds: number[]
+  fileIds: number[];
 }

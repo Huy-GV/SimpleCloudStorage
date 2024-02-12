@@ -116,3 +116,7 @@
 .hidden {
     display: none;
 }
+
+.btnLabel {
+    margin-left: 0.5rem;
+}

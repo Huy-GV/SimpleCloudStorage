@@ -1,21 +1,31 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { JwtService } from "@nestjs/jwt";
-import { Request } from "express";
-import { AUTH_HEADER_KEY, ALLOW_ANONYMOUS_KEY, JWT_COOKIE_KEY, USER_CONTEXT_KEY, BEARER_STR } from "./constants";
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+import {
+    AUTH_HEADER_KEY,
+    ALLOW_ANONYMOUS_KEY,
+    JWT_COOKIE_KEY,
+    USER_CONTEXT_KEY,
+    BEARER_STR,
+} from './constants';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
-    constructor(private jwtService: JwtService, private reflector: Reflector) {
-    }
+    constructor(
+    private jwtService: JwtService,
+    private reflector: Reflector,
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const allowAnonymous = this.reflector.getAllAndOverride<boolean>(
             ALLOW_ANONYMOUS_KEY,
-            [
-                context.getHandler(),
-                context.getClass(),
-            ]
+            [context.getHandler(), context.getClass()],
         );
 
         if (allowAnonymous) {
@@ -29,12 +39,9 @@ export class AuthenticationGuard implements CanActivate {
         }
 
         try {
-            const payload = await this.jwtService.verifyAsync(
-                token,
-                {
-                    secret: process.env.JWT_SECRET,
-                }
-            );
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: process.env.JWT_SECRET,
+            });
 
             // TODO: build a complex User model by loading info from the db?
             request[USER_CONTEXT_KEY] = payload;

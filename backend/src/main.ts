@@ -4,15 +4,15 @@ import * as cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const config = app.get(ConfigService);
+    const app = await NestFactory.create(AppModule);
+    const config = app.get(ConfigService);
 
-  app.enableCors({
-    origin: [config.get<string>('CLIENT_URLS')]
-  })
+    app.enableCors({
+        origin: [config.get<string>('CLIENT_URLS')],
+    });
 
-  app.use(cookieParser());
-  await app.listen(5000);
+    app.use(cookieParser());
+    await app.listen(5000);
 }
 
 bootstrap();

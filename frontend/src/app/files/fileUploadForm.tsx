@@ -2,6 +2,8 @@ import { ChangeEvent, useState } from "react";
 import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
 import { useRouter } from "next/navigation";
 import styles from "./files.module.css"
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promise<void> }) {
     const router = useRouter();
@@ -48,7 +50,10 @@ export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promi
         <form className={styles.uploadForm} encType="multipart/form-data">
             {
                 <>
-                    <label htmlFor="file" className={styles.selectFileToUploadBtn}>Upload</label>
+                    <label htmlFor="file" className={styles.selectFileToUploadBtn}>
+					    <FontAwesomeIcon icon={faUpload} />
+					    <span className={styles.btnLabel}>Upload</span>
+                    </label>
                     <input id='file' type="file"
                         className={styles.fileInput}
                         name="file"

@@ -11,30 +11,30 @@ import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
 
 @Injectable()
 export class FileStorageService {
-
     constructor(
-        private readonly database: DatabaseService,
-        private readonly s3Service: S3InterfaceService) {
-    }
+    private readonly database: DatabaseService,
+    private readonly s3Service: S3InterfaceService,
+    ) {}
 
     async getAllFiles(userId: number): Promise<FileDto[]> {
-        const files = await this.database.file
-            .findMany({
-                where: {
-                    ownerUserId: userId,
-                }
-            });
+        const files = await this.database.file.findMany({
+            where: {
+                ownerUserId: userId,
+            },
+        });
 
-        return files.map(x => ({
+        return files.map((x) => ({
             id: x.id,
             name: x.name,
             uploadDate: x.creationTime,
-            size: x.sizeKb
+            size: x.sizeKb,
         }));
     }
 
-    async uploadFile(uploadFileViewModel: UploadFileViewModel, userId: number): Promise<Result> {
-
+    async uploadFile(
+        uploadFileViewModel: UploadFileViewModel,
+        userId: number,
+    ): Promise<Result> {
         const uri = await this.s3Service.uploadFile(uploadFileViewModel.file);
         if (!uri) {
             return Result.InvalidState;
@@ -46,82 +46,85 @@ export class FileStorageService {
                 uri: uri,
                 ownerUserId: userId,
                 creationTime: new Date(),
-                sizeKb: uploadFileViewModel.file.size / 1000
-            }
-        })
+                sizeKb: uploadFileViewModel.file.size / 1000,
+            },
+        });
 
         return Result.Success;
     }
 
     async downloadFiles(
         downloadFileViewModel: DownloadFileViewModel,
-        userId: number): Promise<{ result: Result, streamableFile: StreamableFile | null }> {
-
+        userId: number,
+    ): Promise<{ result: Result; streamableFile: StreamableFile | null }> {
         const user = await this.database.user.findUnique({
             where: {
-                id: userId
-            }
+                id: userId,
+            },
         });
 
         if (!user) {
-            return { result: Result.Unauthorized, streamableFile: null }
+            return { result: Result.Unauthorized, streamableFile: null };
         }
 
         const directoryName = this.createTemporaryDirectoryName(user.name);
-        const tempDirectoryPath = process.cwd() + `/downloaded_files//${directoryName}`;
+        const tempDirectoryPath =
+      process.cwd() + `/downloaded_files//${directoryName}`;
         const fullZipFileName = `${tempDirectoryPath}.zip`;
 
         try {
-			if (!existsSync(tempDirectoryPath)) {
-				await mkdir(tempDirectoryPath, { recursive: true });
-			}
+            if (!existsSync(tempDirectoryPath)) {
+                await mkdir(tempDirectoryPath, { recursive: true });
+            }
 
-			const archive = archiver('zip', { zlib: { level: 9 } });
-			const downloadDirectoryStream = createWriteStream(fullZipFileName);
-			archive.pipe(downloadDirectoryStream);
+            const archive = archiver('zip', { zlib: { level: 9 } });
+            const downloadDirectoryStream = createWriteStream(fullZipFileName);
+            archive.pipe(downloadDirectoryStream);
 
-			const files = await this.database.file.findMany({
-				where: {
-					ownerUserId: userId,
-					id: {
-						in: downloadFileViewModel.fileIds
-					}
-				},
-				select: {
-					uri: true,
-					name: true
-				}
-			})
+            const files = await this.database.file.findMany({
+                where: {
+                    ownerUserId: userId,
+                    id: {
+                        in: downloadFileViewModel.fileIds,
+                    },
+                },
+                select: {
+                    uri: true,
+                    name: true,
+                },
+            });
 
-			if (files.length != downloadFileViewModel.fileIds.length) {
-                return { result: Result.NotFound, streamableFile: null }
-			}
+            if (files.length != downloadFileViewModel.fileIds.length) {
+                return { result: Result.NotFound, streamableFile: null };
+            }
 
-			for (const file of files) {
-				await this.addFileToZip(file, archive, tempDirectoryPath);
-			}
+            for (const file of files) {
+                await this.addFileToZip(file, archive, tempDirectoryPath);
+            }
 
-			await archive.finalize();
-			const readStream = createReadStream(`${tempDirectoryPath}.zip`);
+            await archive.finalize();
+            const readStream = createReadStream(`${tempDirectoryPath}.zip`);
 
-			// delete the temporary directory and zip file
-			readStream.on('close', async () => {
-				await unlink(fullZipFileName);
-				await rm(tempDirectoryPath, { recursive: true, force: true })
-			})
+            // delete the temporary directory and zip file
+            readStream.on('close', async () => {
+                await unlink(fullZipFileName);
+                await rm(tempDirectoryPath, { recursive: true, force: true });
+            });
 
-            return { result: Result.Success, streamableFile: new StreamableFile(readStream) };
-		}
-		catch (error) {
-			console.error('Error zipping files:', error);
-		}
+            return {
+                result: Result.Success,
+                streamableFile: new StreamableFile(readStream),
+            };
+        } catch (error) {
+            console.error('Error zipping files:', error);
+        }
     }
 
     private async addFileToZip(
-        file: { name: string; uri: string; },
+        file: { name: string; uri: string },
         archive: archiver.Archiver,
-        tempDirectoryPath: string) {
-
+        tempDirectoryPath: string,
+    ) {
         const presignedUrl = await this.s3Service.getPublicUrl(file.uri);
 
         // axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
@@ -147,23 +150,23 @@ export class FileStorageService {
     }
 
     private createTemporaryDirectoryName(userName: string) {
-		const timestamp = new Date().toISOString().replace(/:/g, '-');
-		return `${userName}_${timestamp}`;
-	}
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        return `${userName}_${timestamp}`;
+    }
 
     async updateFileName(
         updateFileNameViewModel: UpdateFileNameViewModel,
-        userId: number): Promise<Result> {
-
+        userId: number,
+    ): Promise<Result> {
         await this.database.file.update({
             where: {
                 id: updateFileNameViewModel.id,
-                ownerUserId: userId
+                ownerUserId: userId,
             },
             data: {
                 name: updateFileNameViewModel.newFileName,
             },
-        })
+        });
 
         return Result.Success;
     }
@@ -172,10 +175,10 @@ export class FileStorageService {
         const filesToDelete = await this.database.file.findMany({
             where: {
                 id: {
-                    in: fileIds
+                    in: fileIds,
                 },
-                ownerUserId: userId
-            }
+                ownerUserId: userId,
+            },
         });
 
         if (filesToDelete.length != fileIds.length) {
@@ -185,13 +188,15 @@ export class FileStorageService {
         await this.database.file.deleteMany({
             where: {
                 id: {
-                    in: fileIds
+                    in: fileIds,
                 },
-                ownerUserId: userId
-            }
+                ownerUserId: userId,
+            },
         });
 
-        const s3Result = await this.s3Service.deleteObjects(filesToDelete.map(x => x.uri));
+        const s3Result = await this.s3Service.deleteObjects(
+            filesToDelete.map((x) => x.uri),
+        );
         if (s3Result != Result.Success) {
             return s3Result;
         }

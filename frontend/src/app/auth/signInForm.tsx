@@ -63,7 +63,7 @@ export default function SignInForm() {
                     Sign In Error: {error}
                 </div>
             }
-            <form className={styles.authForm} onSubmit={e => handleSignIn(e)}>
+            <form className={styles.authForm} onSubmit={handleSignIn}>
                 <label htmlFor="userName">User Name</label>
                 <input
                     type="text"

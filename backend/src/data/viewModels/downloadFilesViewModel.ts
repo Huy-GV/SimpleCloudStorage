@@ -1,3 +1,3 @@
 interface DownloadFileViewModel {
-    fileIds: number[]
+  fileIds: number[];
 }

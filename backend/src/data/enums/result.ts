@@ -1,6 +1,6 @@
 export enum Result {
-    Success,
-    Unauthorized,
-    NotFound,
-    InvalidState
+  Success,
+  Unauthorized,
+  NotFound,
+  InvalidState,
 }

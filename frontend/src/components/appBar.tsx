@@ -10,15 +10,16 @@ export default function AppBar() {
     const [isSignedIn, setSignedIn] = useState<boolean>(false)
 
     useEffect(() => {
-        setSignedIn(localStorage[JWT_STORAGE_KEY])
+        setSignedIn(!!localStorage[JWT_STORAGE_KEY])
     }, [])
 
     const handleSignOut = () => {
         if (isSignedIn) {
             localStorage.removeItem(JWT_STORAGE_KEY);
-            setSignedIn(false);
-            router.push('/auth')
         }
+
+        setSignedIn(false);
+        router.push('/auth')
     }
 
     return (

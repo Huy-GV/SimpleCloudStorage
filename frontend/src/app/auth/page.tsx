@@ -25,7 +25,7 @@ export default function Page() {
             <div className={styles.formContainer}>
                 <SignInForm></SignInForm>
                 <div className={styles.alternateAuthOptionContainer}>
-                    <p>Haven't got an account?</p>
+                    <p>Haven&apos;t got an account?</p>
                     <button className={styles.alternateAuthBtn} onClick={toggleUseSignUp}>Sign Up</button>
                 </div>
             </div>

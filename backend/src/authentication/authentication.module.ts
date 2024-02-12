@@ -8,24 +8,24 @@ import { AuthenticationGuard } from './authentication.guard';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
-  providers: [
-	AuthenticationService,
-	{
-	  	provide: APP_GUARD,
-	  	useClass: AuthenticationGuard,
-	},
-  ],
-  controllers: [AuthenticationController],
-  imports: [
-		DatabaseModule,
-	  	JwtModule.registerAsync({
-			global: true,
-		  	useFactory: (configService: ConfigService) => ({
-				signOptions: { expiresIn: '7d' },
-			  	secret: configService.get<string>('JWT_SECRET'),
-			}),
-			inject: [ConfigService],
-		}),
-  	]
+    providers: [
+        AuthenticationService,
+        {
+            provide: APP_GUARD,
+            useClass: AuthenticationGuard,
+        },
+    ],
+    controllers: [AuthenticationController],
+    imports: [
+        DatabaseModule,
+        JwtModule.registerAsync({
+            global: true,
+            useFactory: (configService: ConfigService) => ({
+                signOptions: { expiresIn: '7d' },
+                secret: configService.get<string>('JWT_SECRET'),
+            }),
+            inject: [ConfigService],
+        }),
+    ],
 })
 export class AuthenticationModule {}

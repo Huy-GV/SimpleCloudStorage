@@ -1,4 +1,4 @@
 export interface UpdateFileNameViewModel {
-    id: number,
-    newFileName: string
+  id: number;
+  newFileName: string;
 }

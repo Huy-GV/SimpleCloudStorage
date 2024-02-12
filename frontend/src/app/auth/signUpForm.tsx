@@ -48,11 +48,10 @@ export default function SignUpForm() {
             }
 
             const jwtDto = await response.json();
-            localStorage.setItem(JWT_STORAGE_KEY, jwtDto.token)
-			console.log('Successfully signed up');
+			localStorage.setItem(JWT_STORAGE_KEY, jwtDto.token)
 			router.push('/files')
         } catch (e) {
-            console.log('Failed to sign up: ', e)
+            console.error('Failed to sign up: ', e)
             setError("An unknown error occurred");
         }
     }
