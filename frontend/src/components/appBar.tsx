@@ -1,19 +1,8 @@
+"use client"
+
 import Link from "next/link";
-
 import styles  from './appBar.module.css'
-
-const AuthenticationButton = () => {
-    const isSignedIn: boolean = false;
-    const authenticationLinkLabel: string = isSignedIn ? "Sign Out" : "Sign In"
-
-    const handleSignOut = () => {
-
-    }
-
-    return isSignedIn
-        ? (<button onClick={handleSignOut}>{authenticationLinkLabel}</button>)
-        : (<Link href="/auth">{authenticationLinkLabel}</Link>)
-}
+import AuthenticationButton from "./authenticationButton";
 
 export default function AppBar() {
 

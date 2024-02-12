@@ -86,7 +86,7 @@ export class FileStorageService {
             }
         });
 
-        const s3Result = await this.s3Service.deleteObjects(filesToDelete.map(x => x.uri), userId);
+        const s3Result = await this.s3Service.deleteObjects(filesToDelete.map(x => x.uri));
         if (s3Result != Result.Success) {
             return s3Result;
         }

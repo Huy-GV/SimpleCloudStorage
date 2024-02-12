@@ -19,7 +19,7 @@ export default function Page() {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`
+				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
 			}
 		});
 

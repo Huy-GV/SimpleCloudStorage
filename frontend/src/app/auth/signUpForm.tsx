@@ -63,7 +63,7 @@ export default function SignUpForm() {
     }
 
     return (
-        <div>
+        <>
             <h1>Sign Up</h1>
             {
                 error &&
@@ -102,8 +102,8 @@ export default function SignUpForm() {
                     required
                 />
 
-                <button type="submit">Sign In</button>
+                <button type="submit" className={styles.signUpBtn}>Sign Up</button>
             </form>
-    </div>
+    </>
     )
   }

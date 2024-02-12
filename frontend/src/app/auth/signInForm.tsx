@@ -84,7 +84,7 @@ export default function SignInForm() {
                     required
                 />
 
-                <button type="submit">Sign In</button>
+                <button type="submit" className={styles.signInBtn}>Sign In</button>
             </form>
         </div>
     );

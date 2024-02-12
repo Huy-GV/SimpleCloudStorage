@@ -92,7 +92,7 @@ export class S3InterfaceService {
         };
     }
 
-    async deleteObjects(objectUrls: string[], userId: number): Promise<Result> {
+    async deleteObjects(objectUrls: string[]): Promise<Result> {
         const objectKeys = objectUrls.map(x => (this.extractS3ObjectProperties(x).key))
         const deleteObjectsCommand = new DeleteObjectsCommand({
             Bucket: this.bucket,

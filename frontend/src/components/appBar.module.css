@@ -11,3 +11,9 @@
     color: black;
     margin: 1rem;
 }
+
+.signOutBtn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+}

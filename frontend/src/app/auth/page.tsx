@@ -16,17 +16,17 @@ export default function Page() {
             ?
             <div className={styles.formContainer}>
                 <SignUpForm></SignUpForm>
-                <div>
+                <div className={styles.alternateAuthOptionContainer}>
                     <p>Already have an account?</p>
-                    <button onClick={toggleUseSignUp}>Sign In</button>
+                    <button className={styles.alternateAuthBtn} onClick={toggleUseSignUp}>Sign In</button>
                 </div>
             </div>
             :
             <div className={styles.formContainer}>
                 <SignInForm></SignInForm>
-                <div>
+                <div className={styles.alternateAuthOptionContainer}>
                     <p>Haven't got an account?</p>
-                    <button onClick={toggleUseSignUp}>Sign Up</button>
+                    <button className={styles.alternateAuthBtn} onClick={toggleUseSignUp}>Sign Up</button>
                 </div>
             </div>
         }
