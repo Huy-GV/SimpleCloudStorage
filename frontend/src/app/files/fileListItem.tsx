@@ -7,7 +7,12 @@ export function FileListItem({ name, onFileSelect, selected }: FileItemData) {
 
     return (
         <tr className={selected ? styles.selectedRow : '#'}>
-            <td><input type='checkbox' className={styles.fileCheckbox} onChange={handleFileSelect}></input></td>
+            <td>
+                <input
+                    type='checkbox'
+                    className={styles.fileCheckbox}
+                    onChange={handleFileSelect}
+                    checked={selected}></input></td>
             <td className={styles.nameCol}>{ name }</td>
             <td className={styles.uploadDateCol}>unimplemented</td>
         </tr>

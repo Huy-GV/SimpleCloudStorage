@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
 import { FileListItem } from "./fileListItem";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { FileItemData } from "./definitions";
 export default function Page() {
 	const router = useRouter();
 
+	const downloadedFileRef = useRef<HTMLAnchorElement>(null);
 	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
 	const [error, setError] = useState<string>('');
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
@@ -79,11 +80,30 @@ export default function Page() {
 		await reloadFileList();
 	}
 
+	const clickDownloadLink = (blob: Blob) => {
+		const downloadAnchor = downloadedFileRef.current!;
+
+		const url = URL.createObjectURL(blob);
+		downloadAnchor.setAttribute('href', url)
+		downloadAnchor.setAttribute('download', 'downloaded.zip')
+
+		downloadAnchor.click();
+
+		URL.revokeObjectURL(url);
+		downloadAnchor.removeAttribute('href')
+		downloadAnchor.removeAttribute('download')
+	}
+
 	const handleFileDownload = async () => {
+		const jwt = localStorage[JWT_STORAGE_KEY];
+		if (!jwt) {
+			router.push('/auth');
+		}
+
 		const response = await fetch(`${SERVER_URL}/files/download`, {
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`,
+				'Authorization': `Bearer ${jwt}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
@@ -102,15 +122,7 @@ export default function Page() {
 		}
 
 		const blob = await response.blob();
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'downloaded.zip';
-		document.body.appendChild(link);
-		link.click();
-
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
+		clickDownloadLink(blob);
 
 		setSelectedFiles(new Set());
 	}
@@ -135,6 +147,8 @@ export default function Page() {
 					disabled={selectedFiles.size == 0}
 					className={styles.fileDeleteBtn}
 					onClick={handleFileDelete}>Delete</button>
+				<a ref={downloadedFileRef}></a>
+
 				{/* <button>Share</button> */}
 			</div>
 			{
@@ -144,8 +158,8 @@ export default function Page() {
 				<thead>
 					<tr>
 						<th className={styles.nameCol}>Selected</th>
-						<th className={styles.nameCol}>File name</th>
-						<th className={styles.uploadDateCol}>Upload date</th>
+						<th className={styles.nameCol}>Name</th>
+						<th className={styles.uploadDateCol}>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>
