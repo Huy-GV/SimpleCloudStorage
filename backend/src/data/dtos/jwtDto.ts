@@ -1,3 +1,5 @@
-export interface JwtDto {
-  token: string;
+export class JwtDto {
+	constructor(
+		readonly token: string
+	) { }
 }

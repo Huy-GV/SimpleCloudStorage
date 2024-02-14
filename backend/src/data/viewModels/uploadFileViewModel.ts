@@ -1,3 +1,3 @@
-interface UploadFileViewModel {
-  file: Express.Multer.File;
+export class UploadFileViewModel {
+	readonly file: Express.Multer.File;
 }

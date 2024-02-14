@@ -1,3 +1,3 @@
-interface DownloadFileViewModel {
-  fileIds: number[];
+export class DownloadFileViewModel {
+	readonly fileIds: number[];
 }

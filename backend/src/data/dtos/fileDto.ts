@@ -1,6 +1,8 @@
-export interface FileDto {
-  id: number;
-  name: string;
-  uploadDate: Date;
-  size: number;
+export class FileDto {
+	constructor(
+		readonly id: number,
+		readonly name: string,
+		readonly uploadDate: Date,
+		readonly size: number,
+	) { }
 }

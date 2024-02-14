@@ -1,5 +1,5 @@
-export interface SignUpViewModel {
-  userName: string;
-  email: string;
-  password: string;
+export class SignUpViewModel {
+	readonly userName: string;
+	readonly email: string;
+	readonly password: string;
 }

@@ -3,17 +3,17 @@ import {
     ForbiddenException,
     NotFoundException,
 } from '@nestjs/common';
-import { Result } from 'src/data/enums/result';
+import { ResultCode } from 'src/data/results/resultCode';
 
-export default function throwHttpExceptionOnFailure(result: Result) {
+export default function throwHttpExceptionOnFailure(result: ResultCode) {
     switch (result) {
-    case Result.InvalidState:
+    case ResultCode.InvalidState:
         throw new ConflictException();
-    case Result.Unauthorized:
+    case ResultCode.Unauthorized:
         throw new ForbiddenException();
-    case Result.NotFound:
+    case ResultCode.NotFound:
         throw new NotFoundException();
-    case Result.Success:
+    case ResultCode.Success:
         return;
     }
 }

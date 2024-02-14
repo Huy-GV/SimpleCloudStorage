@@ -1,3 +1,3 @@
-interface DeleteFilesViewModel {
-  fileIds: number[];
+export class DeleteFilesViewModel {
+	readonly fileIds: number[];
 }
