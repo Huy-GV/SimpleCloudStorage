@@ -10,6 +10,8 @@ import {
 	UseInterceptors,
 	StreamableFile,
 	Param,
+	ParseIntPipe,
+	Optional,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { USER_CONTEXT_KEY } from 'src/authentication/constants';
@@ -27,13 +29,21 @@ import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryVie
 export class FileStorageController {
 	constructor(private readonly fileStorage: FileStorageService) {}
 
-	@Get('/:directoryId?')
-	async getAllFiles(
+	@Get('/:directoryId')
+	async getAllFilesInDirectory(
 		@Req() request: Request,
-		@Param('directoryId') directoryId?: number | null
+		@Param('directoryId', new ParseIntPipe()) directoryId?: number | null
 	): Promise<FileDto[]> {
 		const userId = request[USER_CONTEXT_KEY].sub;
 		return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
+	}
+
+	@Get()
+	async getAllFilesInRootDirectory(
+		@Req() request: Request,
+	): Promise<FileDto[]> {
+		const userId = request[USER_CONTEXT_KEY].sub;
+		return await this.fileStorage.getAllFiles(userId, null);
 	}
 
 	@Post('/upload')
@@ -46,7 +56,7 @@ export class FileStorageController {
 
 		const viewModel = { ...rawViewModel, file: file}
 		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.uploadFile(userId, viewModel, null);
+		const result = await this.fileStorage.uploadFile(userId, viewModel, viewModel.directoryFileId);
 
 		throwHttpExceptionIfUnsuccessful(result.code);
 	}

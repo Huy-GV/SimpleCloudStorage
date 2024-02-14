@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import styles from "./files.module.css"
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { UploadFileFormProps } from "./definitions";
 
-export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promise<void> }) {
+export function FileUploadForm({ onFileUploaded, parentDirectoryId } : UploadFileFormProps) {
     const router = useRouter();
     const [error, setError] = useState<string>('');
 
@@ -17,6 +18,9 @@ export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promi
 
         const formData = new FormData();
         formData.append('file', fileToUpload);
+        formData.append('directoryFileId', JSON.stringify(parentDirectoryId));
+
+        console.log(formData)
 
         const response = await fetch(`${SERVER_URL}/files/upload`, {
             method: 'POST',

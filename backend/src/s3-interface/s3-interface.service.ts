@@ -106,6 +106,10 @@ export class S3InterfaceService {
 	}
 
 	async deleteObjects(objectUrls: string[]): Promise<EmptyResult> {
+		if (objectUrls.length == 0) {
+			return new EmptyResult(ResultCode.Success);
+		}
+
 		const objectKeys = objectUrls.map(
 			(x) => this.extractS3ObjectProperties(x).key,
 		);

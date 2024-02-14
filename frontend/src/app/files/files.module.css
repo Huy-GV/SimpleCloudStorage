@@ -125,3 +125,7 @@
 .btnLabel {
     margin-left: 0.5rem;
 }
+
+.errorMessage {
+    color: red;
+}

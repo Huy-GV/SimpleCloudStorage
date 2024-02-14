@@ -62,6 +62,7 @@ export class FileStorageService {
 		await this.database.file.create({
 			data: {
 				name: viewModel.name,
+				parentFileId: viewModel.parentDirectoryId,
 				ownerUserId: userId,
 				sizeKb: 0,
 				uri: '',
@@ -75,39 +76,45 @@ export class FileStorageService {
 
 	async uploadFile(
 		userId: number,
-		uploadFileViewModel: UploadFileViewModel,
+		viewModel: UploadFileViewModel,
 		parentFileId: number | null
 	): Promise<Result> {
+		try {
+			await this.database.$transaction(async (transaction) => {
+				const filesWithIdenticalNameInSharedDirectoryCount = await transaction.file.count({
+					where: {
+						name: viewModel.file.originalname,
+						parentFileId: parentFileId,
+						isDirectory: false
+					}
+				})
 
-		const filesWithIdenticalNameInSharedDirectoryCount = await this.database.file.count({
-			where: {
-				name: uploadFileViewModel.file.originalname,
-				parentFileId: parentFileId,
-				isDirectory: false
-			}
-		})
+				if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+					throw new Error(`File with name ${viewModel.file.originalname} already exists in the upload directory`);
+				}
 
-		if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+				const s3UploadResult = await this.s3Service.uploadFile(viewModel.file);
+				if (!s3UploadResult.successful) {
+					throw new Error(s3UploadResult.statusText);
+				}
+
+				await transaction.file.create({
+					data: {
+						name: viewModel.file.originalname,
+						parentFileId: viewModel.directoryFileId,
+						uri: s3UploadResult.data,
+						ownerUserId: userId,
+						creationTime: new Date(),
+						sizeKb: viewModel.file.size / 1000,
+						isDirectory: false
+					},
+				});
+			})
+		} catch (e: any) {
 			return new EmptyResult(
 				ResultCode.InvalidState,
-				`File with name ${uploadFileViewModel.file.originalname} already exists in the upload directory`);
+				e.message ?? '');
 		}
-
-		const s3UploadResult = await this.s3Service.uploadFile(uploadFileViewModel.file);
-		if (!s3UploadResult.successful) {
-			return s3UploadResult;
-		}
-
-		await this.database.file.create({
-			data: {
-				name: uploadFileViewModel.file.originalname,
-				uri: s3UploadResult.data,
-				ownerUserId: userId,
-				creationTime: new Date(),
-				sizeKb: uploadFileViewModel.file.size / 1000,
-				isDirectory: false
-			},
-		});
 
 		return new EmptyResult(ResultCode.Success);
 	}
@@ -220,43 +227,50 @@ export class FileStorageService {
 		viewModel: UpdateFileNameViewModel,
 		userId: number,
 	): Promise<EmptyResult> {
-		const filesWithIdenticalNameInSharedDirectory = await this.database.file.findMany({
-			where: {
-				name: viewModel.newFileName,
-				parentFileId: viewModel.parentDirectoryId,
-			}
-		})
+		try {
+			await this.database.$transaction(async (transaction) => {
 
-		if (filesWithIdenticalNameInSharedDirectory.length == 2) {
+				const filesWithIdenticalNameInSharedDirectory = await transaction.file.findMany({
+					where: {
+						name: viewModel.newFileName,
+						parentFileId: viewModel.parentDirectoryId,
+					}
+				})
+
+				if (filesWithIdenticalNameInSharedDirectory.length == 2) {
+					throw new Error(`File and directory with name ${viewModel.newFileName} already exist in the upload directory`)
+				}
+
+				const fileToUpdate = await transaction.file.findUnique({
+					where: {
+						id: viewModel.id
+					}
+				})
+
+				const directoriesWithDuplicateName = filesWithIdenticalNameInSharedDirectory.length == 1 &&
+					filesWithIdenticalNameInSharedDirectory[0].isDirectory == fileToUpdate.isDirectory;
+
+				if (directoriesWithDuplicateName) {
+					throw new Error(`File or directory with name ${viewModel.newFileName} already exists in the upload directory`)
+				}
+
+				await transaction.file.update({
+					where: {
+						id: viewModel.id,
+						ownerUserId: userId,
+					},
+					data: {
+						name: viewModel.newFileName,
+					},
+				});
+			})
+		} catch (e: any) {
 			return new EmptyResult(
 				ResultCode.InvalidState,
-				`File and directory with name ${viewModel.newFileName} already exist in the upload directory`);
+				e.message ?? ''
+			);
 		}
 
-		const fileToUpdate = await this.database.file.findUnique({
-			where: {
-				id: viewModel.id
-			}
-		})
-
-		const directoriesWithDuplicateName = filesWithIdenticalNameInSharedDirectory.length == 1 &&
-			filesWithIdenticalNameInSharedDirectory[0].isDirectory == fileToUpdate.isDirectory;
-
-		if (directoriesWithDuplicateName) {
-			return new EmptyResult(
-				ResultCode.InvalidState,
-				`File or directory with name ${viewModel.newFileName} already exists in the upload directory`);
-		}
-
-		await this.database.file.update({
-			where: {
-				id: viewModel.id,
-				ownerUserId: userId,
-			},
-			data: {
-				name: viewModel.newFileName,
-			},
-		});
 
 		return new EmptyResult(ResultCode.Success)
 	}
@@ -269,6 +283,10 @@ export class FileStorageService {
 				},
 				ownerUserId: userId,
 			},
+			select: {
+				uri: true,
+				isDirectory: true
+			}
 		});
 
 		if (filesToDelete.length != fileIds.length) {
@@ -284,9 +302,8 @@ export class FileStorageService {
 			},
 		});
 
-		const s3Result = await this.s3Service.deleteObjects(
-			filesToDelete.map((x) => x.uri),
-		);
+		const s3Urls = filesToDelete.filter(x => !x.isDirectory).map(x => x.uri);
+		const s3Result = await this.s3Service.deleteObjects(s3Urls);
 
 		return new EmptyResult(s3Result.code);
 	}

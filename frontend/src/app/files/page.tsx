@@ -7,7 +7,7 @@ import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
 import { FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightToBracket, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 
 export default function Page() {
@@ -15,36 +15,52 @@ export default function Page() {
 
 	const downloadedFileRef = useRef<HTMLAnchorElement>(null);
 	const [currentDirectoryId, setCurrentDirectoryId] = useState<number | null>(null);
-	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
-	const [error, setError] = useState<string>('');
+
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
+	const [selectedDirectoryId, setSelectedDirectoryId] = useState<number | null>(null);
+
+	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
+	const [directoryIds, setDirectoryIds] = useState<Set<number>>(new Set());
+
+	const [error, setError] = useState<string>('');
 	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
 
-	const fetchAllFiles = async (): Promise<FileItemData[] | null> => {
-		const response = await fetch(`${SERVER_URL}/files/`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
+	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemData[] | null> => {
+		const url = directoryId == null
+			? `${SERVER_URL}/files/`
+			: `${SERVER_URL}/files/${directoryId}`;
+
+		console.log(url)
+		try {
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
+				}
+			});
+
+			if (!response.ok) {
+				setError("Failed to fetch files");
+
+				if (response.status === 401 || response.status === 403) {
+					router.push('/auth');
+				}
+
+				return null;
 			}
-		});
 
-		if (!response.ok) {
-			setError("Failed to fetch files");
-
-			if (response.status === 401 || response.status === 403) {
-				router.push('/auth');
-			}
-
-			return null;
+			const files: FileItemData[] = await response.json();
+			return files;
+		} catch (e) {
+			console.error(e);
+			return [];
 		}
-
-		const files: FileItemData[] = await response.json();
-		return files;
 	}
 
-	const reloadFileList = async (): Promise<void> => {
-		const files = await fetchAllFiles();
+	const reloadFileList = async (directoryId: number | null): Promise<void> => {
+		const files = await fetchAllFiles(directoryId);
+		setDirectoryIds(new Set(files?.filter(x => x.isDirectory).map(x => x.id)));
 		setFileItemList(files || []);
 	}
 
@@ -56,6 +72,15 @@ export default function Page() {
 		} else {
 			newFileSet.add(fileId);
 			setSelectedFiles(newFileSet);
+		}
+
+		if (newFileSet.size == 1) {
+			const onlySelectedFileId = Array.from(newFileSet)[0];
+			if (directoryIds.has(onlySelectedFileId)) {
+				setSelectedDirectoryId(onlySelectedFileId)
+			}
+		} else {
+			setSelectedDirectoryId(null);
 		}
 	}
 
@@ -82,7 +107,7 @@ export default function Page() {
 		}
 
 		setSelectedFiles(new Set());
-		await reloadFileList();
+		await reloadFileList(currentDirectoryId);
 	}
 
 	const clickDownloadLink = (blob: Blob) => {
@@ -140,16 +165,29 @@ export default function Page() {
 		setIsCreateDirectoryFormDisplayed(true)
 	}
 
+	const handleFolderEntered = async () => {
+		// set the current directory to the previously selected one
+		console.log('current selected dir id is ', selectedDirectoryId)
+		setCurrentDirectoryId(selectedDirectoryId);
+
+		// unselect all files and directories
+		setSelectedDirectoryId(null);
+		setSelectedFiles(new Set());
+
+		await reloadFileList(selectedDirectoryId);
+	}
+
 	const onFileUploaded = async () => {
-		await reloadFileList();
+		console.log('current dir id is ', currentDirectoryId)
+		await reloadFileList(currentDirectoryId);
 	};
 
 	const onFileNameChanged = async () => {
-		await reloadFileList();
+		await reloadFileList(currentDirectoryId);
 	};
 
 	const onDirectoryCreated = async () => {
-		await reloadFileList();
+		await reloadFileList(currentDirectoryId);
 		setIsCreateDirectoryFormDisplayed(false);
 	};
 
@@ -158,7 +196,7 @@ export default function Page() {
 	};
 
 	useEffect(() => {
-		reloadFileList();
+		reloadFileList(currentDirectoryId);
 	}, []);
 
 	return (
@@ -171,7 +209,11 @@ export default function Page() {
 					<FontAwesomeIcon icon={faPlus} />
 					<span className={styles.btnLabel}>Add Folder</span>
 				</button>
-				<FileUploadForm onFileUploaded={onFileUploaded}></FileUploadForm>
+				<FileUploadForm
+					parentDirectoryId={currentDirectoryId}
+					onFileUploaded={onFileUploaded}
+				>
+				</FileUploadForm>
 				<button
 					disabled={selectedFiles.size == 0}
 					className={styles.fileDownloadBtn}
@@ -186,13 +228,23 @@ export default function Page() {
 					<FontAwesomeIcon icon={faTrash} />
 					<span className={styles.btnLabel}>Delete</span>
 				</button>
+				<button
+					disabled={selectedDirectoryId == null}
+					className={styles.fileDeleteBtn}
+					onClick={handleFolderEntered}>
+					<FontAwesomeIcon icon={faArrowRightToBracket} />
+					<span className={styles.btnLabel}>Enter</span>
+				</button>
 				<a ref={downloadedFileRef}></a>
 
 				{/* <button>Share</button> */}
 			</div>
 			{
-				error && <p>Error: {error}</p>
+				error && <p className={styles.errorMessage}>Error: {error}</p>
 			}
+			<div>
+
+			</div>
 			<table className={styles.fileTable}>
 				<thead>
 					<tr>
