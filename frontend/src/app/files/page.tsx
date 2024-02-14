@@ -7,15 +7,18 @@ import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
 import { FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { CreateDirectoryForm } from "./createDirectoryForm";
 
 export default function Page() {
 	const router = useRouter();
 
 	const downloadedFileRef = useRef<HTMLAnchorElement>(null);
+	const [currentDirectoryId, setCurrentDirectoryId] = useState<number | null>(null);
 	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
 	const [error, setError] = useState<string>('');
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
+	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
 
 	const fetchAllFiles = async (): Promise<FileItemData[] | null> => {
 		const response = await fetch(`${SERVER_URL}/files/`, {
@@ -133,12 +136,25 @@ export default function Page() {
 		setSelectedFiles(new Set());
 	}
 
+	const handleDirectoryCreationFormDisplayed = () => {
+		setIsCreateDirectoryFormDisplayed(true)
+	}
+
 	const onFileUploaded = async () => {
 		await reloadFileList();
 	};
 
 	const onFileNameChanged = async () => {
 		await reloadFileList();
+	};
+
+	const onDirectoryCreated = async () => {
+		await reloadFileList();
+		setIsCreateDirectoryFormDisplayed(false);
+	};
+
+	const onDirectoryCreationCancelled = async () => {
+		setIsCreateDirectoryFormDisplayed(false);
 	};
 
 	useEffect(() => {
@@ -149,6 +165,12 @@ export default function Page() {
 		<main className={styles.fileListContainer}>
 			<h1>My Files</h1>
 			<div className={styles.btnMenu}>
+				<button
+					className={styles.selectFileToUploadBtn}
+					onClick={handleDirectoryCreationFormDisplayed}>
+					<FontAwesomeIcon icon={faPlus} />
+					<span className={styles.btnLabel}>Add Folder</span>
+				</button>
 				<FileUploadForm onFileUploaded={onFileUploaded}></FileUploadForm>
 				<button
 					disabled={selectedFiles.size == 0}
@@ -164,10 +186,6 @@ export default function Page() {
 					<FontAwesomeIcon icon={faTrash} />
 					<span className={styles.btnLabel}>Delete</span>
 				</button>
-				<button
-					className={selectedFiles.size != 0 ? styles.deselectFilesBtn : styles.hidden}
-					onClick={handleFilesDeselected}>Deselect { selectedFiles.size }</button>
-
 				<a ref={downloadedFileRef}></a>
 
 				{/* <button>Share</button> */}
@@ -178,28 +196,45 @@ export default function Page() {
 			<table className={styles.fileTable}>
 				<thead>
 					<tr>
-						<th className={styles.alignLeftCol}></th>
+						<th className={styles.alignLeftCol}>
+							<button
+								className={selectedFiles.size != 0 ? styles.deselectFilesBtn : styles.hidden}
+								onClick={handleFilesDeselected}>Deselect {selectedFiles.size}
+							</button>
+						</th>
 						<th className={styles.alignLeftCol}>Name</th>
 						<th className={styles.alignLeftCol}>Size</th>
+						<th className={styles.alignLeftCol}>Type</th>
 						<th className={styles.alignRightCol}>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>
-				{
-					fileItemList.map(item => (
-						<FileListItem
-							onFileNameChanged={onFileNameChanged}
-							onFileSelect={() => handleFileSelected(item.id)}
-							key={item.id}
-							name={item.name}
-							id={item.id}
-							size={item.size}
-							selected={selectedFiles.has(item.id)}
-							uploadDate={new Date(item.uploadDate)}
-						>
-						</FileListItem>
-					))
-				}
+					{
+						isCreateDirectoryFormDisplayed && (
+							<CreateDirectoryForm
+								onDirectoryCreated={onDirectoryCreated}
+								onCancel={onDirectoryCreationCancelled}
+								parentDirectoryId={currentDirectoryId}
+							>
+							</CreateDirectoryForm>
+						)
+					}
+					{
+						fileItemList.map(item => (
+							<FileListItem
+								onFileNameChanged={onFileNameChanged}
+								onFileSelect={() => handleFileSelected(item.id)}
+								key={item.id}
+								name={item.name}
+								id={item.id}
+								size={item.size}
+								selected={selectedFiles.has(item.id)}
+								uploadDate={new Date(item.uploadDate)}
+								isDirectory={item.isDirectory}
+							>
+							</FileListItem>
+						))
+					}
 				</tbody>
 			</table>
 		</main>

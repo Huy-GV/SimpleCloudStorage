@@ -6,6 +6,7 @@ import { mkdir, rm, unlink } from 'fs/promises';
 import { FileDto } from 'src/data/dtos/fileDto';
 import { DataResult, EmptyResult, Result } from 'src/data/results/result';
 import { ResultCode } from 'src/data/results/resultCode';
+import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryViewModel';
 import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
 import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
 import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
@@ -19,10 +20,14 @@ export class FileStorageService {
 		private readonly s3Service: S3InterfaceService,
 	) { }
 
-	async getAllFiles(userId: number): Promise<FileDto[]> {
+	async getAllFiles(
+		userId: number,
+		parentFileId: number | null
+	): Promise<FileDto[]> {
 		const files = await this.database.file.findMany({
 			where: {
 				ownerUserId: userId,
+				parentFileId: parentFileId
 			},
 		});
 
@@ -31,13 +36,63 @@ export class FileStorageService {
 			name: x.name,
 			uploadDate: x.creationTime,
 			size: x.sizeKb,
+			isDirectory: x.isDirectory
 		}));
 	}
 
-	async uploadFile(
-		uploadFileViewModel: UploadFileViewModel,
+	async createDirectory(
 		userId: number,
+		viewModel: CreateDirectoryViewModel
 	): Promise<Result> {
+
+		const filesWithIdenticalNameInSharedDirectoryCount = await this.database.file.count({
+			where: {
+				name: viewModel.name,
+				parentFileId: viewModel.parentDirectoryId,
+				isDirectory: true
+			}
+		})
+
+		if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+			return new EmptyResult(
+				ResultCode.InvalidState,
+				`Directory with name ${viewModel.name} already exists in the upload directory`);
+		}
+
+		await this.database.file.create({
+			data: {
+				name: viewModel.name,
+				ownerUserId: userId,
+				sizeKb: 0,
+				uri: '',
+				creationTime: new Date(),
+				isDirectory: true
+			}
+		})
+
+		return new EmptyResult(ResultCode.Success);
+	}
+
+	async uploadFile(
+		userId: number,
+		uploadFileViewModel: UploadFileViewModel,
+		parentFileId: number | null
+	): Promise<Result> {
+
+		const filesWithIdenticalNameInSharedDirectoryCount = await this.database.file.count({
+			where: {
+				name: uploadFileViewModel.file.originalname,
+				parentFileId: parentFileId,
+				isDirectory: false
+			}
+		})
+
+		if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+			return new EmptyResult(
+				ResultCode.InvalidState,
+				`File with name ${uploadFileViewModel.file.originalname} already exists in the upload directory`);
+		}
+
 		const s3UploadResult = await this.s3Service.uploadFile(uploadFileViewModel.file);
 		if (!s3UploadResult.successful) {
 			return s3UploadResult;
@@ -50,6 +105,7 @@ export class FileStorageService {
 				ownerUserId: userId,
 				creationTime: new Date(),
 				sizeKb: uploadFileViewModel.file.size / 1000,
+				isDirectory: false
 			},
 		});
 
@@ -70,14 +126,13 @@ export class FileStorageService {
 			return new DataResult(ResultCode.Unauthorized);
 		}
 
-		const directoryName = this.createTemporaryDirectoryName(user.name);
+		const directoryName = this.createTemporaryDirectoryName(user.id);
 		const tempDirectoryPath = `${process.cwd()}/downloaded_files//${directoryName}`;
 		const fullZipFileName = `${tempDirectoryPath}.zip`;
 
 		try {
-			if (!existsSync(tempDirectoryPath)) {
-				await mkdir(tempDirectoryPath, { recursive: true });
-			}
+
+			this.ensureDirectoryExisted(tempDirectoryPath);
 
 			const archive = archiver('zip', { zlib: { level: 9 } });
 			const downloadDirectoryStream = createWriteStream(fullZipFileName);
@@ -119,7 +174,7 @@ export class FileStorageService {
 		}
 	}
 
-	private async addDirectory(
+	private async ensureDirectoryExisted(
 		directoryPath: string
 	) {
 		if (!existsSync(directoryPath)) {
@@ -156,22 +211,50 @@ export class FileStorageService {
 		archive.append(fileReadStream, { name: file.name });
 	}
 
-	private createTemporaryDirectoryName(userName: string) {
+	private createTemporaryDirectoryName(userId: number) {
 		const timestamp = new Date().toISOString().replace(/:/g, '-');
-		return `${userName}_${timestamp}`;
+		return `${userId}_${timestamp}`;
 	}
 
 	async updateFileName(
-		updateFileNameViewModel: UpdateFileNameViewModel,
+		viewModel: UpdateFileNameViewModel,
 		userId: number,
 	): Promise<EmptyResult> {
+		const filesWithIdenticalNameInSharedDirectory = await this.database.file.findMany({
+			where: {
+				name: viewModel.newFileName,
+				parentFileId: viewModel.parentDirectoryId,
+			}
+		})
+
+		if (filesWithIdenticalNameInSharedDirectory.length == 2) {
+			return new EmptyResult(
+				ResultCode.InvalidState,
+				`File and directory with name ${viewModel.newFileName} already exist in the upload directory`);
+		}
+
+		const fileToUpdate = await this.database.file.findUnique({
+			where: {
+				id: viewModel.id
+			}
+		})
+
+		const directoriesWithDuplicateName = filesWithIdenticalNameInSharedDirectory.length == 1 &&
+			filesWithIdenticalNameInSharedDirectory[0].isDirectory == fileToUpdate.isDirectory;
+
+		if (directoriesWithDuplicateName) {
+			return new EmptyResult(
+				ResultCode.InvalidState,
+				`File or directory with name ${viewModel.newFileName} already exists in the upload directory`);
+		}
+
 		await this.database.file.update({
 			where: {
-				id: updateFileNameViewModel.id,
+				id: viewModel.id,
 				ownerUserId: userId,
 			},
 			data: {
-				name: updateFileNameViewModel.newFileName,
+				name: viewModel.newFileName,
 			},
 		});
 

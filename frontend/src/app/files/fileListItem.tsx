@@ -1,15 +1,19 @@
 import { ChangeEvent, useState } from 'react';
-import { FileItemData } from './definitions';
+import { FileItemData as FileItemProps } from './definitions';
 import styles from './files.module.css'
 import { JWT_STORAGE_KEY, SERVER_URL } from '../constants';
 import { useRouter } from 'next/navigation';
 
-export function FileListItem({ id, name, selected, uploadDate, size, onFileSelect, onFileNameChanged }: FileItemData) {
+export function FileListItem({ id, name, selected, uploadDate, size, isDirectory, onFileSelect, onFileNameChanged }: FileItemProps) {
     const router = useRouter();
     const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
     const [newName, setNewName] = useState<string>(name);
 
     const localDate = `${uploadDate.getDate()}/${uploadDate.getMonth()}/${uploadDate.getFullYear()} ${uploadDate.getHours()}:${uploadDate.getMinutes()}`;
+
+    const getFileTypeText = (isDirectory: boolean) => {
+        return isDirectory ? 'Folder' : 'File'
+    }
 
     const getFileSizeText = (sizeKb: number) => {
         if (!sizeKb || Number.isNaN(size)) {
@@ -112,6 +116,7 @@ export function FileListItem({ id, name, selected, uploadDate, size, onFileSelec
                 }
             </td>
             <td className={styles.alignLeftCol}>{ getFileSizeText(size) }</td>
+            <td className={styles.alignLeftCol}>{ getFileTypeText(isDirectory) }</td>
             <td className={styles.alignRightCol}>{ localDate }</td>
         </tr>
     );

@@ -6,30 +6,31 @@ generator client {
 }
 
 datasource db {
-	provider = "sqlite"
+	provider 	= "sqlite"
 	url			= env("DATABASE_URL")
 }
 
 model User {
-	id		Int		 @default(autoincrement()) @id
-	email String	@unique
-	name	String? @unique
-	password String
+	id			Int @default(autoincrement()) @id
+	email 		String	@unique
+	name		String? @unique
+	password 	String
 
-	files File[]
+	files 		File[]
 }
 
 model File {
-	id						Int			@default(autoincrement()) @id
-	name					String
-	uri					 String
-	sizeKb				Int
+	id				Int	@default(autoincrement()) @id
+	name			String
+	uri				String
+	sizeKb			Int
 	creationTime	DateTime
+	isDirectory		Boolean
 
-	ownerUserId	 Int
+	ownerUserId	 	Int
 	parentFileId	Int?
 
-	ownerUser		 User @relation(fields: [ownerUserId], references: [id])
+	ownerUser		User @relation(fields: [ownerUserId], references: [id])
 	parentFile		File? @relation("FileHierarchy", fields: [parentFileId], references: [id])
 
 	childFiles		File[] @relation("FileHierarchy")

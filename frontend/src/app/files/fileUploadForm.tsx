@@ -18,7 +18,7 @@ export function FileUploadForm({ onFileUploaded }: { onFileUploaded: () => Promi
         const formData = new FormData();
         formData.append('file', fileToUpload);
 
-        const response = await fetch(`${SERVER_URL}/files/`, {
+        const response = await fetch(`${SERVER_URL}/files/upload`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`

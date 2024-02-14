@@ -4,5 +4,6 @@ export class FileDto {
 		readonly name: string,
 		readonly uploadDate: Date,
 		readonly size: number,
+		readonly isDirectory: Boolean,
 	) { }
 }

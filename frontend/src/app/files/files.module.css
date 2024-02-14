@@ -84,8 +84,14 @@
     padding: 0.6rem 0.3rem;
 }
 
+/* first column */
 .fileTable thead th:first-child {
-    width: 10%;
+    width: 15%;
+}
+
+/* second column, fixed width so the other columns are not pushed when the edit form is toggled */
+.fileTable thead th:nth-child(2) {
+    width: 40%;
 }
 
 .selectedRow {
@@ -94,7 +100,6 @@
 
 .changeNameInput {
     padding-block: 0.5rem;
-    padding-inline-end: 0.5rem;
     font-size: 1rem;
     border-radius: 5px;
     border: 1px solid blue;

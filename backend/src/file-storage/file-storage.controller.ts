@@ -9,6 +9,7 @@ import {
 	UploadedFile,
 	UseInterceptors,
 	StreamableFile,
+	Param,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { USER_CONTEXT_KEY } from 'src/authentication/constants';
@@ -20,29 +21,44 @@ import throwHttpExceptionIfUnsuccessful from 'src/utils/httpCodeConvertor';
 import { DeleteFilesViewModel } from 'src/data/viewModels/deleteFilesViewModel';
 import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
 import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
+import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryViewModel';
 
 @Controller('files')
 export class FileStorageController {
 	constructor(private readonly fileStorage: FileStorageService) {}
 
-	@Get()
-	async getAllFiles(@Req() request: Request): Promise<FileDto[]> {
+	@Get('/:directoryId?')
+	async getAllFiles(
+		@Req() request: Request,
+		@Param('directoryId') directoryId?: number | null
+	): Promise<FileDto[]> {
 		const userId = request[USER_CONTEXT_KEY].sub;
-		return await this.fileStorage.getAllFiles(userId);
+		return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
 	}
 
-	@Post()
+	@Post('/upload')
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadFile(
 		@UploadedFile() file: Express.Multer.File,
 		@Req() request: Request,
+		@Body() rawViewModel: UploadFileViewModel
 	): Promise<void> {
-		const viewModel: UploadFileViewModel = {
-			file: file,
-		};
+
+		const viewModel = { ...rawViewModel, file: file}
+		const userId: number = request[USER_CONTEXT_KEY].sub;
+		const result = await this.fileStorage.uploadFile(userId, viewModel, null);
+
+		throwHttpExceptionIfUnsuccessful(result.code);
+	}
+
+	@Post('/create-directory')
+	async createDirectory(
+		@Req() request: Request,
+		@Body() viewModel: CreateDirectoryViewModel
+	): Promise<void> {
 
 		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.uploadFile(viewModel, userId);
+		const result = await this.fileStorage.createDirectory(userId, viewModel);
 
 		throwHttpExceptionIfUnsuccessful(result.code);
 	}
