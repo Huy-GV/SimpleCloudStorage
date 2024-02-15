@@ -91,6 +91,42 @@
 
 .fileTable tbody tr:hover {
     background-color: aliceblue;
+    cursor: pointer;
+}
+
+
+.fileTable tbody tr:hover .fileNameContainer button:last-child {
+    visibility: visible;
+}
+
+.fileTable tbody tr {
+    user-select: none;
+}
+
+.editFileNameBtn {
+    display: inline-block;
+    background: none;
+    border: none;
+}
+
+.editFileNameBtn svg {
+    margin-right: 0.4rem;
+}
+
+.fileNameContainer {
+    display: flex;
+}
+
+.fileNameContainer button:last-child {
+    margin-left: auto;
+    visibility: hidden;
+}
+
+.fileNameContainer span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 80%;
 }
 
 /* second column, fixed width so the other columns are not pushed when the edit form is toggled */
@@ -115,7 +151,6 @@
     border: 0px;
     border-radius: 5px;
     font-size: 1rem;
-
 
     @media (min-width: 720px){
         margin-left: auto;
@@ -142,7 +177,7 @@
 }
 
 .breadcrumbMenu button {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     background: none;
     border: none;
     font-weight: 500;
@@ -151,5 +186,5 @@
 
 .breadcrumbMenu button:last-child {
     color: black;
-    font-size: 1rem;
+    font-size: 1.2rem;
 }

@@ -24,7 +24,6 @@ export function CreateDirectoryForm({ parentDirectoryId, onDirectoryCreated, onC
         }
 
         e.preventDefault();
-        console.log('parent dir id of newly created folder is ', parentDirectoryId)
         const response = await fetch(`${SERVER_URL}/files/create-directory`, {
             method: 'POST',
             headers: {

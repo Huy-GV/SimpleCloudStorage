@@ -4,7 +4,9 @@ export interface FileItemData {
 	size: number;
 	selected: boolean;
 	uploadDate: Date;
+	parentDirectoryId: number | null;
 	isDirectory: boolean;
+	onDirectoryClicked: () => void;
 	onFileSelect: () => void;
 	onFileNameChanged: () => void;
 }

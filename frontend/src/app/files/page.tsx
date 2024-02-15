@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
 import { FileListItem } from "./fileListItem";
 import { useRouter } from "next/navigation";
@@ -7,7 +7,7 @@ import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
 import { DirectoryChainItem, FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightToBracket, faChevronRight, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 
 export default function Page() {
@@ -17,10 +17,8 @@ export default function Page() {
 	const [currentDirectoryId, setCurrentDirectoryId] = useState<number | null>(null);
 
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
-	const [selectedDirectoryId, setSelectedDirectoryId] = useState<number | null>(null);
 
 	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItemData>>(new Map());
-	const [directoryIds, setDirectoryIds] = useState<Set<number>>(new Set());
 
 	const [directoryChain, setDirectoryChain] = useState<DirectoryChainItem[]>([]);
 
@@ -32,7 +30,6 @@ export default function Page() {
 			? `${SERVER_URL}/files/`
 			: `${SERVER_URL}/files/${directoryId}`;
 
-		console.log(url)
 		try {
 			const response = await fetch(url, {
 				method: 'GET',
@@ -62,7 +59,6 @@ export default function Page() {
 
 	const reloadFileList = async (directoryId: number | null): Promise<void> => {
 		const files = await fetchAllFiles(directoryId);
-		setDirectoryIds(new Set(files?.filter(x => x.isDirectory).map(x => x.id)));
 		setFileItemMap(new Map(files?.map(x => [x.id, x])) ?? new Map());
 	}
 
@@ -74,15 +70,6 @@ export default function Page() {
 		} else {
 			newFileSet.add(fileId);
 			setSelectedFiles(newFileSet);
-		}
-
-		if (newFileSet.size == 1) {
-			const onlySelectedFileId = Array.from(newFileSet)[0];
-			if (directoryIds.has(onlySelectedFileId)) {
-				setSelectedDirectoryId(onlySelectedFileId)
-			}
-		} else {
-			setSelectedDirectoryId(null);
 		}
 	}
 
@@ -167,18 +154,11 @@ export default function Page() {
 		setIsCreateDirectoryFormDisplayed(true)
 	}
 
-	const deselectAllFiles = () => {
-		// deselect all files and directories
-		setSelectedDirectoryId(null);
-		setSelectedFiles(new Set());
-	}
-
-	const handleDirectoryEntered = async () => {
+	const handleDirectoryEntered = async (selectedDirectoryId: number) => {
 		// set the current directory to the previously selected one
-		console.log('current selected dir id is ', selectedDirectoryId)
 		setCurrentDirectoryId(selectedDirectoryId);
 
-		deselectAllFiles();
+		setSelectedFiles(new Set());
 
 		// add the directory to the chain
 		setDirectoryChain([
@@ -198,7 +178,7 @@ export default function Page() {
 		}
 
 		setCurrentDirectoryId(directoryId);
-		deselectAllFiles();
+		setSelectedFiles(new Set());
 
 		setDirectoryChain(prev => {
 			const index = prev.map(x => x.id).indexOf(directoryId);
@@ -213,7 +193,6 @@ export default function Page() {
 	}
 
 	const onFileUploaded = async () => {
-		console.log('current dir id is ', currentDirectoryId)
 		await reloadFileList(currentDirectoryId);
 	};
 
@@ -238,6 +217,21 @@ export default function Page() {
 	return (
 		<main className={styles.fileListContainer}>
 			<h1>My Files</h1>
+
+			<div className={styles.breadcrumbMenu}>
+				{
+					directoryChain.map(x => (
+						<Fragment key={x.id}>
+							<FontAwesomeIcon icon={faChevronRight}></FontAwesomeIcon>
+							<button
+								onClick={() => handleDirectoryLinkClicked(x.id)}>
+								{ x.name }
+							</button>
+						</Fragment>
+					))
+				}
+			</div>
+
 			<div className={styles.btnMenu}>
 				<button
 					className={styles.selectFileToUploadBtn}
@@ -264,13 +258,6 @@ export default function Page() {
 					<FontAwesomeIcon icon={faTrash} />
 					<span className={styles.btnLabel}>Delete</span>
 				</button>
-				<button
-					disabled={selectedDirectoryId == null}
-					className={styles.fileDeleteBtn}
-					onClick={handleDirectoryEntered}>
-					<FontAwesomeIcon icon={faArrowRightToBracket} />
-					<span className={styles.btnLabel}>Enter</span>
-				</button>
 				<a ref={downloadedFileRef}></a>
 
 				{/* <button>Share</button> */}
@@ -278,24 +265,6 @@ export default function Page() {
 			{
 				error && <p className={styles.errorMessage}>Error: {error}</p>
 			}
-
-			<div className={styles.breadcrumbMenu}>
-				{
-					directoryChain.map(x => (
-						(
-							<>
-								<FontAwesomeIcon icon={faChevronRight}></FontAwesomeIcon>
-								<button
-									key={x.id}
-									onClick={() => handleDirectoryLinkClicked(x.id)}>
-									{ x.name }
-								</button>
-							</>
-
-						)
-					))
-				}
-			</div>
 
 			<table className={styles.fileTable}>
 				<thead>
@@ -330,6 +299,7 @@ export default function Page() {
 					{
 						Array.from(fileItemMap.values()).map(item => (
 							<FileListItem
+								onDirectoryClicked={async () => handleDirectoryEntered(item.id)}
 								onFileNameChanged={onFileNameChanged}
 								onFileSelect={() => handleFileSelected(item.id)}
 								key={item.id}
@@ -339,6 +309,7 @@ export default function Page() {
 								selected={selectedFiles.has(item.id)}
 								uploadDate={new Date(item.uploadDate)}
 								isDirectory={item.isDirectory}
+								parentDirectoryId={item.parentDirectoryId ?? null}
 							>
 							</FileListItem>
 						))

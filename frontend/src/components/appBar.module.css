@@ -3,7 +3,7 @@
     flex-direction: row;
     margin-left: 10px;
     justify-content: flex-end;
-    padding: 1.5rem
+    padding: 1.5rem 1.5rem 0 0
 }
 
 .navContainer a {
