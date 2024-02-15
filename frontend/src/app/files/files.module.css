@@ -81,12 +81,16 @@
 }
 
 .fileTable td, .fileTable th {
-    padding: 0.6rem 0.3rem;
+    padding: 0.3rem;
 }
 
 /* first column */
 .fileTable thead th:first-child {
     width: 15%;
+}
+
+.fileTable tbody tr:hover {
+    background-color: aliceblue;
 }
 
 /* second column, fixed width so the other columns are not pushed when the edit form is toggled */
@@ -128,4 +132,24 @@
 
 .errorMessage {
     color: red;
+}
+
+.breadcrumbMenu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.breadcrumbMenu button {
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    font-weight: 500;
+    color: grey;
+}
+
+.breadcrumbMenu button:last-child {
+    color: black;
+    font-size: 1rem;
 }

@@ -19,3 +19,8 @@ export interface UploadFileFormProps {
 	parentDirectoryId: number | null;
 	onFileUploaded: () => Promise<void>;
 }
+
+export interface DirectoryChainItem {
+	id: number | null;
+	name: string;
+}

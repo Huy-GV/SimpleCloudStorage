@@ -5,9 +5,9 @@ import { FileListItem } from "./fileListItem";
 import { useRouter } from "next/navigation";
 import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
-import { FileItemData } from "./definitions";
+import { DirectoryChainItem, FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightToBracket, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightToBracket, faChevronRight, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 
 export default function Page() {
@@ -19,8 +19,10 @@ export default function Page() {
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
 	const [selectedDirectoryId, setSelectedDirectoryId] = useState<number | null>(null);
 
-	const [fileItemList, setFileItemList] = useState<FileItemData[]>([]);
+	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItemData>>(new Map());
 	const [directoryIds, setDirectoryIds] = useState<Set<number>>(new Set());
+
+	const [directoryChain, setDirectoryChain] = useState<DirectoryChainItem[]>([]);
 
 	const [error, setError] = useState<string>('');
 	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
@@ -54,14 +56,14 @@ export default function Page() {
 			return files;
 		} catch (e) {
 			console.error(e);
-			return [];
+			return null;
 		}
 	}
 
 	const reloadFileList = async (directoryId: number | null): Promise<void> => {
 		const files = await fetchAllFiles(directoryId);
 		setDirectoryIds(new Set(files?.filter(x => x.isDirectory).map(x => x.id)));
-		setFileItemList(files || []);
+		setFileItemMap(new Map(files?.map(x => [x.id, x])) ?? new Map());
 	}
 
 	const handleFileSelected = (fileId: number) => {
@@ -165,16 +167,49 @@ export default function Page() {
 		setIsCreateDirectoryFormDisplayed(true)
 	}
 
-	const handleFolderEntered = async () => {
+	const deselectAllFiles = () => {
+		// deselect all files and directories
+		setSelectedDirectoryId(null);
+		setSelectedFiles(new Set());
+	}
+
+	const handleDirectoryEntered = async () => {
 		// set the current directory to the previously selected one
 		console.log('current selected dir id is ', selectedDirectoryId)
 		setCurrentDirectoryId(selectedDirectoryId);
 
-		// unselect all files and directories
-		setSelectedDirectoryId(null);
-		setSelectedFiles(new Set());
+		deselectAllFiles();
+
+		// add the directory to the chain
+		setDirectoryChain([
+			...directoryChain,
+			{
+				id: selectedDirectoryId,
+				name: fileItemMap.get(selectedDirectoryId!)?.name ?? 'unknown'
+			}
+		]);
 
 		await reloadFileList(selectedDirectoryId);
+	}
+
+	const handleDirectoryLinkClicked = async (directoryId: number | null) => {
+		if (directoryId == currentDirectoryId) {
+			return;
+		}
+
+		setCurrentDirectoryId(directoryId);
+		deselectAllFiles();
+
+		setDirectoryChain(prev => {
+			const index = prev.map(x => x.id).indexOf(directoryId);
+			if (index === -1) {
+				return prev;
+			}
+
+			return prev.slice(0, index + 1);
+		})
+
+		await reloadFileList(directoryId);
 	}
 
 	const onFileUploaded = async () => {
@@ -197,6 +232,7 @@ export default function Page() {
 
 	useEffect(() => {
 		reloadFileList(currentDirectoryId);
+		setDirectoryChain([{ id: null, name: 'root' }]);
 	}, []);
 
 	return (
@@ -231,7 +267,7 @@ export default function Page() {
 				<button
 					disabled={selectedDirectoryId == null}
 					className={styles.fileDeleteBtn}
-					onClick={handleFolderEntered}>
+					onClick={handleDirectoryEntered}>
 					<FontAwesomeIcon icon={faArrowRightToBracket} />
 					<span className={styles.btnLabel}>Enter</span>
 				</button>
@@ -242,9 +278,25 @@ export default function Page() {
 			{
 				error && <p className={styles.errorMessage}>Error: {error}</p>
 			}
-			<div>
 
+			<div className={styles.breadcrumbMenu}>
+				{
+					directoryChain.map(x => (
+						(
+							<>
+								<FontAwesomeIcon icon={faChevronRight}></FontAwesomeIcon>
+								<button
+									key={x.id}
+									onClick={() => handleDirectoryLinkClicked(x.id)}>
+									{ x.name }
+								</button>
+							</>
+
+						)
+					))
+				}
 			</div>
+
 			<table className={styles.fileTable}>
 				<thead>
 					<tr>
@@ -254,7 +306,11 @@ export default function Page() {
 								onClick={handleFilesDeselected}>Deselect {selectedFiles.size}
 							</button>
 						</th>
-						<th className={styles.alignLeftCol}>Name</th>
+
+						{/*
+						a <p/> tag is used to ensure the height does not change when the Deselect button is toggled
+						*/}
+						<th className={styles.alignLeftCol}><p>Name</p></th>
 						<th className={styles.alignLeftCol}>Size</th>
 						<th className={styles.alignLeftCol}>Type</th>
 						<th className={styles.alignRightCol}>Upload Date</th>
@@ -272,7 +328,7 @@ export default function Page() {
 						)
 					}
 					{
-						fileItemList.map(item => (
+						Array.from(fileItemMap.values()).map(item => (
 							<FileListItem
 								onFileNameChanged={onFileNameChanged}
 								onFileSelect={() => handleFileSelected(item.id)}
