@@ -3,4 +3,5 @@ export enum ResultCode {
     Unauthorized,
     NotFound,
     InvalidState,
+    InvalidArguments,
 }

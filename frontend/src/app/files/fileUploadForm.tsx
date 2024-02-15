@@ -37,6 +37,8 @@ export function FileUploadForm({ onFileUploaded, parentDirectoryId } : UploadFil
 			setError('Failed to upload file')
 			return;
 		}
+
+		setError('')
 	}
 
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,16 +51,16 @@ export function FileUploadForm({ onFileUploaded, parentDirectoryId } : UploadFil
 	}
 
 	return (
-		<form className={styles.uploadForm} encType="multipart/form-data">
+		<form className={styles.uploadForm} encType='multipart/form-data'>
 			{
 				<>
-					<label htmlFor="file" className={styles.selectFileToUploadBtn}>
+					<label htmlFor='file' className={styles.selectFileToUploadBtn}>
 						<FontAwesomeIcon icon={faUpload} />
 						<span className={styles.btnLabel}>Upload</span>
 					</label>
-					<input id='file' type="file"
+					<input id='file' type='file'
 						className={styles.fileInput}
-						name="file"
+						name='file'
 						onChange={handleFileChange} />
 				</>
 			}

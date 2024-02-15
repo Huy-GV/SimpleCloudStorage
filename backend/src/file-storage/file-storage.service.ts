@@ -48,21 +48,20 @@ export class FileStorageService {
 
 		const filesWithIdenticalNameInSharedDirectoryCount = await this.database.file.count({
 			where: {
-				name: viewModel.name,
+				name: viewModel.name.trim(),
 				parentFileId: viewModel.parentDirectoryId,
-				isDirectory: true
 			}
 		})
 
 		if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
 			return new EmptyResult(
-				ResultCode.InvalidState,
-				`Directory with name ${viewModel.name} already exists in the upload directory`);
+				ResultCode.InvalidArguments,
+				`File or directory with name ${viewModel.name} already exists in the upload directory`);
 		}
 
 		await this.database.file.create({
 			data: {
-				name: viewModel.name,
+				name: viewModel.name.trim(),
 				parentFileId: viewModel.parentDirectoryId,
 				ownerUserId: userId,
 				sizeKb: 0,
@@ -86,12 +85,11 @@ export class FileStorageService {
 					where: {
 						name: viewModel.file.originalname,
 						parentFileId: parentFileId,
-						isDirectory: false
 					}
 				})
 
 				if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
-					throw new Error(`File with name ${viewModel.file.originalname} already exists in the upload directory`);
+					throw new Error(`File or directory with name ${viewModel.file.originalname} already exists in the upload directory`);
 				}
 
 				const s3UploadResult = await this.s3Service.uploadFile(viewModel.file);
@@ -135,15 +133,14 @@ export class FileStorageService {
 		}
 
 		const directoryName = this.createTemporaryDirectoryName(user.id);
-		const tempDirectoryPath = `${process.cwd()}/downloaded_files//${directoryName}`;
-		const fullZipFileName = `${tempDirectoryPath}.zip`;
+		const tempDirectoryPath = join(process.cwd(), 'downloaded_files', directoryName);
+		this.ensureDirectoryExisted(tempDirectoryPath);
+		const fullZipFilePath = `${tempDirectoryPath}.zip`;
 
 		try {
 
-			this.ensureDirectoryExisted(tempDirectoryPath);
-
 			const archive = archiver('zip', { zlib: { level: 9 } });
-			const downloadDirectoryStream = createWriteStream(fullZipFileName);
+			const downloadDirectoryStream = createWriteStream(fullZipFilePath);
 			archive.pipe(downloadDirectoryStream);
 
 			const files = await this.database.file.findMany({
@@ -165,11 +162,12 @@ export class FileStorageService {
 				return new DataResult(ResultCode.NotFound);
 			}
 
+			const rootZipFileName = '';
 			for (const file of files) {
 				if (file.isDirectory) {
-					await this.addDirectoryToZip(file, archive, tempDirectoryPath, '')
+					await this.addDirectoryToZip(file, archive, tempDirectoryPath, rootZipFileName)
 				} else {
-					await this.addFileToZip(file, archive, tempDirectoryPath, '');
+					await this.addFileToZip(file, archive, tempDirectoryPath, rootZipFileName);
 				}
 			}
 
@@ -177,16 +175,21 @@ export class FileStorageService {
 			const readStream = createReadStream(`${tempDirectoryPath}.zip`);
 
 			// delete the temporary directory and zip file
-			// readStream.on('close', async () => {
-			// 	await unlink(fullZipFileName);
-			// 	await rm(tempDirectoryPath, { recursive: true, force: true });
-			// });
+			readStream.on('close', async () => {
+				await this.ensureTemporaryFilesDeleted(fullZipFilePath, tempDirectoryPath);
+			});
 
 			return new DataResult(ResultCode.Success, new StreamableFile(readStream));
 		} catch (error) {
-			console.error('Error zipping files:', error);
+			console.error('Error zipping files: ', error);
+			await this.ensureTemporaryFilesDeleted(fullZipFilePath, tempDirectoryPath);
 			return new DataResult(ResultCode.InvalidState);
 		}
+	}
+
+	private async ensureTemporaryFilesDeleted(zipFilePath: string, tempDirectoryPath: string) {
+		await unlink(zipFilePath);
+		await rm(tempDirectoryPath, { recursive: true, force: true });
 	}
 
 	private async ensureDirectoryExisted(
@@ -203,10 +206,12 @@ export class FileStorageService {
 		tempParentDirectoryPath: string,
 		zipParentDirectoryPath: string,
 	) {
-		const currentTempDirectoryPath = tempParentDirectoryPath + `/${directoryFile.name}`;
-		const currentZipDirectoryPath = zipParentDirectoryPath + `/${directoryFile.name}`;
+		const currentTempDirectoryPath = join(tempParentDirectoryPath, directoryFile.name);
+		const currentZipDirectoryPath = join(zipParentDirectoryPath, directoryFile.name);
 		await this.ensureDirectoryExisted(currentTempDirectoryPath);
-		archive.directory(currentTempDirectoryPath, zipParentDirectoryPath)
+
+		archive.directory(currentTempDirectoryPath, zipParentDirectoryPath);
+
 		const files = await this.database.file.findMany({
 			where: {
 				parentFileId: directoryFile.id
@@ -228,7 +233,11 @@ export class FileStorageService {
 					currentZipDirectoryPath
 				);
 			} else {
-				await this.addFileToZip(file, archive, currentTempDirectoryPath, currentZipDirectoryPath);
+				await this.addFileToZip(
+					file,
+					archive,
+					currentTempDirectoryPath,
+					currentZipDirectoryPath);
 			}
 		}
 	}
@@ -283,21 +292,8 @@ export class FileStorageService {
 					}
 				})
 
-				if (filesWithIdenticalNameInSharedDirectory.length == 2) {
-					throw new Error(`File and directory with name ${viewModel.newFileName} already exist in the upload directory`)
-				}
-
-				const fileToUpdate = await transaction.file.findUnique({
-					where: {
-						id: viewModel.id
-					}
-				})
-
-				const directoriesWithDuplicateName = filesWithIdenticalNameInSharedDirectory.length == 1 &&
-					filesWithIdenticalNameInSharedDirectory[0].isDirectory == fileToUpdate.isDirectory;
-
-				if (directoriesWithDuplicateName) {
-					throw new Error(`File or directory with name ${viewModel.newFileName} already exists in the upload directory`)
+				if (filesWithIdenticalNameInSharedDirectory.length > 0) {
+					throw new Error(`File or directory with name ${viewModel.newFileName} already exist in the upload directory`)
 				}
 
 				await transaction.file.update({
@@ -336,7 +332,7 @@ export class FileStorageService {
 		});
 
 		if (filesToDelete.length != fileIds.length) {
-			return new EmptyResult(ResultCode.NotFound);
+			return new EmptyResult(ResultCode.InvalidArguments);
 		}
 
 		await this.database.file.deleteMany({

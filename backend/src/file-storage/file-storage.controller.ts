@@ -57,9 +57,7 @@ export class FileStorageController {
 		const userId: number = request[USER_CONTEXT_KEY].sub;
 		const result = await this.fileStorage.uploadFile(userId, viewModel, viewModel.directoryFileId);
 
-		if (!result.successful) {
-			throwHttpExceptionOnFailure(result.code);
-		}
+		throwHttpExceptionOnFailure(result);
 	}
 
 	@Post('/create-directory')
@@ -71,9 +69,7 @@ export class FileStorageController {
 		const userId: number = request[USER_CONTEXT_KEY].sub;
 		const result = await this.fileStorage.createDirectory(userId, viewModel);
 
-		if (!result.successful) {
-			throwHttpExceptionOnFailure(result.code);
-		}
+		throwHttpExceptionOnFailure(result);
 	}
 
 	@Put('/update-name')
@@ -86,9 +82,7 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		if (!result.successful) {
-			throwHttpExceptionOnFailure(result.code);
-		}
+		throwHttpExceptionOnFailure(result);
 	}
 
 	@Delete('')
@@ -101,9 +95,7 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		if (!result.successful) {
-			throwHttpExceptionOnFailure(result.code);
-		}
+		throwHttpExceptionOnFailure(result);
 	}
 
 	@Post('/download')
@@ -116,9 +108,7 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		if (!result.successful) {
-			throwHttpExceptionOnFailure(result.code);
-		}
+		throwHttpExceptionOnFailure(result);
 
 		return result.data;
 	}

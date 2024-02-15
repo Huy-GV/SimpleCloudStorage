@@ -30,31 +30,27 @@ export default function Page() {
 			? `${SERVER_URL}/files/`
 			: `${SERVER_URL}/files/${directoryId}`;
 
-		try {
-			const response = await fetch(url, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
-				}
-			});
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
+			}
+		});
 
-			if (!response.ok) {
-				setError("Failed to fetch files");
+		if (!response.ok) {
+			setError("Failed to get files");
 
-				if (response.status === 401 || response.status === 403) {
-					router.push('/auth');
-				}
-
-				return null;
+			if (response.status === 401 || response.status === 403) {
+				router.push('/auth');
 			}
 
-			const files: FileItemData[] = await response.json();
-			return files;
-		} catch (e) {
-			console.error(e);
 			return null;
 		}
+
+		setError('')
+		const files: FileItemData[] = await response.json();
+		return files;
 	}
 
 	const reloadFileList = async (directoryId: number | null): Promise<void> => {
@@ -95,6 +91,7 @@ export default function Page() {
 			return null;
 		}
 
+		setError('');
 		setSelectedFiles(new Set());
 		await reloadFileList(currentDirectoryId);
 	}
@@ -143,6 +140,7 @@ export default function Page() {
 		const blob = await response.blob();
 		clickDownloadLink(blob);
 
+		setError('');
 		setSelectedFiles(new Set());
 	}
 
