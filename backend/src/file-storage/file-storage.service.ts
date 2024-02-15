@@ -3,6 +3,7 @@ import * as archiver from 'archiver';
 import axios from 'axios';
 import { existsSync, createWriteStream, createReadStream } from 'fs';
 import { mkdir, rm, unlink } from 'fs/promises';
+import { join } from 'path';
 import { FileDto } from 'src/data/dtos/fileDto';
 import { DataResult, EmptyResult, Result } from 'src/data/results/result';
 import { ResultCode } from 'src/data/results/resultCode';
@@ -153,8 +154,10 @@ export class FileStorageService {
 					},
 				},
 				select: {
+					id: true,
 					uri: true,
 					name: true,
+					isDirectory: true
 				},
 			});
 
@@ -163,21 +166,26 @@ export class FileStorageService {
 			}
 
 			for (const file of files) {
-				await this.addFileToZip(file, archive, tempDirectoryPath);
+				if (file.isDirectory) {
+					await this.addDirectoryToZip(file, archive, tempDirectoryPath, '')
+				} else {
+					await this.addFileToZip(file, archive, tempDirectoryPath, '');
+				}
 			}
 
 			await archive.finalize();
 			const readStream = createReadStream(`${tempDirectoryPath}.zip`);
 
 			// delete the temporary directory and zip file
-			readStream.on('close', async () => {
-				await unlink(fullZipFileName);
-				await rm(tempDirectoryPath, { recursive: true, force: true });
-			});
+			// readStream.on('close', async () => {
+			// 	await unlink(fullZipFileName);
+			// 	await rm(tempDirectoryPath, { recursive: true, force: true });
+			// });
 
 			return new DataResult(ResultCode.Success, new StreamableFile(readStream));
 		} catch (error) {
 			console.error('Error zipping files:', error);
+			return new DataResult(ResultCode.InvalidState);
 		}
 	}
 
@@ -189,10 +197,47 @@ export class FileStorageService {
 		}
 	}
 
+	private async addDirectoryToZip(
+		directoryFile: { id: number, name: string; uri: string },
+		archive: archiver.Archiver,
+		tempParentDirectoryPath: string,
+		zipParentDirectoryPath: string,
+	) {
+		const currentTempDirectoryPath = tempParentDirectoryPath + `/${directoryFile.name}`;
+		const currentZipDirectoryPath = zipParentDirectoryPath + `/${directoryFile.name}`;
+		await this.ensureDirectoryExisted(currentTempDirectoryPath);
+		archive.directory(currentTempDirectoryPath, zipParentDirectoryPath)
+		const files = await this.database.file.findMany({
+			where: {
+				parentFileId: directoryFile.id
+			},
+			select: {
+				id: true,
+				uri: true,
+				name: true,
+				isDirectory: true
+			},
+		});
+
+		for (const file of files) {
+			if (file.isDirectory) {
+				await this.addDirectoryToZip(
+					file,
+					archive,
+					currentTempDirectoryPath,
+					currentZipDirectoryPath
+				);
+			} else {
+				await this.addFileToZip(file, archive, currentTempDirectoryPath, currentZipDirectoryPath);
+			}
+		}
+	}
+
 	private async addFileToZip(
 		file: { name: string; uri: string },
 		archive: archiver.Archiver,
-		directoryPath: string,
+		tempDirectoryPath: string,
+		zipDirectoryPath: string
 	) {
 		const presignedUrl = await this.s3Service.getPublicUrl(file.uri);
 
@@ -204,18 +249,19 @@ export class FileStorageService {
 		});
 
 		const downloadedFileStream = response.data;
-		const filePath = `${directoryPath}//${file.name}`;
+		const tempFilePath = `${tempDirectoryPath}//${file.name}`;
+		const zipFilePath = `${zipDirectoryPath}//${file.name}`;
 
 		// await until the s3 object is written to the temporary directory
 		await new Promise<void>((resolve, reject) => {
-			const fileWriteStream = createWriteStream(filePath);
+			const fileWriteStream = createWriteStream(tempFilePath);
 			downloadedFileStream.pipe(fileWriteStream);
-			fileWriteStream.on('close', () => resolve());
-			fileWriteStream.on('error', (err) => reject(err));
+			fileWriteStream.on('close', resolve);
+			fileWriteStream.on('error', reject);
 		});
 
-		const fileReadStream = createReadStream(filePath);
-		archive.append(fileReadStream, { name: file.name });
+		const fileReadStream = createReadStream(tempFilePath);
+		archive.append(fileReadStream, { name: zipFilePath });
 	}
 
 	private createTemporaryDirectoryName(userId: number) {

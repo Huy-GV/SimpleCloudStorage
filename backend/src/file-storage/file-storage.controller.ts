@@ -11,7 +11,6 @@ import {
 	StreamableFile,
 	Param,
 	ParseIntPipe,
-	Optional,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { USER_CONTEXT_KEY } from 'src/authentication/constants';
@@ -19,7 +18,7 @@ import { FileStorageService } from './file-storage.service';
 import { FileDto } from 'src/data/dtos/fileDto';
 import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
-import throwHttpExceptionIfUnsuccessful from 'src/utils/httpCodeConvertor';
+import throwHttpExceptionOnFailure from 'src/utils/httpCodeConvertor';
 import { DeleteFilesViewModel } from 'src/data/viewModels/deleteFilesViewModel';
 import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
 import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
@@ -58,7 +57,9 @@ export class FileStorageController {
 		const userId: number = request[USER_CONTEXT_KEY].sub;
 		const result = await this.fileStorage.uploadFile(userId, viewModel, viewModel.directoryFileId);
 
-		throwHttpExceptionIfUnsuccessful(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
 	}
 
 	@Post('/create-directory')
@@ -70,7 +71,9 @@ export class FileStorageController {
 		const userId: number = request[USER_CONTEXT_KEY].sub;
 		const result = await this.fileStorage.createDirectory(userId, viewModel);
 
-		throwHttpExceptionIfUnsuccessful(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
 	}
 
 	@Put('/update-name')
@@ -83,7 +86,9 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		throwHttpExceptionIfUnsuccessful(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
 	}
 
 	@Delete('')
@@ -96,7 +101,9 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		throwHttpExceptionIfUnsuccessful(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
 	}
 
 	@Post('/download')
@@ -109,7 +116,9 @@ export class FileStorageController {
 			request[USER_CONTEXT_KEY].sub,
 		);
 
-		throwHttpExceptionIfUnsuccessful(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
 
 		return result.data;
 	}

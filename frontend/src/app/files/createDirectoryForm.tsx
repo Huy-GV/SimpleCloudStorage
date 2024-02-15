@@ -12,6 +12,10 @@ export function CreateDirectoryForm({ parentDirectoryId, onDirectoryCreated, onC
         setDirectoryName(e.target.value)
     }
 
+    const handleChangeNameCancelled = () => {
+        onCancel();
+    }
+
     const handleNameChangeSubmitted = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Escape') {
             e.preventDefault();
@@ -60,6 +64,8 @@ export function CreateDirectoryForm({ parentDirectoryId, onDirectoryCreated, onC
                             type='text'
                             value={directoryName}
                             onChange={handleNameChanged}
+                            autoFocus
+                            onBlur={handleChangeNameCancelled}
                             onKeyDown={handleNameChangeSubmitted}></input>
                     </>
                 }

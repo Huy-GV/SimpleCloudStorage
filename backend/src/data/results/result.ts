@@ -5,6 +5,10 @@ abstract class BaseResult {
 		readonly code: ResultCode,
 		readonly statusText: string = ''
 	) { }
+
+	get successful(): boolean {
+		return this.code == ResultCode.Success;
+	}
 }
 
 export class DataResult<T> extends BaseResult {
@@ -29,17 +33,15 @@ export class DataResult<T> extends BaseResult {
 	get data(): T | null {
 		return this.resultData;
 	}
-
-	get successful(): boolean {
-		return this.code == ResultCode.Success;
-	}
 }
 
-export class EmptyResult {
+export class EmptyResult extends BaseResult {
 	constructor(
 		readonly code: ResultCode,
 		readonly statusText: string = ''
-	) { }
+	) {
+		super(code, statusText);
+	}
 }
 
 export type Result<T = void> = T extends void

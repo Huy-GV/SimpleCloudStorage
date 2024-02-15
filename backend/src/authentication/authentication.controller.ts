@@ -26,7 +26,10 @@ export class AuthenticationController {
 			@Res({ passthrough: true }) response: Response,
 		): Promise<JwtDto> {
 			const result = await this.jwtAuthenticator.signIn(viewModel);
-			throwHttpExceptionOnFailure(result.code);
+			if (!result.successful) {
+				throwHttpExceptionOnFailure(result.code);
+			}
+
 			response.cookie(JWT_COOKIE_KEY, result.data.token, { httpOnly: true });
 
 			return result.data;
@@ -39,7 +42,10 @@ export class AuthenticationController {
 		@Res({ passthrough: true }) response: Response,
 	): Promise<JwtDto> {
 		const result = await this.jwtAuthenticator.signUp(viewModel);
-		throwHttpExceptionOnFailure(result.code);
+		if (!result.successful) {
+			throwHttpExceptionOnFailure(result.code);
+		}
+
 		response.cookie(JWT_COOKIE_KEY, result.data.token, { httpOnly: true });
 
 		return result.data;
