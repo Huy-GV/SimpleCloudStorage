@@ -1,4 +1,4 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as archiver from 'archiver';
 import axios from 'axios';
 import { existsSync, createWriteStream, createReadStream } from 'fs';
@@ -16,6 +16,8 @@ import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
 
 @Injectable()
 export class FileStorageService {
+	private readonly logger = new Logger(FileStorageService.name);
+
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly s3Service: S3InterfaceService,
@@ -110,6 +112,8 @@ export class FileStorageService {
 				});
 			})
 		} catch (e: any) {
+			this.logger.error(`Failed to upload file named '${viewModel.file.originalname}' to directory ID '${viewModel.directoryFileId}', ${e.message}`);
+
 			return new EmptyResult(
 				ResultCode.InvalidState,
 				e.message ?? '');
@@ -129,6 +133,7 @@ export class FileStorageService {
 		});
 
 		if (!user) {
+			this.logger.error(`User ID ${userId} not found`);
 			return new DataResult(ResultCode.Unauthorized);
 		}
 
@@ -180,8 +185,8 @@ export class FileStorageService {
 			});
 
 			return new DataResult(ResultCode.Success, new StreamableFile(readStream));
-		} catch (error) {
-			console.error('Error zipping files: ', error);
+		} catch (e) {
+			this.logger.error('Error zipping files: ' + e);
 			await this.ensureTemporaryFilesDeleted(fullZipFilePath, tempDirectoryPath);
 			return new DataResult(ResultCode.InvalidState);
 		}
@@ -191,13 +196,13 @@ export class FileStorageService {
 		try {
 			await unlink(zipFilePath);
 		} catch (e) {
-			console.error(`Failed to delete temporary zip file at '${zipFilePath}': ${e}`);
+			this.logger.error(`Failed to delete temporary zip file at '${zipFilePath}': ${e}`);
 		}
 
 		try {
 			await rm(tempDirectoryPath, { recursive: true, force: true });
 		} catch (e) {
-			console.error(`Failed to delete temporary download directory at '${tempDirectoryPath}': ${e}`);
+			this.logger.error(`Failed to delete temporary download directory at '${tempDirectoryPath}': ${e}`);
 		}
 	}
 
@@ -219,8 +224,6 @@ export class FileStorageService {
 		const currentZipDirectoryPath = join(zipParentDirectoryPath, directoryFile.name);
 		await this.ensureDirectoryExisted(currentTempDirectoryPath);
 
-		archive.directory(currentTempDirectoryPath, zipParentDirectoryPath);
-
 		const files = await this.database.file.findMany({
 			where: {
 				parentFileId: directoryFile.id
@@ -232,6 +235,14 @@ export class FileStorageService {
 				isDirectory: true
 			},
 		});
+
+		if (files.filter(x => !x.isDirectory).length == 0) {
+			// if the directory does not contain non-directory files, we append its name to the zip path
+			archive.directory(currentTempDirectoryPath, currentZipDirectoryPath);
+		} else {
+			// otherwise, adding child files will include the directory in the zip path
+			archive.directory(currentTempDirectoryPath, zipParentDirectoryPath);
+		}
 
 		for (const file of files) {
 			if (file.isDirectory) {
@@ -348,6 +359,7 @@ export class FileStorageService {
 				});
 			})
 		} catch (e: any) {
+			this.logger.error(`Failed to update file name , ${e.message}`);
 			return new EmptyResult(
 				ResultCode.UnspecifiedError,
 				e.message ?? ''
@@ -415,7 +427,7 @@ export class FileStorageService {
 			return new EmptyResult(ResultCode.Success);
 		}
 		catch (e: any) {
-			console.error(e.message);
+			this.logger.error(`Failed to delete files with IDs ${fileIds}, ${e.message}`);
 			return new EmptyResult(
 				ResultCode.UnspecifiedError,
 				e.message ?? ''

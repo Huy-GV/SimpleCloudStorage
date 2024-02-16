@@ -68,12 +68,5 @@ Simple cloud storage application backed by AWS S3.
 - Start the backend:
     ```bash
     cd ./backend
-    # development
-    npm run start
-
-    # watch mode
     npm run start:dev
-
-    # production mode
-    npm run start:prod
     ```

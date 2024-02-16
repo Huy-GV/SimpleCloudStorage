@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
 	DeleteObjectsCommand,
 	GetObjectCommand,
@@ -18,10 +18,12 @@ interface S3Object {
 
 @Injectable()
 export class S3InterfaceService {
+	private readonly logger: Logger = new Logger(S3InterfaceService.name);
 	private readonly awsCredentials: {
-	accessKeyId: string;
-	secretAccessKey: string;
-  };
+		accessKeyId: string;
+		secretAccessKey: string;
+	};
+
 	private readonly region: string;
 	private readonly bucket: string;
 	private readonly s3Client: S3;
@@ -71,14 +73,14 @@ export class S3InterfaceService {
 			s3Result.$metadata.httpStatusCode != 200 &&
 			s3Result.$metadata.httpStatusCode != 201
 		) {
-			console.error(
+			this.logger.error(
 				'Error uploading object: ',
 				s3Result.$metadata.httpStatusCode,
 			);
 
 			return new DataResult(ResultCode.InvalidArguments);
 		} else {
-			console.log('Successfully uploaded object');
+			this.logger.log('Successfully uploaded object');
 		}
 
 		return new DataResult(
@@ -127,14 +129,14 @@ export class S3InterfaceService {
 			s3Result.$metadata.httpStatusCode != 200 &&
 			s3Result.$metadata.httpStatusCode != 201
 		) {
-			console.error(
+			this.logger.error(
 				`Error deleting ${objectUrls.length} objects: `,
 				s3Result.$metadata.httpStatusCode,
 			);
 
 			return new EmptyResult(ResultCode.InvalidArguments);
 		} else {
-			console.log(`Successfully deleted ${objectUrls.length} objects`);
+			this.logger.log(`Successfully deleted ${objectUrls.length} objects`);
 		}
 
 		return new EmptyResult(ResultCode.Success);

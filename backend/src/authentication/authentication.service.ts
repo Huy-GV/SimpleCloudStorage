@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SignInViewModel } from 'src/data/viewModels/signInViewModel';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpViewModel } from 'src/data/viewModels/signUpViewModel';
@@ -10,6 +10,8 @@ import { DataResult, Result } from 'src/data/results/result';
 
 @Injectable()
 export class AuthenticationService {
+	private readonly logger = new Logger(AuthenticationService.name);
+
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly jwtService: JwtService,
@@ -44,15 +46,17 @@ export class AuthenticationService {
 		});
 
 		if (!user) {
+			this.logger.error(`User named ${signInViewModel.userName} not found`);
 			return new DataResult(ResultCode.NotFound);
 		}
 
-		const isPasswordValid = await bcrypt.compare(
+		const isPasswordValid = !!signInViewModel.password && await bcrypt.compare(
 			signInViewModel.password,
 			user.password,
 		);
 
 		if (!isPasswordValid) {
+			this.logger.error(`Invalid password for user named ${signInViewModel.userName}`);
 			return new DataResult(ResultCode.Unauthorized);
 		}
 

@@ -2,6 +2,7 @@ import {
 	CanActivate,
 	ExecutionContext,
 	Injectable,
+	Logger,
 	UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -17,6 +18,8 @@ import {
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
+	private readonly logger: Logger = new Logger(AuthenticationGuard.name);
+
 	constructor(
 		private jwtService: JwtService,
 		private reflector: Reflector,
@@ -46,7 +49,7 @@ export class AuthenticationGuard implements CanActivate {
 			// TODO: build a complex User model by loading info from the db?
 			request[USER_CONTEXT_KEY] = payload;
 		} catch (e) {
-			console.error(e);
+			this.logger.error(e);
 			throw new UnauthorizedException();
 		}
 
