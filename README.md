@@ -1,18 +1,23 @@
 # SIMPLE DRIVE
 
 ## Overview
-Simple file storage application allowing the user to store files in the cloud
+Simple cloud storage application backed by AWS S3.
 
 ## Features
-Enables users to create folders, upload, change names of files, and download files or folders
-
+* Folder Creation: Users can create folders to organize their files.
+* File Upload: Upload files to the application for storage.
+* File and Folder Management: Change the names of files and folders, navigate between different folders via breadcrumb menu.
+* File Download: Download files and folders from the application to local storage.
+* File and Folder Deletion: Delete unwanted files and folders from the application.
+  
 ### Technologies
 - Languages: TypeScript, HTML, CSS
-- Frameworks: Node.js, React, NestJS, Prisma
+- Frameworks: Node.js, Next.js, React, NestJS, Prisma
 - Development Tools: AWS S3, SQLite
 
 ## Images
 
+<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/c5eedd96-4178-42f6-8479-db0c3bc3fb91" width=60% alt="image">
 
 ## Build and Run Locally
 ### Pre-requisites
@@ -41,11 +46,11 @@ Enables users to create folders, upload, change names of files, and download fil
     AWS_SECRET_KEY=YOUR_AWS_SECRET_KEY
     AWS_BUCKET=YOUR_AWS_BUCKET
     AWS_REGION=YOUR_AWS_REGION
-    CLIENT_URLS=REACT_CLIENT_URL
+    CLIENT_URLS=YOUR_REACT_CLIENT_URL
     ```
 - Set up environment file `.env` for Prisma in `/backend/src/data/models/`
     ```env
-    DATABASE_URL="file:path/to/database/file.db"
+    DATABASE_URL="file:YOUR/PATH/TO/DATABASE/FILE.db"
     ```
 - Start the backend:
     ```bash
