@@ -1,6 +1,6 @@
 import { ChangeEvent, useState } from 'react';
 import styles from './files.module.css'
-import { JWT_STORAGE_KEY, SERVER_URL } from '../constants';
+import { JWT_STORAGE_KEY } from '../constants';
 import { useRouter } from 'next/navigation';
 import { CreateDirectoryFormProps } from './definitions';
 
@@ -28,7 +28,7 @@ export function CreateDirectoryForm({ parentDirectoryId, onDirectoryCreated, onC
         }
 
         e.preventDefault();
-        const response = await fetch(`${SERVER_URL}/files/create-directory`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/create-directory`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

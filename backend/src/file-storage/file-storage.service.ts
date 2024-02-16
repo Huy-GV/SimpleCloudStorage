@@ -11,7 +11,7 @@ import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryVie
 import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
 import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
 import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
-import { DatabaseService } from 'src/database/database.service';
+import { DatabaseService, TransactionClientAlias } from 'src/database/database.service';
 import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
 
 @Injectable()
@@ -188,8 +188,17 @@ export class FileStorageService {
 	}
 
 	private async ensureTemporaryFilesDeleted(zipFilePath: string, tempDirectoryPath: string) {
-		await unlink(zipFilePath);
-		await rm(tempDirectoryPath, { recursive: true, force: true });
+		try {
+			await unlink(zipFilePath);
+		} catch (e) {
+			console.error(`Failed to delete temporary zip file at '${zipFilePath}': ${e}`);
+		}
+
+		try {
+			await rm(tempDirectoryPath, { recursive: true, force: true });
+		} catch (e) {
+			console.error(`Failed to delete temporary download directory at '${tempDirectoryPath}': ${e}`);
+		}
 	}
 
 	private async ensureDirectoryExisted(
@@ -278,22 +287,54 @@ export class FileStorageService {
 		return `${userId}_${timestamp}`;
 	}
 
+	private async deleteNestedFiles(
+		userId: number,
+		directoryToDeleteId: number,
+		transaction: TransactionClientAlias
+	): Promise<EmptyResult[]> {
+		const filesToDelete = await transaction.file.findMany({
+			where: {
+				parentFileId: directoryToDeleteId,
+				ownerUserId: userId,
+			},
+			select: {
+				uri: true,
+				isDirectory: true,
+				id: true
+			}
+		});
+
+		const s3Urls = filesToDelete
+			.filter(x => !x.isDirectory)
+			.map(x => x.uri);
+
+		const s3Result = await this.s3Service.deleteObjects(s3Urls);
+		if (!s3Result.successful) {
+			return [new EmptyResult(s3Result.code)];
+		}
+
+		const directories = filesToDelete.filter(x => x.isDirectory);
+
+		const resultCollections = await Promise.all(directories.map(x => this.deleteNestedFiles(userId, x.id, transaction)))
+		return resultCollections.flatMap(x => x);
+	}
+
 	async updateFileName(
 		viewModel: UpdateFileNameViewModel,
 		userId: number,
 	): Promise<EmptyResult> {
 		try {
 			await this.database.$transaction(async (transaction) => {
-
+				const newFileName = viewModel.newFileName.trim();
 				const filesWithIdenticalNameInSharedDirectory = await transaction.file.findMany({
 					where: {
-						name: viewModel.newFileName,
+						name: newFileName,
 						parentFileId: viewModel.parentDirectoryId,
 					}
 				})
 
 				if (filesWithIdenticalNameInSharedDirectory.length > 0) {
-					throw new Error(`File or directory with name ${viewModel.newFileName} already exist in the upload directory`)
+					throw new Error(`File or directory with name ${newFileName} already exist in the upload directory`)
 				}
 
 				await transaction.file.update({
@@ -302,51 +343,83 @@ export class FileStorageService {
 						ownerUserId: userId,
 					},
 					data: {
-						name: viewModel.newFileName,
+						name: newFileName,
 					},
 				});
 			})
 		} catch (e: any) {
 			return new EmptyResult(
-				ResultCode.InvalidState,
+				ResultCode.UnspecifiedError,
 				e.message ?? ''
 			);
 		}
-
 
 		return new EmptyResult(ResultCode.Success)
 	}
 
 	async deleteFiles(fileIds: number[], userId: number): Promise<EmptyResult> {
-		const filesToDelete = await this.database.file.findMany({
-			where: {
-				id: {
-					in: fileIds,
-				},
-				ownerUserId: userId,
-			},
-			select: {
-				uri: true,
-				isDirectory: true
-			}
-		});
+		try {
+			await this.database.$transaction(async (transaction) => {
+				const filesToDelete = await transaction.file.findMany({
+					where: {
+						id: {
+							in: fileIds,
+						},
+						ownerUserId: userId,
+					},
+					select: {
+						uri: true,
+						isDirectory: true,
+						id: true,
+					}
+				});
 
-		if (filesToDelete.length != fileIds.length) {
-			return new EmptyResult(ResultCode.InvalidArguments);
+				if (filesToDelete.length != fileIds.length) {
+					return new EmptyResult(ResultCode.InvalidArguments);
+				}
+
+				const s3Urls = filesToDelete
+					.filter(x => !x.isDirectory)
+					.map(x => x.uri);
+
+				// if there are directories among the deletion list, delete all of their nested files
+				if (s3Urls.length < filesToDelete.length) {
+					const directories = filesToDelete.filter(x => x.isDirectory);
+					const resultCollections = await Promise.all(
+						directories.map(x => this.deleteNestedFiles(userId, x.id, transaction))
+					);
+
+					const errors = resultCollections.flatMap(x => x).filter(x => !x.successful);
+					if (errors.length > 0) {
+						throw new Error('Failed to delete s3 objects: ' + errors);
+					}
+				}
+
+				const s3Result = await this.s3Service.deleteObjects(s3Urls);
+				if (!s3Result.successful) {
+					// return new EmptyResult(s3Result.code);
+					throw new Error('Failed to delete s3 objects: ' + s3Result.code.toString());
+				}
+
+				// deleting the top level files will cascade-delete all nested files, including directories
+				await transaction.file.deleteMany({
+					where: {
+						id: {
+							in: fileIds,
+						},
+						ownerUserId: userId,
+					},
+				});
+			});
+
+			return new EmptyResult(ResultCode.Success);
 		}
-
-		await this.database.file.deleteMany({
-			where: {
-				id: {
-					in: fileIds,
-				},
-				ownerUserId: userId,
-			},
-		});
-
-		const s3Urls = filesToDelete.filter(x => !x.isDirectory).map(x => x.uri);
-		const s3Result = await this.s3Service.deleteObjects(s3Urls);
-
-		return new EmptyResult(s3Result.code);
+		catch (e: any) {
+			console.error(e.message);
+			return new EmptyResult(
+				ResultCode.UnspecifiedError,
+				e.message ?? ''
+			);
+		}
 	}
 }

@@ -1,6 +1,6 @@
 "use client"
 import { Fragment, useEffect, useRef, useState } from "react"
-import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
+import { JWT_STORAGE_KEY } from "../constants";
 import { FileListItem } from "./fileListItem";
 import { useRouter } from "next/navigation";
 import { FileUploadForm } from "./fileUploadForm";
@@ -27,8 +27,8 @@ export default function Page() {
 
 	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemData[] | null> => {
 		const url = directoryId == null
-			? `${SERVER_URL}/files/`
-			: `${SERVER_URL}/files/${directoryId}`;
+			? `${process.env.NEXT_PUBLIC_SERVER_URL}/files/`
+			: `${process.env.NEXT_PUBLIC_SERVER_URL}/files/${directoryId}`;
 
 		const response = await fetch(url, {
 			method: 'GET',
@@ -40,7 +40,6 @@ export default function Page() {
 
 		if (!response.ok) {
 			setError("Failed to get files");
-
 			if (response.status === 401 || response.status === 403) {
 				router.push('/auth');
 			}
@@ -70,7 +69,7 @@ export default function Page() {
 	}
 
 	const handleFileDelete = async () => {
-		const response = await fetch(`${SERVER_URL}/files`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files`, {
 			method: 'DELETE',
 			headers: {
 				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`,
@@ -116,7 +115,7 @@ export default function Page() {
 			router.push('/auth');
 		}
 
-		const response = await fetch(`${SERVER_URL}/files/download`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/download`, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${jwt}`,
@@ -208,7 +207,7 @@ export default function Page() {
 	};
 
 	useEffect(() => {
-		reloadFileList(currentDirectoryId);
+		reloadFileList(null);
 		setDirectoryChain([{ id: null, name: 'root' }]);
 	}, []);
 

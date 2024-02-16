@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 import styles from "./auth.module.css"
-import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
+import { JWT_STORAGE_KEY } from "../constants";
 import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
@@ -32,7 +32,7 @@ export default function SignUpForm() {
 
         try {
             const response = await fetch(
-                `${SERVER_URL}/auth/sign-up`,
+                `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-up`,
                 {
                     body: JSON.stringify(requestBody),
                     method: "POST",

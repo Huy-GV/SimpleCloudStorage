@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from "react";
-import { JWT_STORAGE_KEY, SERVER_URL } from "../constants";
+import { JWT_STORAGE_KEY } from "../constants";
 import { useRouter } from "next/navigation";
 import styles from "./files.module.css"
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -20,7 +20,7 @@ export function FileUploadForm({ onFileUploaded, parentDirectoryId } : UploadFil
 		formData.append('file', fileToUpload);
 		formData.append('directoryFileId', JSON.stringify(parentDirectoryId));
 
-		const response = await fetch(`${SERVER_URL}/files/upload`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/upload`, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`

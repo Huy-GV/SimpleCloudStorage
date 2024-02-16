@@ -76,7 +76,7 @@ export class S3InterfaceService {
 				s3Result.$metadata.httpStatusCode,
 			);
 
-			return new DataResult(ResultCode.InvalidState);
+			return new DataResult(ResultCode.InvalidArguments);
 		} else {
 			console.log('Successfully uploaded object');
 		}
@@ -132,7 +132,7 @@ export class S3InterfaceService {
 				s3Result.$metadata.httpStatusCode,
 			);
 
-			return new EmptyResult(ResultCode.InvalidState);
+			return new EmptyResult(ResultCode.InvalidArguments);
 		} else {
 			console.log(`Successfully deleted ${objectUrls.length} objects`);
 		}

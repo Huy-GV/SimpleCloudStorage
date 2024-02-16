@@ -1,7 +1,7 @@
 import { ChangeEvent, useState } from 'react';
 import { FileItemData as FileItemProps } from './definitions';
 import styles from './files.module.css'
-import { JWT_STORAGE_KEY, SERVER_URL } from '../constants';
+import { JWT_STORAGE_KEY } from '../constants';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
@@ -64,7 +64,7 @@ export function FileListItem({ id, name, selected, uploadDate, size, isDirectory
 		e.preventDefault();
 		setIsEditFormDisplayed(false);
 
-		const response = await fetch(`${SERVER_URL}/files/update-name`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/update-name`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
@@ -126,7 +126,6 @@ export function FileListItem({ id, name, selected, uploadDate, size, isDirectory
 								onChange={handleNameChanged}
 								onKeyDown={handleNameChangeSubmitted}></input>
 						</>
-
 						:
 						<div className={styles.fileNameContainer}>
 							<span>

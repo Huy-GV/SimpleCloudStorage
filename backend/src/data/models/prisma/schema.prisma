@@ -31,7 +31,7 @@ model File {
 	parentFileId	Int?
 
 	ownerUser		User @relation(fields: [ownerUserId], references: [id])
-	parentFile		File? @relation("FileHierarchy", fields: [parentFileId], references: [id])
+	parentFile		File? @relation("FileHierarchy", fields: [parentFileId], references: [id], onDelete: Cascade)
 
 	childFiles		File[] @relation("FileHierarchy")
 }

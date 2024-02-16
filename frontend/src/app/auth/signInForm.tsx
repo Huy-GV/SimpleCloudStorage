@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import styles from './auth.module.css'; // Assuming you have a CSS module for styling
-import { JWT_STORAGE_KEY, SERVER_URL } from '../constants'
+import { JWT_STORAGE_KEY } from '../constants'
 import { useRouter } from 'next/navigation';
 
 export default function SignInForm() {
@@ -25,7 +25,7 @@ export default function SignInForm() {
         };
 
         try {
-            const response = await fetch(`${SERVER_URL}/auth/sign-in`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-in`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
