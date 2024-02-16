@@ -6,10 +6,19 @@ import { DatabaseService } from './database/database.service';
 import { ConfigModule } from '@nestjs/config';
 import { S3InterfaceModule } from './s3-interface/s3-interface.module';
 
+const resolveEnvFile = () => {
+	console.log('Using environment ', process.env.NODE_ENV)
+	if (!process.env.NODE_ENV) {
+		return '.env.development.local'
+	}
+
+	return `.env.${process.env.NODE_ENV}`
+}
+
 @Module({
 	imports: [
 		ConfigModule.forRoot({
-			envFilePath: '.dev.env',
+			envFilePath: resolveEnvFile(),
 			isGlobal: true,
 		}),
 		AuthenticationModule,

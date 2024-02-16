@@ -18,7 +18,7 @@ export function FileListItem({ id, name, selected, uploadDate, size, isDirectory
 	}
 
 	const getFileSizeText = (sizeKb: number) => {
-		if (!sizeKb || Number.isNaN(size)) {
+		if (isDirectory || Number.isNaN(size)) {
 			return '-'
 		}
 

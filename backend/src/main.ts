@@ -18,8 +18,11 @@ async function bootstrap() {
 		}),
 	);
 
+
 	app.use(cookieParser());
-	await app.listen(5000);
+	const port = config.get<number>('SERVER_PORT');
+	console.log('Server listening on: ', port)
+	await app.listen(port);
 }
 
 bootstrap();
