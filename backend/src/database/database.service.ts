@@ -4,9 +4,9 @@ import { DefaultArgs } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class DatabaseService extends PrismaClient implements OnModuleInit {
-    async onModuleInit() {
-        await this.$connect();
-    }
+	async onModuleInit() {
+		await this.$connect();
+	}
 }
 
 export type TransactionClientAlias = Omit<PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">

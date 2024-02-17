@@ -11,105 +11,107 @@ import {
 	StreamableFile,
 	Param,
 	ParseIntPipe,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { USER_CONTEXT_KEY } from 'src/authentication/constants';
-import { FileStorageService } from './file-storage.service';
-import { FileDto } from 'src/data/dtos/fileDto';
-import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
-import { FileInterceptor } from '@nestjs/platform-express/multer';
-import throwHttpExceptionOnFailure from 'src/utils/httpCodeConvertor';
-import { DeleteFilesViewModel } from 'src/data/viewModels/deleteFilesViewModel';
-import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
-import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
-import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryViewModel';
+} from "@nestjs/common";
+import { Request } from "express";
+import { USER_CONTEXT_KEY } from "src/authentication/constants";
+import { FileStorageService } from "./file-storage.service";
+import { FileDto } from "src/data/dtos/fileDto";
+import { UpdateFileNameViewModel } from "src/data/viewModels/updateFileNameViewModel";
+import { FileInterceptor } from "@nestjs/platform-express/multer";
+import throwHttpExceptionOnFailure from "src/utils/httpCodeConvertor";
+import { DeleteFilesViewModel } from "src/data/viewModels/deleteFilesViewModel";
+import { DownloadFileViewModel } from "src/data/viewModels/downloadFilesViewModel";
+import { UploadFileViewModel } from "src/data/viewModels/uploadFileViewModel";
+import { CreateDirectoryViewModel } from "src/data/viewModels/createDirectoryViewModel";
 
-@Controller('files')
+@Controller("files")
 export class FileStorageController {
 	constructor(private readonly fileStorage: FileStorageService) {}
 
-	@Get('/:directoryId')
+  @Get("/:directoryId")
 	async getAllFilesInDirectory(
-		@Req() request: Request,
-		@Param('directoryId', new ParseIntPipe()) directoryId?: number | null
+    @Req() request: Request,
+    @Param("directoryId", new ParseIntPipe()) directoryId?: number | null,
 	): Promise<FileDto[]> {
 		const userId = request[USER_CONTEXT_KEY].sub;
 		return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
 	}
 
-	@Get()
-	async getAllFilesInRootDirectory(
-		@Req() request: Request,
-	): Promise<FileDto[]> {
-		const userId = request[USER_CONTEXT_KEY].sub;
-		return await this.fileStorage.getAllFiles(userId, null);
-	}
+  @Get()
+  async getAllFilesInRootDirectory(
+    @Req() request: Request,
+  ): Promise<FileDto[]> {
+  	const userId = request[USER_CONTEXT_KEY].sub;
+  	return await this.fileStorage.getAllFiles(userId, null);
+  }
 
-	@Post('/upload')
-	@UseInterceptors(FileInterceptor('file'))
-	async uploadFile(
-		@UploadedFile() file: Express.Multer.File,
-		@Req() request: Request,
-		@Body() rawViewModel: UploadFileViewModel
-	): Promise<void> {
+  @Post("/upload")
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() request: Request,
+    @Body() rawViewModel: UploadFileViewModel,
+  ): Promise<void> {
+  	const viewModel = { ...rawViewModel, file: file };
+  	const userId: number = request[USER_CONTEXT_KEY].sub;
+  	const result = await this.fileStorage.uploadFile(
+  		userId,
+  		viewModel,
+  		viewModel.directoryFileId,
+  	);
 
-		const viewModel = { ...rawViewModel, file: file}
-		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.uploadFile(userId, viewModel, viewModel.directoryFileId);
+  	throwHttpExceptionOnFailure(result);
+  }
 
-		throwHttpExceptionOnFailure(result);
-	}
+  @Post("/create-directory")
+  async createDirectory(
+    @Req() request: Request,
+    @Body() viewModel: CreateDirectoryViewModel,
+  ): Promise<void> {
+  	const userId: number = request[USER_CONTEXT_KEY].sub;
+  	const result = await this.fileStorage.createDirectory(userId, viewModel);
 
-	@Post('/create-directory')
-	async createDirectory(
-		@Req() request: Request,
-		@Body() viewModel: CreateDirectoryViewModel
-	): Promise<void> {
+  	throwHttpExceptionOnFailure(result);
+  }
 
-		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.createDirectory(userId, viewModel);
+  @Put("/update-name")
+  async updateFileName(
+    @Req() request: Request,
+    @Body() viewModel: UpdateFileNameViewModel,
+  ): Promise<void> {
+  	const result = await this.fileStorage.updateFileName(
+  		viewModel,
+  		request[USER_CONTEXT_KEY].sub,
+  	);
 
-		throwHttpExceptionOnFailure(result);
-	}
+  	throwHttpExceptionOnFailure(result);
+  }
 
-	@Put('/update-name')
-	async updateFileName(
-		@Req() request: Request,
-		@Body() viewModel: UpdateFileNameViewModel,
-	): Promise<void> {
-		const result = await this.fileStorage.updateFileName(
-			viewModel,
-			request[USER_CONTEXT_KEY].sub,
-		);
+  @Delete("")
+  async deleteFiles(
+    @Req() request: Request,
+    @Body() viewModel: DeleteFilesViewModel,
+  ): Promise<void> {
+  	const result = await this.fileStorage.deleteFiles(
+  		viewModel.fileIds,
+  		request[USER_CONTEXT_KEY].sub,
+  	);
 
-		throwHttpExceptionOnFailure(result);
-	}
+  	throwHttpExceptionOnFailure(result);
+  }
 
-	@Delete('')
-	async deleteFiles(
-		@Req() request: Request,
-		@Body() viewModel: DeleteFilesViewModel,
-	): Promise<void> {
-		const result = await this.fileStorage.deleteFiles(
-			viewModel.fileIds,
-			request[USER_CONTEXT_KEY].sub,
-		);
+  @Post("/download")
+  async getFile(
+    @Req() request: Request,
+    @Body() body: DownloadFileViewModel,
+  ): Promise<StreamableFile> {
+  	const result = await this.fileStorage.downloadFiles(
+  		body,
+  		request[USER_CONTEXT_KEY].sub,
+  	);
 
-		throwHttpExceptionOnFailure(result);
-	}
+  	throwHttpExceptionOnFailure(result);
 
-	@Post('/download')
-	async getFile(
-		@Req() request: Request,
-		@Body() body: DownloadFileViewModel,
-	): Promise<StreamableFile> {
-		const result = await this.fileStorage.downloadFiles(
-			body,
-			request[USER_CONTEXT_KEY].sub,
-		);
-
-		throwHttpExceptionOnFailure(result);
-
-		return result.data;
-	}
+  	return result.data;
+  }
 }

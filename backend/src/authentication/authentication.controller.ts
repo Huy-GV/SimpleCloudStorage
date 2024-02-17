@@ -21,17 +21,17 @@ export class AuthenticationController {
 
 	@AllowAnonymous()
 	@Post('sign-in')
-		async signIn(
+	async signIn(
 			@Body() viewModel: SignInViewModel,
 			@Res({ passthrough: true }) response: Response,
-		): Promise<JwtDto> {
-			const result = await this.jwtAuthenticator.signIn(viewModel);
-			throwHttpExceptionOnFailure(result);
+	): Promise<JwtDto> {
+		const result = await this.jwtAuthenticator.signIn(viewModel);
+		throwHttpExceptionOnFailure(result);
 
-			response.cookie(JWT_COOKIE_KEY, result.data.token, { httpOnly: true });
+		response.cookie(JWT_COOKIE_KEY, result.data.token, { httpOnly: true });
 
-			return result.data;
-		}
+		return result.data;
+	}
 
 	@AllowAnonymous()
 	@Post('sign-up')

@@ -1,6 +1,6 @@
 import { Optional } from "@nestjs/common";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsNumberString, ValidateIf } from "class-validator";
+import { IsNotEmpty, IsNumber, ValidateIf } from "class-validator";
 
 export class UpdateFileNameViewModel {
 	readonly id: number;
