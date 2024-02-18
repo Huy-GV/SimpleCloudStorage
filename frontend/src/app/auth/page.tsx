@@ -19,8 +19,7 @@ export default function Page() {
                         <p>Already have an account?</p>
                             <button
                                 className='border-none text-blue-700 p-3 font-bold'
-                                onClick={toggleUseSignUp}
-                            >
+                                onClick={toggleUseSignUp}>
                                 Sign In
                             </button>
                     </div>
@@ -32,9 +31,8 @@ export default function Page() {
                         <p>Haven&apos;t got an account?</p>
                             <button
                                 className='border-none text-blue-700 p-3 font-bold'
-                                onClick={toggleUseSignUp}
-                            >
-                              Sign Up
+                                onClick={toggleUseSignUp}>
+                                Sign Up
                             </button>
                     </div>
                 </div>

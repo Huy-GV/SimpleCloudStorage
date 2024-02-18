@@ -1,6 +1,5 @@
 import { ChangeEvent, useState } from 'react';
 import { FileItemData as FileItemProps } from './definitions';
-import styles from './files.module.css'
 import { JWT_STORAGE_KEY } from '../constants';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -121,41 +120,39 @@ export function FileListItem(
 
 	return (
 		<tr
-			className={` hover:bg-blue-100 select-none ${selected ? 'bg-blue-100' : ''} ${isDirectory ? 'cursor-pointer' : ''}`}
-			onDoubleClick={handleFileClicked}
-		>
+			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-100' : ''} ${isDirectory ? 'cursor-pointer' : ''}`}
+			onDoubleClick={handleFileClicked}>
 			<td className='py-2 px-1'>
 				<input
 					type='checkbox'
 					className='w-8 h-8'
 					onChange={handleFileSelect}
-					checked={selected}
-				/>
+					checked={selected}/>
 			</td>
 			<td className='text-left'>
 				{
 					isEditFormDisplayed
 						?
-						<>
-							<input
-								className='py-1 text-base w-full pl-1'
-								type='text'
-								value={newName}
-								autoFocus
-								onBlur={handleNameInputFocusLost}
-								onChange={handleNameChanged}
-								onKeyDown={handleNameChangeSubmitted}></input>
-						</>
+						<input
+							className='py-1 text-base w-full pl-1'
+							type='text'
+							value={newName}
+							autoFocus
+							onBlur={handleNameInputFocusLost}
+							onChange={handleNameChanged}
+							onKeyDown={handleNameChangeSubmitted}/>
 						:
-						<div className={styles.fileNameContainer}>
+						<div className='flex flex-row'>
 							<span className='text-nowrap text-ellipsis whitespace-nowrap w-4/5 overflow-x-hidden'>
 								{name}
 							</span>
 							<button
-								onClick={handleFileNameClick}
-							>
+								className='transition ease-in-out group-hover/file-row:visible ml-auto invisible'
+								onClick={handleFileNameClick}>
 								<FontAwesomeIcon icon={faPenToSquare}/>
-								<span className='ml-3 mr-1 font-semibold'>Edit</span>
+								<span className='ml-3 mr-1 font-semibold'>
+									Edit
+								</span>
 							</button>
 						</div>
 

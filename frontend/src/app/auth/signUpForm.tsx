@@ -78,8 +78,7 @@ export default function SignUpForm() {
                     name="userName"
                     value={userName}
                     onChange={handleUserNameChange}
-                    required
-                />
+                    required />
 
                 <label htmlFor="email">Email</label>
                 <input
@@ -89,8 +88,7 @@ export default function SignUpForm() {
                     name="email"
                     value={email}
                     onChange={handleEmailChange}
-                    required
-                />
+                    required />
 
                 <label htmlFor="password">Password</label>
                 <input
@@ -100,8 +98,7 @@ export default function SignUpForm() {
                     name="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    required
-                />
+                    required />
 
                 <button type="submit" className='bg-blue-700 bg-none border-none text-white p-3 rounded-md mt-2 shadow-md hover:shadow-lg'>
                     Sign Up

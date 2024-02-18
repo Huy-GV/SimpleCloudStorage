@@ -4,7 +4,6 @@ import { JWT_STORAGE_KEY } from "../constants";
 import { FileListItem } from "./fileListItem";
 import { useRouter } from "next/navigation";
 import { FileUploadForm } from "./fileUploadForm";
-import styles from './files.module.css'
 import { DirectoryChainItem, FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -207,18 +206,21 @@ export default function Page() {
 
 	useEffect(() => {
 		reloadFileList(null)
-			.then(() => setDirectoryChain([{ id: null, name: 'root' }]));
+			.then(() => setDirectoryChain([{ id: null, name: 'Home' }]));
 	}, []);
 
 	return (
-		<main className='flex flex-col w-3/5 xl:w-3/5 lg:w-5/6 md:w-11/12 m-auto'>
+		<main className='flex flex-col w-3/5 xl:w-3/5 sm:w-5/6 md:w-11/12 m-auto min-w-fit'>
 			<h1 className='text-4xl mb-3'>My Files</h1>
 
 			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3'>
 				{
 					directoryChain.map((x, index) => (
 						<Fragment key={x.id}>
-							<FontAwesomeIcon icon={faChevronRight}/>
+							{
+								index > 0 &&
+								<FontAwesomeIcon icon={faChevronRight} />
+							}
 							<button
 								className={index == directoryChain.length - 1
 									? 'text-black text-2xl'
@@ -241,9 +243,7 @@ export default function Page() {
 				</button>
 				<FileUploadForm
 					parentDirectoryId={currentDirectoryId}
-					onFileUploaded={onFileUploaded}
-				>
-				</FileUploadForm>
+					onFileUploaded={onFileUploaded} />
 				<button
 					disabled={selectedFiles.size == 0}
 					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
@@ -277,8 +277,7 @@ export default function Page() {
 										: 'invisible'
 									}`
 								}
-								onClick={handleFilesDeselected}
-							>
+								onClick={handleFilesDeselected}>
 								<FontAwesomeIcon icon={faXmark}/>
 								<span className="ml-3">{selectedFiles.size}</span>
 							</button>
@@ -296,9 +295,7 @@ export default function Page() {
 							<CreateDirectoryForm
 								onDirectoryCreated={onDirectoryCreated}
 								onCancel={onDirectoryCreationCancelled}
-								parentDirectoryId={currentDirectoryId}
-							>
-							</CreateDirectoryForm>
+								parentDirectoryId={currentDirectoryId}/>
 						)
 					}
 					{
@@ -314,9 +311,7 @@ export default function Page() {
 								selected={selectedFiles.has(item.id)}
 								uploadDate={new Date(item.uploadDate)}
 								isDirectory={item.isDirectory}
-								parentDirectoryId={item.parentDirectoryId ?? null}
-							>
-							</FileListItem>
+								parentDirectoryId={item.parentDirectoryId ?? null}/>
 						))
 					}
 				</tbody>

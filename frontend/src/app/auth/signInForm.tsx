@@ -71,8 +71,7 @@ export default function SignInForm() {
                     name="userName"
                     value={userName}
                     onChange={handleUserNameChange}
-                    required
-                />
+                    required />
 
                 <label htmlFor="password">Password</label>
                 <input
@@ -82,8 +81,7 @@ export default function SignInForm() {
                     name="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    required
-                />
+                    required />
 
                 <button type="submit" className='bg-blue-700 bg-none border-none text-white p-3 rounded-md mt-2 shadow-md hover:shadow-lg'>
                     Sign In

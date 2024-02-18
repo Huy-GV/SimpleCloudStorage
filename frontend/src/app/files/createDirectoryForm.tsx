@@ -1,5 +1,4 @@
 import { ChangeEvent, useState } from 'react';
-import styles from './files.module.css'
 import { JWT_STORAGE_KEY } from '../constants';
 import { useRouter } from 'next/navigation';
 import { CreateDirectoryFormProps } from './definitions';
@@ -64,16 +63,14 @@ export function CreateDirectoryForm(
             <td></td>
             <td className='text-left'>
                 {
-                    <>
-                        <input
-                            className={styles.changeNameInput}
-                            type='text'
-                            value={directoryName}
-                            onChange={handleNameChanged}
-                            autoFocus
-                            onBlur={handleChangeNameCancelled}
-                            onKeyDown={handleNameChangeSubmitted}></input>
-                    </>
+                    <input
+                        className='py-1 text-base w-full pl-1'
+                        type='text'
+                        value={directoryName}
+                        onChange={handleNameChanged}
+                        autoFocus
+                        onBlur={handleChangeNameCancelled}
+                        onKeyDown={handleNameChangeSubmitted}/>
                 }
             </td>
             <td className='text-left'>0 KB</td>
