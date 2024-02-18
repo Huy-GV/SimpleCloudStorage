@@ -153,7 +153,7 @@ export class FileStorageService {
 			directoryName,
 		);
 
-		this.ensureDirectoryExisted(tempDirectoryPath);
+		await this.ensureDirectoryExisted(tempDirectoryPath);
 		const fullZipFilePath = `${tempDirectoryPath}.zip`;
 
 		try {
@@ -317,12 +317,12 @@ export class FileStorageService {
 		tempDirectoryPath: string,
 		zipDirectoryPath: string,
 	) {
-		const presignedUrl = await this.s3Service.getPublicUrl(file.uri);
+		const signedUrl = await this.s3Service.getPublicUrl(file.uri);
 
 		// axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
 		const response = await axios({
 			method: 'get',
-			url: presignedUrl,
+			url: signedUrl,
 			responseType: 'stream',
 		});
 
@@ -330,7 +330,7 @@ export class FileStorageService {
 		const tempFilePath = `${tempDirectoryPath}//${file.name}`;
 		const zipFilePath = `${zipDirectoryPath}//${file.name}`;
 
-		// await until the s3 object is written to the temporary directory
+		// wait until the s3 object is written to the temporary directory
 		await new Promise<void>((resolve, reject) => {
 			const fileWriteStream = createWriteStream(tempFilePath);
 			downloadedFileStream.pipe(fileWriteStream);

@@ -158,35 +158,34 @@ export default function Page() {
 		setSelectedFiles(new Set());
 
 		// add the directory to the chain
-		setDirectoryChain([
-			...directoryChain,
-			{
-				id: selectedDirectoryId,
-				name: fileItemMap.get(selectedDirectoryId!)?.name ?? 'unknown'
-			}
-		]);
+		setDirectoryChain(currentDirectoryChain => {
+			return  [
+				...currentDirectoryChain,
+				{
+					id: selectedDirectoryId,
+					name: fileItemMap.get(selectedDirectoryId!)?.name ?? 'unknown'
+				}
+			]
+		});
 
 		await reloadFileList(selectedDirectoryId);
 	}
 
-	const handleDirectoryLinkClicked = async (directoryId: number | null) => {
-		if (directoryId == currentDirectoryId) {
+	const handleDirectoryLinkClicked = async (selectedDirectoryId: number | null) => {
+		if (selectedDirectoryId == currentDirectoryId) {
+			await reloadFileList(selectedDirectoryId);
 			return;
 		}
 
-		setCurrentDirectoryId(directoryId);
+		setCurrentDirectoryId(selectedDirectoryId);
 		setSelectedFiles(new Set());
 
-		setDirectoryChain(prev => {
-			const index = prev.map(x => x.id).indexOf(directoryId);
-			if (index === -1) {
-				return prev;
-			}
-
-			return prev.slice(0, index + 1);
+		setDirectoryChain(currentChain => {
+			const index = currentChain.map(x => x.id).indexOf(selectedDirectoryId);
+			return index === -1 ? currentChain : currentChain.slice(0, index + 1);
 		})
 
-		await reloadFileList(directoryId);
+		await reloadFileList(selectedDirectoryId);
 	}
 
 	const onFileUploaded = async () => {
@@ -207,8 +206,8 @@ export default function Page() {
 	};
 
 	useEffect(() => {
-		reloadFileList(null);
-		setDirectoryChain([{ id: null, name: 'root' }]);
+		reloadFileList(null)
+			.then(() => setDirectoryChain([{ id: null, name: 'root' }]));
 	}, []);
 
 	return (

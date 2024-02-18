@@ -6,7 +6,20 @@ import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 
-export function FileListItem({ id, name, selected, uploadDate, size, isDirectory, parentDirectoryId, onDirectoryClicked, onFileSelect, onFileNameChanged }: FileItemProps) {
+export function FileListItem(
+	{
+		id,
+		name,
+		selected,
+		uploadDate,
+		size,
+		isDirectory,
+		parentDirectoryId,
+		onDirectoryClicked,
+		onFileSelect,
+		onFileNameChanged
+	} : FileItemProps
+) {
 	const router = useRouter();
 	const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
 	const [newName, setNewName] = useState<string>(name);
@@ -78,8 +91,6 @@ export function FileListItem({ id, name, selected, uploadDate, size, isDirectory
 		})
 
 		if (!response.ok) {
-
-			alert(response.status)
 			if (response.status === 401 || response.status === 403) {
 				router.push('/auth');
 				return;

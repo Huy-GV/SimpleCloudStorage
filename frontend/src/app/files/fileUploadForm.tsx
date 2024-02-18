@@ -6,7 +6,12 @@ import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { UploadFileFormProps } from "./definitions";
 
-export function FileUploadForm({ onFileUploaded, parentDirectoryId } : UploadFileFormProps) {
+export function FileUploadForm(
+	{
+		onFileUploaded,
+		parentDirectoryId
+	} : UploadFileFormProps
+) {
 	const router = useRouter();
 	const [error, setError] = useState<string>('');
 

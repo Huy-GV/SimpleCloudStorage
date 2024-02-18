@@ -4,7 +4,13 @@ import { JWT_STORAGE_KEY } from '../constants';
 import { useRouter } from 'next/navigation';
 import { CreateDirectoryFormProps } from './definitions';
 
-export function CreateDirectoryForm({ parentDirectoryId, onDirectoryCreated, onCancel } : CreateDirectoryFormProps) {
+export function CreateDirectoryForm(
+    {
+        parentDirectoryId,
+        onDirectoryCreated,
+        onCancel
+    } : CreateDirectoryFormProps
+) {
     const router = useRouter();
     const [directoryName, setDirectoryName] = useState<string>('');
 

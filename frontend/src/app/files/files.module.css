@@ -13,7 +13,7 @@
     background-color: blue;
     color: white;
     padding: 0.8rem;
-    border: 0px;
+    border: 0;
     border-radius: 5px;
     font-size: 1rem;
     display: block;
@@ -94,7 +94,6 @@
     cursor: pointer;
 }
 
-
 .fileTable tbody tr:hover .fileNameContainer button:last-child {
     visibility: visible;
 }
@@ -148,7 +147,7 @@
 
 .deselectFilesBtn {
     padding: 0.8rem;
-    border: 0px;
+    border: 0;
     border-radius: 5px;
     font-size: 1rem;
 
