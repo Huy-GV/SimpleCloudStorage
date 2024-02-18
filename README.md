@@ -12,20 +12,20 @@ Simple cloud storage application backed by AWS S3.
 
 ### Technologies
 - Languages: TypeScript, HTML, CSS
-- Frameworks: Node.js, Next.js, React, NestJS, Prisma
+- Frameworks: React, Next.js, Tailwind CSS, NestJS, Prisma
 - Development Tools: AWS S3, PostgreSQL
 
 ## Images
 
-<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/c5eedd96-4178-42f6-8479-db0c3bc3fb91" width=60% alt="image">
+<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/41e13876-a74d-4e88-a987-01655c41611e" width=60% alt="image">
 
 ## Build and Run Locally
 ### Pre-requisites
 - Install [Node.js](https://nodejs.org/en/download/current)
-    - Install `dotenv-cli` globally:
-        ```bash
-        npm install -g dotenv-cli
-        ```
+- Install `dotenv-cli` globally:
+    ```bash
+    npm install -g dotenv-cli
+    ```
 - Install dependencies by running this command in `/backend` and `/frontend`:
     ```bash
     npm install
