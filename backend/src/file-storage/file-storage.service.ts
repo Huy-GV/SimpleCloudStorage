@@ -282,7 +282,7 @@ export class FileStorageService {
 		});
 
 		if (files.filter((x) => !x.isDirectory).length == 0) {
-			// if the directory does not contain non-directory files, we append its name to the zip path
+			// if the directory only contains directories, append its name to the zip path
 			archive.directory(
 				currentTempDirectoryPath,
 				currentZipDirectoryPath,

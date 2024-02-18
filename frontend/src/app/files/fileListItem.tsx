@@ -24,7 +24,13 @@ export function FileListItem(
 	const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
 	const [newName, setNewName] = useState<string>(name);
 
-	const localDate = `${uploadDate.getDate()}/${uploadDate.getMonth()}/${uploadDate.getFullYear()} ${uploadDate.getHours()}:${uploadDate.getMinutes()}`;
+	const timeFormat = {
+		hour12: false,
+		hour: '2-digit',
+		minute: '2-digit',
+	} as const;
+
+	const localDate = `${uploadDate.toLocaleTimeString([], timeFormat)} ${uploadDate.getDate()}/${uploadDate.getMonth()}/${uploadDate.getFullYear()}`;
 
 	const getFileTypeText = (isDirectory: boolean) => {
 		return isDirectory ? 'Folder' : 'File'
@@ -114,22 +120,25 @@ export function FileListItem(
 	}
 
 	return (
-		<tr className={selected ? styles.selectedRow : ''} onDoubleClick={handleFileClicked}>
-			<td>
+		<tr
+			className={` hover:bg-blue-100 select-none ${selected ? 'bg-blue-100' : ''} ${isDirectory ? 'cursor-pointer' : ''}`}
+			onDoubleClick={handleFileClicked}
+		>
+			<td className='py-2 px-1'>
 				<input
 					type='checkbox'
-					className={styles.fileCheckbox}
+					className='w-8 h-8'
 					onChange={handleFileSelect}
-					checked={selected}>
-				</input>
+					checked={selected}
+				/>
 			</td>
-			<td className={styles.alignLeftCol}>
+			<td className='text-left'>
 				{
 					isEditFormDisplayed
 						?
 						<>
 							<input
-								className={styles.changeNameInput}
+								className='py-1 text-base w-full pl-1'
 								type='text'
 								value={newName}
 								autoFocus
@@ -139,23 +148,22 @@ export function FileListItem(
 						</>
 						:
 						<div className={styles.fileNameContainer}>
-							<span>
+							<span className='text-nowrap text-ellipsis whitespace-nowrap w-4/5 overflow-x-hidden'>
 								{name}
 							</span>
 							<button
-								className={styles.editFileNameBtn}
 								onClick={handleFileNameClick}
 							>
-								<FontAwesomeIcon icon={faPenToSquare}></FontAwesomeIcon>
-								Edit
+								<FontAwesomeIcon icon={faPenToSquare}/>
+								<span className='ml-3 mr-1 font-semibold'>Edit</span>
 							</button>
 						</div>
 
 				}
 			</td>
-			<td className={styles.alignLeftCol}>{ getFileSizeText(size) }</td>
-			<td className={styles.alignLeftCol}>{ getFileTypeText(isDirectory) }</td>
-			<td className={styles.alignRightCol}>{ localDate }</td>
+			<td className='text-left'>{ getFileSizeText(size) }</td>
+			<td className='text-left'>{ getFileTypeText(isDirectory) }</td>
+			<td className='text-right'>{ localDate }</td>
 		</tr>
 	);
 }

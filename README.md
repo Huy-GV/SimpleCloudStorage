@@ -1,4 +1,4 @@
-# SIMPLE DRIVE
+# SIMPLE CLOUD STORAGE
 
 ## Overview
 Simple cloud storage application backed by AWS S3.

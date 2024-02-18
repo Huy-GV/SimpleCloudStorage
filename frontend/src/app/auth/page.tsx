@@ -3,32 +3,41 @@
 import { useState } from "react"
 import SignUpForm from "./signUpForm";
 import SignInForm from "./signInForm";
-import styles from "./auth.module.css"
 
 export default function Page() {
   const [useSignUp, setUseSignUp] = useState<boolean>(false);
   const toggleUseSignUp = () => { setUseSignUp(!useSignUp) };
 
   return (
-      <main className={styles.main}>
+      <main className='flex flex-col items-center rounded-md xl:w-2/5 md-x-3/5 m-auto p-8'>
         {
             useSignUp
             ?
-            <div className={styles.formContainer}>
-                <SignUpForm></SignUpForm>
-                <div className={styles.alternateAuthOptionContainer}>
-                    <p>Already have an account?</p>
-                    <button className={styles.alternateAuthBtn} onClick={toggleUseSignUp}>Sign In</button>
+                <div className='w-4/5'>
+                    <SignUpForm></SignUpForm>
+                    <div className='flex flex-col items-end mt-3'>
+                        <p>Already have an account?</p>
+                            <button
+                                className='border-none text-blue-700 p-3 font-bold'
+                                onClick={toggleUseSignUp}
+                            >
+                                Sign In
+                            </button>
+                    </div>
                 </div>
-            </div>
             :
-            <div className={styles.formContainer}>
-                <SignInForm></SignInForm>
-                <div className={styles.alternateAuthOptionContainer}>
-                    <p>Haven&apos;t got an account?</p>
-                    <button className={styles.alternateAuthBtn} onClick={toggleUseSignUp}>Sign Up</button>
+                <div className='w-4/5'>
+                    <SignInForm></SignInForm>
+                    <div className='flex flex-col items-end mt-3'>
+                        <p>Haven&apos;t got an account?</p>
+                            <button
+                                className='border-none text-blue-700 p-3 font-bold'
+                                onClick={toggleUseSignUp}
+                            >
+                              Sign Up
+                            </button>
+                    </div>
                 </div>
-            </div>
         }
     </main>
   )

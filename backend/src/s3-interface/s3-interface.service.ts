@@ -128,10 +128,9 @@ export class S3InterfaceService {
 			);
 
 			return new EmptyResult(ResultCode.InvalidArguments);
-		} else {
-			this.logger.log(`Successfully deleted ${objectUrls.length} objects`);
 		}
 
+		this.logger.log(`Successfully deleted ${objectUrls.length} objects`);
 		return new EmptyResult(ResultCode.Success);
 	}
 }

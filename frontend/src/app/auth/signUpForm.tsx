@@ -1,5 +1,4 @@
 import { ChangeEvent, FormEvent, useState } from "react"
-import styles from "./auth.module.css"
 import { JWT_STORAGE_KEY } from "../constants";
 import { useRouter } from "next/navigation";
 
@@ -63,16 +62,17 @@ export default function SignUpForm() {
 
     return (
         <>
-            <h1>Sign Up</h1>
+            <h1 className='text-4xl mb-3'>Sign Up</h1>
             {
                 error &&
-                <div>
-                    Sign Up Error: {error}
-                </div>
+                <p className='text-red-700 bg-red-50 p-3 my-3'>
+                    Error: {error}
+                </p>
             }
-            <form className={styles.authForm} onSubmit={handleSignUp}>
+            <form className='flex flex-col' onSubmit={handleSignUp}>
                 <label htmlFor="userName">User Name</label>
                 <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
                     type="text"
                     id="userName"
                     name="userName"
@@ -83,6 +83,7 @@ export default function SignUpForm() {
 
                 <label htmlFor="email">Email</label>
                 <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
                     type="text"
                     id="email"
                     name="email"
@@ -93,6 +94,7 @@ export default function SignUpForm() {
 
                 <label htmlFor="password">Password</label>
                 <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
                     type="password"
                     id="password"
                     name="password"
@@ -101,7 +103,9 @@ export default function SignUpForm() {
                     required
                 />
 
-                <button type="submit" className={styles.signUpBtn}>Sign Up</button>
+                <button type="submit" className='bg-blue-700 bg-none border-none text-white p-3 rounded-md mt-2 shadow-md hover:shadow-lg'>
+                    Sign Up
+                </button>
             </form>
     </>
     )

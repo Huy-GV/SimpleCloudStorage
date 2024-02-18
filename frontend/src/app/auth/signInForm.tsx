@@ -1,5 +1,4 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
-import styles from './auth.module.css'; // Assuming you have a CSS module for styling
 import { JWT_STORAGE_KEY } from '../constants'
 import { useRouter } from 'next/navigation';
 
@@ -56,16 +55,17 @@ export default function SignInForm() {
 
     return (
         <div>
-			<h1>Sign In</h1>
+			<h1 className='text-4xl mb-3'>Sign In</h1>
 			{
                 error &&
-                <div>
-                    Sign In Error: {error}
-                </div>
+                <p className='text-red-700 bg-red-50 p-3 my-3'>
+                    Error: {error}
+                </p>
             }
-            <form className={styles.authForm} onSubmit={handleSignIn}>
+            <form className='flex flex-col' onSubmit={handleSignIn}>
                 <label htmlFor="userName">User Name</label>
                 <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
                     type="text"
                     id="userName"
                     name="userName"
@@ -76,6 +76,7 @@ export default function SignInForm() {
 
                 <label htmlFor="password">Password</label>
                 <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
                     type="password"
                     id="password"
                     name="password"
@@ -84,7 +85,9 @@ export default function SignInForm() {
                     required
                 />
 
-                <button type="submit" className={styles.signInBtn}>Sign In</button>
+                <button type="submit" className='bg-blue-700 bg-none border-none text-white p-3 rounded-md mt-2 shadow-md hover:shadow-lg'>
+                    Sign In
+                </button>
             </form>
         </div>
     );

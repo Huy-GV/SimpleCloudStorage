@@ -56,15 +56,19 @@ export function FileUploadForm(
 	}
 
 	return (
-		<form className={styles.uploadForm} encType='multipart/form-data'>
+		<form encType='multipart/form-data'>
 			{
 				<>
-					<label htmlFor='file' className={styles.selectFileToUploadBtn}>
+					<label
+						htmlFor='file'
+						className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg'>
 						<FontAwesomeIcon icon={faUpload} />
-						<span className={styles.btnLabel}>Upload</span>
+						<span className='ml-2'>Upload</span>
 					</label>
-					<input id='file' type='file'
-						className={styles.fileInput}
+					<input
+						id='file'
+						type='file'
+						className='hidden'
 						name='file'
 						onChange={handleFileChange} />
 				</>

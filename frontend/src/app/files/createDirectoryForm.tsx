@@ -62,7 +62,7 @@ export function CreateDirectoryForm(
     return (
         <tr>
             <td></td>
-            <td className={styles.alignLeftCol}>
+            <td className='text-left'>
                 {
                     <>
                         <input
@@ -76,8 +76,8 @@ export function CreateDirectoryForm(
                     </>
                 }
             </td>
-            <td className={styles.alignLeftCol}>0 KB</td>
-            <td className={styles.alignRightCol}></td>
+            <td className='text-left'>0 KB</td>
+            <td className='text-right'></td>
         </tr>
     );
 }

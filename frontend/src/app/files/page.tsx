@@ -7,7 +7,7 @@ import { FileUploadForm } from "./fileUploadForm";
 import styles from './files.module.css'
 import { DirectoryChainItem, FileItemData } from "./definitions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronRight, faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 
 export default function Page() {
@@ -211,15 +211,19 @@ export default function Page() {
 	}, []);
 
 	return (
-		<main className={styles.fileListContainer}>
-			<h1>My Files</h1>
+		<main className='flex flex-col w-3/5 xl:w-3/5 lg:w-5/6 md:w-11/12 m-auto'>
+			<h1 className='text-4xl mb-3'>My Files</h1>
 
-			<div className={styles.breadcrumbMenu}>
+			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3'>
 				{
-					directoryChain.map(x => (
+					directoryChain.map((x, index) => (
 						<Fragment key={x.id}>
-							<FontAwesomeIcon icon={faChevronRight}></FontAwesomeIcon>
+							<FontAwesomeIcon icon={faChevronRight}/>
 							<button
+								className={index == directoryChain.length - 1
+									? 'text-black text-2xl'
+									: 'text-gray-500 text-xl'
+								}
 								onClick={() => handleDirectoryLinkClicked(x.id)}>
 								{ x.name }
 							</button>
@@ -228,12 +232,12 @@ export default function Page() {
 				}
 			</div>
 
-			<div className={styles.btnMenu}>
+			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg'>
 				<button
-					className={styles.selectFileToUploadBtn}
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg'
 					onClick={handleDirectoryCreationFormDisplayed}>
 					<FontAwesomeIcon icon={faPlus} />
-					<span className={styles.btnLabel}>Add Folder</span>
+					<span className='ml-2'>Add Folder</span>
 				</button>
 				<FileUploadForm
 					parentDirectoryId={currentDirectoryId}
@@ -242,43 +246,48 @@ export default function Page() {
 				</FileUploadForm>
 				<button
 					disabled={selectedFiles.size == 0}
-					className={styles.fileDownloadBtn}
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
 					onClick={handleFileDownload}>
 					<FontAwesomeIcon icon={faDownload} />
-					<span className={styles.btnLabel}>Download</span>
+					<span className='ml-2'>Download</span>
 				</button>
 				<button
 					disabled={selectedFiles.size == 0}
-					className={styles.fileDeleteBtn}
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
 					onClick={handleFileDelete}>
 					<FontAwesomeIcon icon={faTrash} />
-					<span className={styles.btnLabel}>Delete</span>
+					<span className='ml-2'>Delete</span>
 				</button>
 				<a ref={downloadedFileRef}></a>
-
-				{/* <button>Share</button> */}
 			</div>
 			{
-				error && <p className={styles.errorMessage}>Error: {error}</p>
+				error &&
+				<p className='text-red-700 bg-red-50 p-3 my-3'>
+					Error: {error}
+				</p>
 			}
 
-			<table className={styles.fileTable}>
+			<table className='border-collapse'>
 				<thead>
 					<tr>
-						<th className={styles.alignLeftCol}>
+						<th className='text-left w-1/6 h-full'>
 							<button
-								className={selectedFiles.size != 0 ? styles.deselectFilesBtn : styles.hidden}
-								onClick={handleFilesDeselected}>Deselect {selectedFiles.size}
+								className={`bg-gray-300 my-1 p-2 rounded-md ${selectedFiles.size != 0
+										? 'visible'
+										: 'invisible'
+									}`
+								}
+								onClick={handleFilesDeselected}
+							>
+								<FontAwesomeIcon icon={faXmark}/>
+								<span className="ml-3">{selectedFiles.size}</span>
 							</button>
 						</th>
 
-						{/*
-						a <p/> tag is used to ensure the height does not change when the Deselect button is toggled
-						*/}
-						<th className={styles.alignLeftCol}><p>Name</p></th>
-						<th className={styles.alignLeftCol}>Size</th>
-						<th className={styles.alignLeftCol}>Type</th>
-						<th className={styles.alignRightCol}>Upload Date</th>
+						<th className='text-left w-2/5'>Name</th>
+						<th className='text-left'>Size</th>
+						<th className='text-left'>Type</th>
+						<th className='text-right'>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>
