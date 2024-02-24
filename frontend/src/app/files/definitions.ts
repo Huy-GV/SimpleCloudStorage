@@ -1,4 +1,4 @@
-export interface FileItemData {
+export interface FileItemProps {
 	id: number;
 	name: string;
 	size: number;

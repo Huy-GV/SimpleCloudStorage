@@ -1,11 +1,10 @@
 "use client"
-import { Fragment, useEffect, useRef, useState } from "react"
-import { JWT_STORAGE_KEY } from "../constants";
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { FileListItem } from "./fileListItem";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import { FileUploadForm } from "./fileUploadForm";
-import { DirectoryChainItem, FileItemData } from "./definitions";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { DirectoryChainItem, FileItemProps } from "./definitions";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 
@@ -17,14 +16,14 @@ export default function Page() {
 
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
 
-	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItemData>>(new Map());
+	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItemProps>>(new Map());
 
 	const [directoryChain, setDirectoryChain] = useState<DirectoryChainItem[]>([]);
 
 	const [error, setError] = useState<string>('');
 	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
 
-	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemData[] | null> => {
+	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemProps[] | null> => {
 		const url = directoryId == null
 			? `${process.env.NEXT_PUBLIC_SERVER_URL}/files/`
 			: `${process.env.NEXT_PUBLIC_SERVER_URL}/files/${directoryId}`;
@@ -47,7 +46,7 @@ export default function Page() {
 		}
 
 		setError('')
-		const files: FileItemData[] = await response.json();
+		const files: FileItemProps[] = await response.json();
 		return files;
 	}
 
@@ -274,7 +273,7 @@ export default function Page() {
 								}
 								onClick={handleFilesDeselected}>
 								<FontAwesomeIcon icon={faXmark}/>
-								<span className="ml-3">{selectedFiles.size}</span>
+								<span className='ml-3'>{selectedFiles.size}</span>
 							</button>
 						</th>
 

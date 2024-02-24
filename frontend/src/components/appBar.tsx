@@ -1,27 +1,9 @@
-"use client"
-
-import styles  from './appBar.module.css'
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function AppBar() {
-    const router = useRouter();
-
-    const handleSignOut = async () => {
-        // http only cookies are controlled set by the server
-        await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-out`,
-            {
-                method: 'GET',
-                credentials: 'include'
-            }
-        );
-
-        router.push('/auth')
-    }
-
     return (
-        <nav className={styles.navContainer}>
-            <button className={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
+        <nav className='flex flex-row ml-2 justify-end pt-6 pr-6'>
+            <Link href='/auth' className='bg-none border-none text-base'>Sign Out</Link>
         </nav>
     )
 }

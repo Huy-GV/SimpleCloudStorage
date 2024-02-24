@@ -1,5 +1,4 @@
-import { ChangeEvent, useState } from 'react';
-import { JWT_STORAGE_KEY } from '../constants';
+import { ChangeEvent, useState } from 'react';;
 import { useRouter } from 'next/navigation';
 import { CreateDirectoryFormProps } from './definitions';
 

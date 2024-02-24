@@ -1,8 +1,7 @@
-import { ChangeEvent, useState } from "react";
-import { JWT_STORAGE_KEY } from "../constants";
-import { useRouter } from "next/navigation";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ChangeEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { faUpload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UploadFileFormProps } from "./definitions";
 
 export function FileUploadForm(

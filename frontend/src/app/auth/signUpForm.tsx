@@ -1,6 +1,5 @@
-import { ChangeEvent, FormEvent, useState } from "react"
-import { JWT_STORAGE_KEY } from "../constants";
-import { useRouter } from "next/navigation";
+import { ChangeEvent, FormEvent, useState } from 'react'
+import { useRouter } from 'next/navigation';
 
 export default function SignUpForm() {
 
@@ -34,7 +33,7 @@ export default function SignUpForm() {
                 `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-up`,
                 {
                     body: JSON.stringify(requestBody),
-                    method: "POST",
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -45,11 +44,11 @@ export default function SignUpForm() {
                 setError("Incorrect credentials");
                 return;
             }
-            
+
 			router.push('/files')
         } catch (e) {
             console.error('Failed to sign up: ', e)
-            setError("An unknown error occurred");
+            setError('An unknown error occurred');
         }
     }
 
@@ -68,32 +67,32 @@ export default function SignUpForm() {
                 </p>
             }
             <form className='flex flex-col' onSubmit={handleSignUp}>
-                <label htmlFor="userName">User Name</label>
+                <label htmlFor='userName'>User Name</label>
                 <input
                     className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type="text"
-                    id="userName"
-                    name="userName"
+                    type='text'
+                    id='userName'
+                    name='userName'
                     value={userName}
                     onChange={handleUserNameChange}
                     required />
 
-                <label htmlFor="email">Email</label>
+                <label htmlFor='email'>Email</label>
                 <input
                     className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type="text"
-                    id="email"
+                    type='text'
+                    id='email'
                     name="email"
                     value={email}
                     onChange={handleEmailChange}
                     required />
 
-                <label htmlFor="password">Password</label>
+                <label htmlFor='password'>Password</label>
                 <input
                     className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type="password"
-                    id="password"
-                    name="password"
+                    type='password'
+                    id='password'
+                    name='password'
                     value={password}
                     onChange={handlePasswordChange}
                     required />

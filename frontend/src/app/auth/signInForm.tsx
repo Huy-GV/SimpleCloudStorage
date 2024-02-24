@@ -1,5 +1,4 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
-import { JWT_STORAGE_KEY } from '../constants'
 import { useRouter } from 'next/navigation';
 
 export default function SignInForm() {
@@ -62,22 +61,22 @@ export default function SignInForm() {
                 </p>
             }
             <form className='flex flex-col' onSubmit={handleSignIn}>
-                <label htmlFor="userName">User Name</label>
+                <label htmlFor='userName'>User Name</label>
                 <input
                     className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type="text"
-                    id="userName"
-                    name="userName"
+                    type='text'
+                    id='userName'
+                    name='userName'
                     value={userName}
                     onChange={handleUserNameChange}
                     required />
 
-                <label htmlFor="password">Password</label>
+                <label htmlFor='password'>Password</label>
                 <input
                     className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type="password"
-                    id="password"
-                    name="password"
+                    type='password'
+                    id='password'
+                    name='password'
                     value={password}
                     onChange={handlePasswordChange}
                     required />

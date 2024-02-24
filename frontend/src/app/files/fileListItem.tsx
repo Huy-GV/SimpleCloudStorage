@@ -1,6 +1,5 @@
 import { ChangeEvent, useState } from 'react';
-import { FileItemData as FileItemProps } from './definitions';
-import { JWT_STORAGE_KEY } from '../constants';
+import { FileItemProps } from './definitions';;
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
