@@ -281,7 +281,10 @@ export class FileStorageService {
 			},
 		});
 
-		if (files.filter((x) => !x.isDirectory).length == 0) {
+		if (files.length == 0) {
+			// archive.directory() does not work if directory is empty
+			archive.append(currentTempDirectoryPath, { name: `${currentZipDirectoryPath}/` });
+		} else if (files.filter((x) => !x.isDirectory).length == 0) {
 			// if the directory only contains directories, append its name to the zip path
 			archive.directory(
 				currentTempDirectoryPath,
