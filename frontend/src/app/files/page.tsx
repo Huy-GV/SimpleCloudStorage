@@ -33,8 +33,8 @@ export default function Page() {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY] ?? ''}`
-			}
+			},
+			credentials: 'include'
 		});
 
 		if (!response.ok) {
@@ -71,12 +71,12 @@ export default function Page() {
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files`, {
 			method: 'DELETE',
 			headers: {
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)
-			})
+			}),
+			credentials: 'include'
 		});
 
 		if (!response.ok) {
@@ -109,20 +109,15 @@ export default function Page() {
 	}
 
 	const handleFileDownload = async () => {
-		const jwt = localStorage[JWT_STORAGE_KEY];
-		if (!jwt) {
-			router.push('/auth');
-		}
-
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/download`, {
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${jwt}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)
-			})
+			}),
+			credentials: 'include'
 		})
 
 		if (!response.ok) {

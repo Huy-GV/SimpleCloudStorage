@@ -10,6 +10,7 @@ async function bootstrap() {
 
 	app.enableCors({
 		origin: [config.get<string>('CLIENT_URLS')],
+		credentials: true
 	});
 
 	app.useGlobalPipes(

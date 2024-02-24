@@ -29,7 +29,8 @@ export default function SignInForm() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
             });
 
 			if (!response.ok) {
@@ -38,8 +39,6 @@ export default function SignInForm() {
 				return
 			}
 
-			const jwtDto = await response.json();
-			localStorage.setItem(JWT_STORAGE_KEY, jwtDto.token)
 			console.log('Successfully signed in');
 			router.push('/files')
         } catch (e) {

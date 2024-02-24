@@ -86,13 +86,13 @@ export function FileListItem(
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`
 			},
 			body: JSON.stringify({
 				id: id,
 				newFileName: newName,
 				parentDirectoryId: parentDirectoryId
-			})
+			}),
+			credentials: 'include'
 		})
 
 		if (!response.ok) {

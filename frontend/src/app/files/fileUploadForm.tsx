@@ -26,10 +26,8 @@ export function FileUploadForm(
 
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/upload`, {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${localStorage[JWT_STORAGE_KEY]}`
-			},
-			body: formData
+			body: formData,
+			credentials: 'include'
 		});
 
 		if (!response.ok) {

@@ -45,9 +45,7 @@ export default function SignUpForm() {
                 setError("Incorrect credentials");
                 return;
             }
-
-            const jwtDto = await response.json();
-			localStorage.setItem(JWT_STORAGE_KEY, jwtDto.token)
+            
 			router.push('/files')
         } catch (e) {
             console.error('Failed to sign up: ', e)
