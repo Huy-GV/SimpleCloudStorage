@@ -281,19 +281,8 @@ export class FileStorageService {
 			},
 		});
 
-		if (files.length == 0) {
-			// archive.directory() does not work if directory is empty
-			archive.append(currentTempDirectoryPath, { name: `${currentZipDirectoryPath}/` });
-		} else if (files.filter((x) => !x.isDirectory).length == 0) {
-			// if the directory only contains directories, append its name to the zip path
-			archive.directory(
-				currentTempDirectoryPath,
-				currentZipDirectoryPath,
-			);
-		} else {
-			// otherwise, adding child files will include the directory in the zip path
-			archive.directory(currentTempDirectoryPath, zipParentDirectoryPath);
-		}
+		// archive.directory() does not work if directory is empty
+		archive.append('', { name: `${currentZipDirectoryPath}/` });
 
 		for (const file of files) {
 			if (file.isDirectory) {

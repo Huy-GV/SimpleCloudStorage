@@ -15,14 +15,16 @@ import {
 	USER_CONTEXT_KEY,
 	BEARER_STR,
 } from './constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
 	private readonly logger: Logger = new Logger(AuthenticationGuard.name);
 
 	constructor(
-		private jwtService: JwtService,
-		private reflector: Reflector,
+		private readonly jwtService: JwtService,
+		private readonly reflector: Reflector,
+		private readonly config: ConfigService
 	) { }
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -43,7 +45,7 @@ export class AuthenticationGuard implements CanActivate {
 
 		try {
 			const payload = await this.jwtService.verifyAsync(token, {
-				secret: process.env.JWT_SECRET,
+				secret: this.config.get<string>('JWT_SECRET'),
 			});
 
 			// TODO: build a complex User model by loading info from the db?
