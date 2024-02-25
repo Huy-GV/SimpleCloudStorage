@@ -201,6 +201,7 @@ export class FileStorageService {
 				} else {
 					await this.addFileToZip(
 						file,
+						index,
 						archive,
 						tempDirectoryPath,
 						rootZipFileName,
@@ -307,6 +308,7 @@ export class FileStorageService {
 			} else {
 				await this.addFileToZip(
 					file,
+					index,
 					archive,
 					currentTempDirectoryPath,
 					currentZipDirectoryPath,
@@ -317,6 +319,7 @@ export class FileStorageService {
 
 	private async addFileToZip(
 		file: { name: string; uri: string },
+		index: number,
 		archive: archiver.Archiver,
 		tempDirectoryPath: string,
 		zipDirectoryPath: string,
@@ -331,8 +334,10 @@ export class FileStorageService {
 		});
 
 		const downloadedFileStream = response.data;
-		const tempFilePath = `${tempDirectoryPath}//${file.name}`;
-		const zipFilePath = `${zipDirectoryPath}//${file.name}`;
+
+		// index within the parent directory is used instead of the current file name to keep the path of temporary download directory as short as possible.
+		const tempFilePath = join(tempDirectoryPath, index.toString());
+		const zipFilePath = join(zipDirectoryPath, file.name);
 
 		// wait until the s3 object is written to the temporary directory
 		await new Promise<void>((resolve, reject) => {
