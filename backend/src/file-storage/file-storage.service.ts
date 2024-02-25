@@ -134,7 +134,7 @@ export class FileStorageService {
 	}
 
 	private expandEnvVariables(path: string) {
-        return path.replace(/%([^%]+)%/g, (x,n) => process.env[n])
+        return path.replace(/%([^%]+)%/g, (_, n) => process.env[n])
     }
 
 	async downloadFiles(
@@ -189,10 +189,11 @@ export class FileStorageService {
 			}
 
 			const rootZipFileName = '';
-			for (const file of files) {
+			for (const [index, file] of files.entries()) {
 				if (file.isDirectory) {
 					await this.addDirectoryToZip(
 						file,
+						index,
 						archive,
 						tempDirectoryPath,
 						rootZipFileName,
@@ -260,14 +261,16 @@ export class FileStorageService {
 	}
 
 	private async addDirectoryToZip(
-		directoryFile: { id: number; name: string; uri: string },
+		directoryFile: { id: number; name: string; },
+		directoryIndex: number,
 		archive: archiver.Archiver,
 		tempParentDirectoryPath: string,
 		zipParentDirectoryPath: string,
-	) {
+	): Promise<void> {
+		// index within the parent directory is used instead of the current directory name to keep the path of temporary download directory as short as possible.
 		const currentTempDirectoryPath = join(
 			tempParentDirectoryPath,
-			directoryFile.name,
+			directoryIndex.toString(),
 		);
 
 		const currentZipDirectoryPath = join(
@@ -292,10 +295,11 @@ export class FileStorageService {
 		// archive.directory() does not work if directory is empty
 		archive.append('', { name: `${currentZipDirectoryPath}/` });
 
-		for (const file of files) {
+		for (const [index, file] of files.entries()) {
 			if (file.isDirectory) {
 				await this.addDirectoryToZip(
 					file,
+					index,
 					archive,
 					currentTempDirectoryPath,
 					currentZipDirectoryPath,
