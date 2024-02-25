@@ -55,6 +55,7 @@ Simple cloud storage application backed by AWS S3.
 
     DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
     SERVER_PORT=YOUR_SERVER_PORT
+    DOWNLOAD_DIR=YOUR_TEMPORARY_DOWNLOAD_DIR
     ```
 - Create a PostgreSQL database:
     ```bash

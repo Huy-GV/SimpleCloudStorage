@@ -1,4 +1,5 @@
 import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as archiver from 'archiver';
 import axios from 'axios';
 import { existsSync, createWriteStream, createReadStream } from 'fs';
@@ -24,6 +25,7 @@ export class FileStorageService {
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly s3Service: S3InterfaceService,
+		private readonly config: ConfigService
 	) {}
 
 	async getAllFiles(
@@ -131,6 +133,10 @@ export class FileStorageService {
 		return new EmptyResult(ResultCode.Success);
 	}
 
+	private expandEnvVariables(path: string) {
+        return path.replace(/%([^%]+)%/g, (x,n) => process.env[n])
+    }
+
 	async downloadFiles(
 		downloadFileViewModel: DownloadFileViewModel,
 		userId: number,
@@ -146,11 +152,13 @@ export class FileStorageService {
 			return new DataResult(ResultCode.Unauthorized);
 		}
 
-		const directoryName = this.createTemporaryDirectoryName(user.id);
+		const tempDirectoryName = this.createTemporaryDirectoryName(user.id);
+		const downloadDirectoryPath = this.config.get<string>('DOWNLOAD_DIR')
+			?? join(process.cwd(), 'downloads');
+
 		const tempDirectoryPath = join(
-			process.cwd(),
-			'downloaded_files',
-			directoryName,
+			this.expandEnvVariables(downloadDirectoryPath),
+			tempDirectoryName,
 		);
 
 		await this.ensureDirectoryExisted(tempDirectoryPath);
@@ -335,7 +343,7 @@ export class FileStorageService {
 	}
 
 	private createTemporaryDirectoryName(userId: number) {
-		const timestamp = new Date().toISOString().replace(/:/g, '-');
+		const timestamp = new Date().getTime();
 		return `${userId}_${timestamp}`;
 	}
 
