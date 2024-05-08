@@ -48,6 +48,7 @@ Simple cloud storage application backed by AWS S3.
     ```env
     CLIENT_URLS=YOUR_REACT_CLIENT_URL
     JWT_SECRET=YOUR_32_CHARACTER_SECRET
+
     AWS_ACCESS_KEY=YOUR_AWS_ACCESS_KEY
     AWS_SECRET_KEY=YOUR_AWS_SECRET_KEY
     AWS_BUCKET=YOUR_AWS_BUCKET
@@ -64,7 +65,8 @@ Simple cloud storage application backed by AWS S3.
     ```
 - Migrate PostgreSQL database with Prisma in `./backend/src/data/models/`
     ```bash
-    dotenv -e ../../../.env.development.local -- npx prisma migrate dev
+    cd ./backend/src/data/models/
+    npx dotenv -e ../../../.env.development.local -- npx prisma migrate dev
     ```
 - Start the backend:
     ```bash
