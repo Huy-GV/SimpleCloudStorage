@@ -14,13 +14,16 @@ phases:
       - npm install
       - npm run build
       - cd ..
-      - echo "Generating Prisma client"
-      - cd ./backend/src/data/models
-      - prisma generate
       -
+      - cd ./backend
       - echo "Building backend..."
-      - cd ../../../
       - npm install
+      -
+      - echo "Generating Prisma client"
+      - cd ./src/data/models
+      - npx prisma generate
+      -
+      - cd ../../../
       - npm run build
 
 artifacts:
