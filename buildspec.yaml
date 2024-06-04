@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 21.6.1
+    commands:
+      - echo "Install phase..."
+
+  frontend_build:
+    commands:
+      - echo "Building frontend..."
+      - cd frontend
+      - npm install
+      - npm run build
+
+  backend_build:
+    commands:
+      - echo "Building backend..."
+      - cd backend
+      - npm install
+      - npm run build
+
+artifacts:
+  files:
+    - frontend/.next/**/*
+    - backend/dist/**/*
+  discard-paths: yes
