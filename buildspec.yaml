@@ -7,15 +7,13 @@ phases:
     commands:
       - echo "Install phase..."
 
-  frontend_build:
+  build:
     commands:
       - echo "Building frontend..."
       - cd frontend
       - npm install
       - npm run build
-
-  backend_build:
-    commands:
+      - cd ..
       - echo "Building backend..."
       - cd backend
       - npm install
