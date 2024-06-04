@@ -10,12 +10,16 @@ phases:
   build:
     commands:
       - echo "Building frontend..."
-      - cd frontend
+      - cd ./frontend
       - npm install
       - npm run build
       - cd ..
+      - echo "Generating Prisma client"
+      - cd ./backend/src/data/models
+      - prisma generate
+      -
       - echo "Building backend..."
-      - cd backend
+      - cd ../../../
       - npm install
       - npm run build
 
