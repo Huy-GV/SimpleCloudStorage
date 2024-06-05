@@ -14,12 +14,7 @@ phases:
       - npm install
       - npm run build
 
-  # post_build:
-  #   commands:
-  #     - cp -r frontend/out/* .
-
 artifacts:
   files:
     - '**/*'
   base-directory: 'frontend/out'
-  # discard-paths: yes

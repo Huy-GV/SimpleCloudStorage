@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { DatabaseService } from '../../src/database/database.service';
+import { DatabaseService } from '../database/database.service';
 import * as bcrypt from 'bcrypt';
 import { SignUpViewModel } from '../data/viewModels/signUpViewModel';
 import { JwtDto } from '../data/dtos/jwtDto';

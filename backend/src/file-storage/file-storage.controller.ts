@@ -52,12 +52,11 @@ export class FileStorageController {
     @Req() request: Request,
     @Body() rawViewModel: UploadFileViewModel,
   ): Promise<void> {
-  	const viewModel = { ...rawViewModel, file: file };
+	const viewModel = { ...rawViewModel, file: file };
   	const userId: number = request[USER_CONTEXT_KEY].sub;
   	const result = await this.fileStorage.uploadFile(
   		userId,
   		viewModel,
-  		viewModel.directoryFileId,
   	);
 
   	throwHttpExceptionOnFailure(result);

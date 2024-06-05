@@ -201,6 +201,7 @@ export default function Page() {
 	useEffect(() => {
 		reloadFileList(null)
 			.then(() => setDirectoryChain([{ id: null, name: 'Home' }]));
+		// deps array is empty so that the file list reloads correctly when navigating to another directory
 	}, []);
 
 	return (

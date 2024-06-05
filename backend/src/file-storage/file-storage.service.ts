@@ -85,7 +85,6 @@ export class FileStorageService {
 	async uploadFile(
 		userId: number,
 		viewModel: UploadFileViewModel,
-		parentFileId: number | null,
 	): Promise<Result> {
 		try {
 			await this.database.$transaction(async (transaction) => {
@@ -93,7 +92,7 @@ export class FileStorageService {
 					await transaction.file.count({
 						where: {
 							name: viewModel.file.originalname,
-							parentFileId: parentFileId,
+							parentFileId: viewModel.directoryFileId,
 						},
 					});
 
