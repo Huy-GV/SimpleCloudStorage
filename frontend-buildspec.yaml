@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 21.6.1
+    commands:
+      - echo "Install phase"
+
+  build:
+    commands:
+      - echo "Building frontend"
+      - cd ./frontend
+      - npm install
+      - npm run build
+
+artifacts:
+  files:
+    - frontend/out/**/*
+  name: frontend-artifact

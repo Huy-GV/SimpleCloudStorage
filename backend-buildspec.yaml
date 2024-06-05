@@ -9,12 +9,6 @@ phases:
 
   build:
     commands:
-      - echo "Building frontend"
-      - cd ./frontend
-      - npm install
-      - npm run build
-      - cd ..
-      -
       - cd ./backend
       - echo "Building backend"
       - npm install
@@ -32,6 +26,5 @@ phases:
 
 artifacts:
   files:
-    - frontend/out/**/*
     - backend/dist/**/*
-  name: output.zip
+  name: backend-artifact
