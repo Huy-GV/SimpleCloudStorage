@@ -34,4 +34,4 @@ artifacts:
   files:
     - frontend/out/**/*
     - backend/dist/**/*
-  discard-paths: yes
+  name: output.zip
