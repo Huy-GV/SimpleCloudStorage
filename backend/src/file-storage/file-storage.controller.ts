@@ -13,16 +13,16 @@ import {
 	ParseIntPipe,
 } from "@nestjs/common";
 import { Request } from "express";
-import { USER_CONTEXT_KEY } from "src/authentication/constants";
 import { FileStorageService } from "./file-storage.service";
-import { FileDto } from "src/data/dtos/fileDto";
-import { UpdateFileNameViewModel } from "src/data/viewModels/updateFileNameViewModel";
 import { FileInterceptor } from "@nestjs/platform-express/multer";
-import throwHttpExceptionOnFailure from "src/utils/httpCodeConvertor";
-import { DeleteFilesViewModel } from "src/data/viewModels/deleteFilesViewModel";
-import { DownloadFileViewModel } from "src/data/viewModels/downloadFilesViewModel";
-import { UploadFileViewModel } from "src/data/viewModels/uploadFileViewModel";
-import { CreateDirectoryViewModel } from "src/data/viewModels/createDirectoryViewModel";
+import { USER_CONTEXT_KEY } from "../authentication/constants";
+import { FileDto } from "../data/dtos/fileDto";
+import { CreateDirectoryViewModel } from "../data/viewModels/createDirectoryViewModel";
+import { DeleteFilesViewModel } from "../data/viewModels/deleteFilesViewModel";
+import { DownloadFileViewModel } from "../data/viewModels/downloadFilesViewModel";
+import { UpdateFileNameViewModel } from "../data/viewModels/updateFileNameViewModel";
+import { UploadFileViewModel } from "../data/viewModels/uploadFileViewModel";
+import throwHttpExceptionOnFailure from "../utils/httpCodeConvertor";
 
 @Controller("files")
 export class FileStorageController {

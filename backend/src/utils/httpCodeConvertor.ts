@@ -4,9 +4,8 @@ import {
 	ForbiddenException,
 	NotFoundException,
 } from '@nestjs/common';
-import { Result } from 'src/data/results/result';
-import { ResultCode } from 'src/data/results/resultCode';
-
+import { ResultCode } from '../data/results/resultCode';
+import { Result } from '../data/results/result';
 export default function throwHttpExceptionOnFailure(result: Result) {
 	if (result.successful) {
 		return;

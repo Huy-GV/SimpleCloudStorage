@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SignInViewModel } from 'src/data/viewModels/signInViewModel';
 import { JwtService } from '@nestjs/jwt';
-import { SignUpViewModel } from 'src/data/viewModels/signUpViewModel';
-import { DatabaseService } from 'src/database/database.service';
+import { DatabaseService } from '../../src/database/database.service';
 import * as bcrypt from 'bcrypt';
-import { JwtDto } from 'src/data/dtos/jwtDto';
-import { ResultCode } from 'src/data/results/resultCode';
-import { DataResult, Result } from 'src/data/results/result';
+import { SignUpViewModel } from '../data/viewModels/signUpViewModel';
+import { JwtDto } from '../data/dtos/jwtDto';
+import { DataResult, Result } from '../data/results/result';
+import { ResultCode } from '../data/results/resultCode';
+import { SignInViewModel } from '../data/viewModels/signInViewModel';
 
 @Injectable()
 export class AuthenticationService {

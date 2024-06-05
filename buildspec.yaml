@@ -5,18 +5,18 @@ phases:
     runtime-versions:
       nodejs: 21.6.1
     commands:
-      - echo "Install phase..."
+      - echo "Install phase"
 
   build:
     commands:
-      - echo "Building frontend..."
+      - echo "Building frontend"
       - cd ./frontend
       - npm install
       - npm run build
       - cd ..
       -
       - cd ./backend
-      - echo "Building backend..."
+      - echo "Building backend"
       - npm install
       -
       - echo "Generating Prisma client"
@@ -24,6 +24,10 @@ phases:
       - npx prisma generate
       -
       - cd ../../../
+      - echo "Running unit tests"
+      - npm run test
+      -
+      - echo "Building backend..."
       - npm run build
 
 artifacts:

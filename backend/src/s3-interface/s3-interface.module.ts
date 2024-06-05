@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { S3InterfaceService } from './s3-interface.service';
-import { DatabaseModule } from 'src/database/database.module';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
 	providers: [S3InterfaceService],

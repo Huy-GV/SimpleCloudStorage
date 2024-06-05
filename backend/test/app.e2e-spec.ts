@@ -1,14 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { ConfigModule } from '@nestjs/config';
+import { AuthenticationModule } from '../src/authentication/authentication.module';
+import { DatabaseModule } from '../src/database/database.module';
+import { FileStorageModule } from '../src/file-storage/file-storage.module';
+import { S3InterfaceModule } from '../src/s3-interface/s3-interface.module';
+import { DatabaseService } from '../src/database/database.service';
+import { AppModule } from '../src/app.module';
 
 describe('AppController (e2e)', () => {
 	let app: INestApplication;
 
 	beforeEach(async () => {
 		const moduleFixture: TestingModule = await Test.createTestingModule({
-			imports: [AppModule],
+			imports: [
+				ConfigModule.forRoot({
+					// TODO: fix missing environment variables
+					envFilePath: jest.fn().mockReturnValue('randomString')(),
+					isGlobal: true,
+				}),
+				AuthenticationModule,
+				FileStorageModule,
+				DatabaseModule,
+				S3InterfaceModule,
+				AppModule
+			],
+
+			providers: [DatabaseService],
 		}).compile();
 
 		app = moduleFixture.createNestApplication();

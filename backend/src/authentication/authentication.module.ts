@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationController } from './authentication.controller';
-import { DatabaseModule } from 'src/database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { AuthenticationGuard } from './authentication.guard';
 import { ConfigService } from '@nestjs/config';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
 	providers: [

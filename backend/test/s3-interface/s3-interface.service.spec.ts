@@ -1,12 +1,12 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { S3InterfaceService } from '../src/s3-interface/s3-interface.service';
-
+import { S3InterfaceService } from '../../src/s3-interface/s3-interface.service';
 describe('S3InterfaceService', () => {
 	let service: S3InterfaceService;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [S3InterfaceService],
+			providers: [S3InterfaceService, ConfigService],
 		}).compile();
 
 		service = module.get<S3InterfaceService>(S3InterfaceService);

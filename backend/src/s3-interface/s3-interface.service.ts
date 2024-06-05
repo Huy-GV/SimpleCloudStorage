@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { DataResult, EmptyResult, Result } from 'src/data/results/result';
-import { ResultCode } from 'src/data/results/resultCode';
+import { DataResult, EmptyResult, Result } from '../data/results/result';
+import { ResultCode } from '../data/results/resultCode';
 
 interface S3Object {
   key: string;

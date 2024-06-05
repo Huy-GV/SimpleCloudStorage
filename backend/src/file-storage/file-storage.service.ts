@@ -5,18 +5,18 @@ import axios from 'axios';
 import { existsSync, createWriteStream, createReadStream } from 'fs';
 import { mkdir, rm, unlink } from 'fs/promises';
 import { join } from 'path';
-import { FileDto } from 'src/data/dtos/fileDto';
-import { DataResult, EmptyResult, Result } from 'src/data/results/result';
-import { ResultCode } from 'src/data/results/resultCode';
-import { CreateDirectoryViewModel } from 'src/data/viewModels/createDirectoryViewModel';
-import { DownloadFileViewModel } from 'src/data/viewModels/downloadFilesViewModel';
-import { UpdateFileNameViewModel } from 'src/data/viewModels/updateFileNameViewModel';
-import { UploadFileViewModel } from 'src/data/viewModels/uploadFileViewModel';
 import {
 	DatabaseService,
 	TransactionClientAlias,
-} from 'src/database/database.service';
-import { S3InterfaceService } from 'src/s3-interface/s3-interface.service';
+} from '../database/database.service';
+import { S3InterfaceService } from '../s3-interface/s3-interface.service';
+import { FileDto } from '../data/dtos/fileDto';
+import { EmptyResult, DataResult, Result } from '../data/results/result';
+import { ResultCode } from '../data/results/resultCode';
+import { CreateDirectoryViewModel } from '../data/viewModels/createDirectoryViewModel';
+import { DownloadFileViewModel } from '../data/viewModels/downloadFilesViewModel';
+import { UpdateFileNameViewModel } from '../data/viewModels/updateFileNameViewModel';
+import { UploadFileViewModel } from '../data/viewModels/uploadFileViewModel';
 
 @Injectable()
 export class FileStorageService {

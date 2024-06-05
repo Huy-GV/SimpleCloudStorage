@@ -7,14 +7,14 @@ import {
 	Post,
 	Res,
 } from '@nestjs/common';
-import { SignInViewModel } from 'src/data/viewModels/signInViewModel';
-import { SignUpViewModel } from 'src/data/viewModels/signUpViewModel';
-import { AuthenticationService } from './authentication.service';
 import { AllowAnonymous } from './authentication.decorator';
 import { Response } from 'express';
 import { JWT_COOKIE_KEY } from './constants';
-import { JwtDto } from 'src/data/dtos/jwtDto';
-import throwHttpExceptionOnFailure from 'src/utils/httpCodeConvertor';
+import { JwtDto } from '../data/dtos/jwtDto';
+import { SignInViewModel } from '../data/viewModels/signInViewModel';
+import { SignUpViewModel } from '../data/viewModels/signUpViewModel';
+import throwHttpExceptionOnFailure from '../utils/httpCodeConvertor';
+import { AuthenticationService } from './authentication.service';
 
 @Controller('auth')
 export class AuthenticationController {
