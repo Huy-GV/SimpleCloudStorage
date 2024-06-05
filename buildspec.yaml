@@ -32,6 +32,6 @@ phases:
 
 artifacts:
   files:
-    - frontend/.next/**/*
+    - frontend/out/**/*
     - backend/dist/**/*
   discard-paths: yes
