@@ -30,6 +30,6 @@ artifacts:
   name: backend-artifact
   files:
     - appspec.yml
-    - dist
-    - scripts
+    - dist/**/*
+    - scripts/**/*
   base-directory: 'backend'
