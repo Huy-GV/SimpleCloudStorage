@@ -12,15 +12,16 @@ phases:
       - cd ./backend
       - echo "Building backend"
       - npm install
-      -
       - echo "Generating Prisma client"
       - cd ./src/data/models
       - npx prisma generate
-      -
+      - echo "Performing database migration"
+      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --output text)
+      - if [ -z "$DATABASE_URL" ]; then echo "Error: Failed to retrieve DATABASE_URL from AWS SSM"; exit 1; fi
+      - npx dotenv -v DATABASE_URL=$DATABASE_URL -- npx prisma migrate deploy
       - cd ../../../
       - echo "Running unit tests"
       - npm run test
-      -
       - echo "Building backend..."
       - npm run build
   post_build:
