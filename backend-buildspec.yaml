@@ -23,8 +23,12 @@ phases:
       -
       - echo "Building backend..."
       - npm run build
+  post_build:
+    commands:
+      - echo Zipping the dist folder...
+      - zip -r dist.zip dist appspec.yml scripts .env.prod.aws
 
-artifacts:
-  files:
-    - backend/dist/**/*
-  name: backend-artifact
+  artifacts:
+    name: backend-artifact
+    files:
+      - dist.zip
