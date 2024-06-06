@@ -6,12 +6,13 @@ phases:
       nodejs: 21.6.1
     commands:
       - echo "Install phase"
-
-  build:
-    commands:
       - cd ./backend
       - echo "Building backend"
       - npm install
+      - npm install -g dotenv-cli
+
+  build:
+    commands:
       - echo "Generating Prisma client"
       - cd ./src/data/models
       - npx prisma generate
