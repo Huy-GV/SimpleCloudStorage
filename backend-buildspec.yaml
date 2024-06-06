@@ -28,7 +28,7 @@ phases:
   post_build:
     commands:
       - echo Zipping the dist folder...
-      - zip -r dist.zip dist appspec.yml scripts
+      - zip -r dist.zip dist appspec.yaml scripts
 
 artifacts:
   name: backend-artifact

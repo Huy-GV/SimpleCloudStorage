@@ -1,5 +1,5 @@
 #!/bin/bash
-# installs nvm (Node Version Manager)
+
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 nvm install 21.6.1
@@ -16,6 +16,7 @@ for ENV_VARIABLE in "${ENV_VARIABLES_NAMES[@]}"; do
         MODIFIED_ENV_VARIABLE="_$ENV_VARIABLE"
     fi
 
+    echo "Reading parameter named '$MODIFIED_ENV_VARIABLE'"
     ENV_VALUE=$(aws ssm get-parameter --name "$MODIFIED_ENV_VARIABLE" --query Parameter.Value --output text)
 
     echo "$ENV_VARIABLE=$ENV_VALUE" >> /home/ec2-user/app/.env.prod.aws

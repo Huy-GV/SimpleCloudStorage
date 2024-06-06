@@ -73,3 +73,9 @@ Simple cloud storage application backed by AWS S3.
     cd ./backend
     npm run start:dev
     ```
+
+## Deploy on AWS
+- Run a script to store all production environment variables from `.env.prod.aws` as AWS SSM parameters:
+    ```bash
+    aws-ssm-param-setter.sh ./.env.prod.aws
+    ```
