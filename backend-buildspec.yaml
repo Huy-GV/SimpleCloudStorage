@@ -28,7 +28,7 @@ phases:
       - echo Zipping the dist folder...
       - zip -r dist.zip dist appspec.yml scripts .env.prod.aws
 
-  artifacts:
-    name: backend-artifact
-    files:
-      - dist.zip
+artifacts:
+  name: backend-artifact
+  files:
+    - dist.zip
