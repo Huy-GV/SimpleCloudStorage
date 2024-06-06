@@ -32,3 +32,4 @@ artifacts:
   name: backend-artifact
   files:
     - dist.zip
+  base-directory: 'backend/'
