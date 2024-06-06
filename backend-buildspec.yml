@@ -25,13 +25,11 @@ phases:
       - npm run test
       - echo "Building backend..."
       - npm run build
-  post_build:
-    commands:
-      - echo Zipping the dist folder...
-      - zip -r dist.zip dist appspec.yaml scripts
 
 artifacts:
   name: backend-artifact
   files:
-    - dist.zip
-  base-directory: 'backend/'
+    - appspec.yml
+    - dist
+    - scripts
+  base-directory: 'backend'
