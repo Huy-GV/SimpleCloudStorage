@@ -37,8 +37,6 @@ phases:
       - cd ../../../
       - echo "Running unit tests"
       - npm run test
-      - echo "Building backend..."
-      - npm run build
       - echo "Building Docker image..."
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
@@ -48,12 +46,6 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
+      - printf '[{"name":"hello-world","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
-  name: backend-artifact
-  files:
-    # - appspec.yml
-    - backend/dist/**/*
-    # - scripts/**/*
-    # - package.json
-    # - tsconfig.json
-  # base-directory: 'backend'
+    files: imagedefinitions.json
