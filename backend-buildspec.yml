@@ -48,4 +48,5 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"scs","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
-    files: backend/imagedefinitions.json
+    files: imagedefinitions.json
+    base-directory: backend
