@@ -55,6 +55,10 @@ Simple cloud storage application backed by AWS S3.
     DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
     SERVER_PORT=YOUR_SERVER_PORT
     DOWNLOAD_DIR=YOUR_TEMPORARY_DOWNLOAD_DIR
+
+    # only used in production
+    AWS_ACCOUNT_ID=YOUR_ACCOUNT_ID
+    REPOSITORY_NAME=YOUR_ECR_REPOSITORY
     ```
 - Create a PostgreSQL database:
     ```bash
@@ -80,10 +84,12 @@ Simple cloud storage application backed by AWS S3.
     - The client is deployed as a static website in an Amazon S3 bucket
     - The database runs on RDS with PostgreSQL as the engine
 - The build stage on AWS CodePipeline uses environment variables stored as SSM parameters
+    - Create an `.env.production` file similar to the above example
     - Run `set-ssm-params.sh` store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
-        set-ssm-params.sh ./.env.prod.aws
+        ./scripts/set-ssm-params.sh ./.env.production
         ```
+    - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the deployed ECS container
 - Note: HTTPS is currently not supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled
 
 ### VPC
