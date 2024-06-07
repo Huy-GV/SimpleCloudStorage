@@ -7,6 +7,7 @@ phases:
     commands:
       - echo "Install phase"
       - cd ./backend
+      - chmod +x ./scripts/upload-container-env.sh
       - echo "Building backend"
       - npm install
       - npm install -g dotenv-cli
