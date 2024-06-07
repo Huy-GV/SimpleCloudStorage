@@ -10,6 +10,9 @@ phases:
       - echo "Building backend"
       - npm install
       - npm install -g dotenv-cli
+      - echo "Starting Docker daemon"
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
   pre_build:
     commands:
       - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --output text)
