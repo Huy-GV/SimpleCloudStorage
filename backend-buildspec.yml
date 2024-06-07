@@ -32,4 +32,6 @@ artifacts:
     - appspec.yml
     - dist/**/*
     - scripts/**/*
+    - package.json
+    - tsconfig.json
   base-directory: 'backend'
