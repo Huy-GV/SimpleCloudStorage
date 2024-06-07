@@ -32,6 +32,7 @@ export default function Page() {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
 			},
 			credentials: 'include'
 		});
@@ -70,7 +71,8 @@ export default function Page() {
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files`, {
 			method: 'DELETE',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)
@@ -111,7 +113,8 @@ export default function Page() {
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/download`, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)

@@ -9,6 +9,7 @@ export default function Page() {
   	const toggleUseSignUp = () => { setUseSignUp(!useSignUp) };
 
 	useEffect(() => {
+		localStorage.removeItem('Jwt');
 		fetch(
 			`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-out`,
 			{
