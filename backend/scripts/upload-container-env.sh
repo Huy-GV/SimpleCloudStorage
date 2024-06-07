@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BUCKET_NAME="scs-ecs-env"
-FILE_PATH="./.env.production"
+FILE_PATH="./aws.env"
 REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --output text)
 
 if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
