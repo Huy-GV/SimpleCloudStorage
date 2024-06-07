@@ -85,7 +85,7 @@ export function FileListItem(
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
+                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
 			},
 			body: JSON.stringify({
 				id: id,

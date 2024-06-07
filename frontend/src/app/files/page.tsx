@@ -32,7 +32,7 @@ export default function Page() {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
+                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
 			},
 			credentials: 'include'
 		});
@@ -72,7 +72,7 @@ export default function Page() {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
+                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)
@@ -114,7 +114,7 @@ export default function Page() {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
+                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
 			},
 			body: JSON.stringify({
 				fileIds: Array.from(selectedFiles)

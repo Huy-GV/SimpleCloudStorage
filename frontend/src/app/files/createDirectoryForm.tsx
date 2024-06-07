@@ -36,7 +36,7 @@ export function CreateDirectoryForm(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt')}`
+                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
             },
             body: JSON.stringify({
                 parentDirectoryId: parentDirectoryId,
