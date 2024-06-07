@@ -3,7 +3,7 @@
 ## Overview
 Simple cloud storage application backed by AWS S3.
 
-<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/41e13876-a74d-4e88-a987-01655c41611e" width=70% alt="image">
+<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/b1a63f41-39c3-4a5f-9d5f-7aeffa9bc919" width=70% alt="image">
 
 ## Features
 - Folder Creation: Users can create folders to organize their files.
