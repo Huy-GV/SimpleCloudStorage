@@ -10,6 +10,21 @@ phases:
       - echo "Building backend"
       - npm install
       - npm install -g dotenv-cli
+  pre_build:
+    commands:
+      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --output text)
+      - if [ -z "$DATABASE_URL" ]; then echo "Error:Failed to retrieve DATABASE_URL from AWS SSM"; exit 1; fi
+      # - SET AS VARIABLES OF THE ACTION
+      # TODO: MAKE THESE CONSISTENT WITH THE DATABASE URL
+      # - AWS_REGION=$(aws ssm get-parameter --name "AWS_REGION" --query Parameter.Value --output text)
+      # - AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "AWS_ACCOUNT_ID" --query Parameter.Value --output text)
+      # - REPOSITORY_NAME=$(aws ssm get-parameter --name "REPOSITORY_NAME" --query Parameter.Value --output text)
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPOSITORY_NAME
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
 
   build:
     commands:
@@ -17,21 +32,27 @@ phases:
       - cd ./src/data/models
       - npx prisma generate
       - echo "Performing database migration"
-      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --output text)
-      - if [ -z "$DATABASE_URL" ]; then echo "Error:Failed to retrieve DATABASE_URL from AWS SSM"; exit 1; fi
       - npx dotenv -v DATABASE_URL="$DATABASE_URL" -- npx prisma migrate deploy
       - cd ../../../
       - echo "Running unit tests"
       - npm run test
       - echo "Building backend..."
       - npm run build
-
+      - echo "Building Docker image..."
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
 artifacts:
   name: backend-artifact
   files:
-    - appspec.yml
-    - dist/**/*
-    - scripts/**/*
-    - package.json
-    - tsconfig.json
-  base-directory: 'backend'
+    # - appspec.yml
+    - backend/dist/**/*
+    # - scripts/**/*
+    # - package.json
+    # - tsconfig.json
+  # base-directory: 'backend'
