@@ -13,11 +13,11 @@ phases:
       - npm install -g dotenv-cli
   pre_build:
     commands:
-      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --output text)
+      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --with-decryption --output text)
       - if [ -z "$DATABASE_URL" ]; then echo "Error:Failed to retrieve DATABASE_URL from AWS SSM"; exit 1; fi
-      - AWS_REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --output text)
-      - AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "_AWS_ACCOUNT_ID" --query Parameter.Value --output text)
-      - REPOSITORY_NAME=$(aws ssm get-parameter --name "REPOSITORY_NAME" --query Parameter.Value --output text)
+      - AWS_REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
+      - AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "_AWS_ACCOUNT_ID" --query Parameter.Value --with-decryption --output text)
+      - REPOSITORY_NAME=$(aws ssm get-parameter --name "REPOSITORY_NAME" --query Parameter.Value --with-decryption --output text)
       - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com

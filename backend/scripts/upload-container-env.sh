@@ -2,7 +2,7 @@
 
 BUCKET_NAME="scs-ecs-env"
 FILE_PATH="./aws.env"
-REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --output text)
+REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
 
 if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
     echo "Bucket exists."
@@ -20,6 +20,7 @@ for PARAM in "${PARAMETERS[@]}"; do
 
     PARAM_VALUE=$(aws ssm get-parameter --name "$QUERY_PARAM" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 
+    echo "Writing parameter '$PARAM' to .env file"
     echo "$PARAM=$PARAM_VALUE" >> "$FILE_PATH"
 done > "$FILE_PATH"
 

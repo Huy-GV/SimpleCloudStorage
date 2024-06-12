@@ -83,6 +83,12 @@ Simple cloud storage application backed by AWS S3.
     - The server is deployed as a container running on ECS Fargate
     - The client is deployed as a static website in an Amazon S3 bucket
     - The database runs on RDS with PostgreSQL as the engine
+- Before running AWS-related scripts, set up a local IAM profile
+    ```bash
+    aws configure --profile simple-cloud-storage
+
+    export AWS_PROFILE=simple-cloud-storage
+    ```
 - The build stage on AWS CodePipeline uses environment variables stored as SSM parameters
     - Create an `.env.production` file similar to the above example
     - Run `set-ssm-params.sh` store all production environment variables from your local `.env` file in AWS SSM parameters:
@@ -130,7 +136,7 @@ Simple cloud storage application backed by AWS S3.
 - Environment file: `arn:aws:s3:::scs-ecs-env/aws.env`
     - Bucket and `aws.env` are created by the frontend build stage
 
-## IAM Profile
+### IAM Profile
 - CodeBuilder backend service
     - AWS Managed policy: `AmazonEC2ContainerRegistryPowerUser`
     - Custom inline role
