@@ -1,10 +1,11 @@
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsInt, IsNotEmpty, IsOptional, ValidateIf } from "class-validator";
 
 export class UpdateFileNameViewModel {
 	readonly id: number;
 
 	@IsNotEmpty()
+	@Transform(({ value }) => value.trim())
 	readonly newFileName: string;
 
 	@IsOptional()
