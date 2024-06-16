@@ -123,6 +123,8 @@ export class FileStorageService {
 			});
 
 			return new EmptyResult(ResultCode.Success);
+		}, {
+			timeout: 15000
 		});
 	}
 
@@ -154,10 +156,10 @@ export class FileStorageService {
 			tempDirectoryName,
 		);
 
-		await this.ensureDirectoryExisted(tempDirectoryPath);
 		const fullZipFilePath = `${tempDirectoryPath}.zip`;
 
 		try {
+			await this.ensureDirectoryExisted(tempDirectoryPath);
 			const archive = archiver('zip', { zlib: { level: 9 } });
 			const downloadDirectoryStream = createWriteStream(fullZipFilePath);
 			archive.pipe(downloadDirectoryStream);
@@ -183,39 +185,14 @@ export class FileStorageService {
 
 			const rootZipFileName = '';
 			for (const [index, file] of files.entries()) {
-				if (file.isDirectory) {
-					await this.addDirectoryToZip(
-						file,
-						index,
-						archive,
-						tempDirectoryPath,
-						rootZipFileName,
-					);
-				} else {
-					await this.addFileToZip(
-						file,
-						index,
-						archive,
-						tempDirectoryPath,
-						rootZipFileName,
-					);
-				}
+				await this.addDownloadEntryToZip(index, file, archive, tempDirectoryPath, rootZipFileName)
 			}
 
 			await archive.finalize();
-			const readStream = createReadStream(`${tempDirectoryPath}.zip`);
-
-			// delete the temporary directory and zip file
-			readStream.on('close', async () => {
-				await this.ensureTemporaryFilesDeleted(
-					fullZipFilePath,
-					tempDirectoryPath,
-				);
-			});
-
+			const downloadStream = this.createStreamableZipFile(tempDirectoryPath, fullZipFilePath);
 			return new DataResult(
 				ResultCode.Success,
-				new StreamableFile(readStream),
+				new StreamableFile(downloadStream),
 			);
 		} catch (e) {
 			this.logger.error('Error zipping files: ' + e);
@@ -223,7 +200,53 @@ export class FileStorageService {
 				fullZipFilePath,
 				tempDirectoryPath,
 			);
+
 			return new DataResult(ResultCode.InvalidState);
+		}
+	}
+
+	private createStreamableZipFile(tempDirectoryPath: string, fullZipFilePath: string) {
+		const readStream = createReadStream(`${tempDirectoryPath}.zip`);
+
+		// delete the temporary directory and zip file
+		readStream.on('close', async () => {
+			await this.ensureTemporaryFilesDeleted(
+				fullZipFilePath,
+				tempDirectoryPath,
+			);
+		});
+
+		return readStream;
+	}
+
+	private async addDownloadEntryToZip(
+		index: number,
+		file: {
+			id: number,
+			uri: string,
+			name: string,
+			isDirectory: boolean,
+		},
+		archive: archiver.Archiver,
+		tempDirectoryPath: string,
+		rootZipFileName: string,
+	) {
+		if (file.isDirectory) {
+			await this.addDirectoryToZip(
+				file,
+				index,
+				archive,
+				tempDirectoryPath,
+				rootZipFileName,
+			);
+		} else {
+			await this.addFileToZip(
+				file,
+				index,
+				archive,
+				tempDirectoryPath,
+				rootZipFileName,
+			);
 		}
 	}
 
@@ -290,23 +313,7 @@ export class FileStorageService {
 		archive.append('', { name: `${currentZipDirectoryPath}/` });
 
 		for (const [index, file] of files.entries()) {
-			if (file.isDirectory) {
-				await this.addDirectoryToZip(
-					file,
-					index,
-					archive,
-					currentTempDirectoryPath,
-					currentZipDirectoryPath,
-				);
-			} else {
-				await this.addFileToZip(
-					file,
-					index,
-					archive,
-					currentTempDirectoryPath,
-					currentZipDirectoryPath,
-				);
-			}
+			await this.addDownloadEntryToZip(index, file, archive, currentTempDirectoryPath, currentZipDirectoryPath);
 		}
 	}
 

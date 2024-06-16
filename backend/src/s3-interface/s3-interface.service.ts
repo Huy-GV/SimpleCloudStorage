@@ -73,7 +73,7 @@ export class S3InterfaceService {
 
 			return new DataResult(ResultCode.InvalidArguments);
 		} else {
-			this.logger.log('Successfully uploaded object');
+			this.logger.log(`Successfully uploaded file '${fileToUpload.originalname}'`);
 		}
 
 		return new DataResult(
