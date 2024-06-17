@@ -133,3 +133,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/infrastructure/**/*.js
+/infrastructure/**/!jest.config.js
+/infrastructure/**/*.d.ts
+
+**/.cdk.staging
+**/cdk.out

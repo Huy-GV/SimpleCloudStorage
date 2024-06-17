@@ -13,8 +13,12 @@ phases:
       - npm install -g dotenv-cli
   pre_build:
     commands:
-      - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --with-decryption --output text)
-      - if [ -z "$DATABASE_URL" ]; then echo "Error:Failed to retrieve DATABASE_URL from AWS SSM"; exit 1; fi
+      - DATABASE_USER=$(aws ssm get-parameter --name "DATABASE_USER" --query Parameter.Value --with-decryption --output text)
+      - DATABASE_NAME=$(aws ssm get-parameter --name "DATABASE_NAME" --query Parameter.Value --with-decryption --output text)
+      - DATABASE_PASSWORD=$(aws ssm get-parameter --name "DATABASE_PASSWORD" --query Parameter.Value --with-decryption --output text)
+      - DATABASE_ENDPOINT=$(aws ssm get-parameter --name "DATABASE_ENDPOINT" --query Parameter.Value --with-decryption --output text)
+      - DATABASE_URL=postgresql://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_ENDPOINT/$DATABASE_NAME
+      # - DATABASE_URL=$(aws ssm get-parameter --name "DATABASE_URL" --query Parameter.Value --with-decryption --output text)
       - AWS_REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
       - AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "_AWS_ACCOUNT_ID" --query Parameter.Value --with-decryption --output text)
       - REPOSITORY_NAME=$(aws ssm get-parameter --name "REPOSITORY_NAME" --query Parameter.Value --with-decryption --output text)
