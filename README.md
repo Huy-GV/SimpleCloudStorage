@@ -15,7 +15,7 @@ Simple cloud storage application backed by AWS S3.
 ### Technologies
 - Languages: TypeScript, HTML, CSS, Bash
 - Frameworks: React, Next.js, Tailwind CSS, NestJS, Prisma
-- Development Tools: PostgreSQL, AWS S3, VPC, RDS, CodePipeline, ECR, ECS, SSM, IAM
+- Development Tools: PostgreSQL, AWS CDK, S3, VPC, RDS, CodeBuild, CodePipeline, ECR, ECS, SSM, IAM
 
 ## Build and Run Locally
 ### Pre-requisites
@@ -55,10 +55,6 @@ Simple cloud storage application backed by AWS S3.
     DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
     SERVER_PORT=YOUR_SERVER_PORT
     DOWNLOAD_DIR=YOUR_TEMPORARY_DOWNLOAD_DIR
-
-    # only used in production
-    AWS_ACCOUNT_ID=YOUR_ACCOUNT_ID
-    REPOSITORY_NAME=YOUR_ECR_REPOSITORY
     ```
 - Create a PostgreSQL database:
     ```bash
@@ -90,122 +86,50 @@ Simple cloud storage application backed by AWS S3.
     export AWS_PROFILE=simple-cloud-storage
     ```
 - The build stage on AWS CodePipeline uses environment variables stored as SSM parameters
-    - Create an `.env.production` file similar to the above example
-    - Run `set-ssm-params.sh` store all production environment variables from your local `.env` file in AWS SSM parameters:
+    - Create an `.env.production` file similar to the above example but with the following variables:
+        - `AWS_ACCOUNT_ID`: AWS account ID
+        - `DATABASE_ENDPOINT`: RDS instance endpoint
+        - `DATABASE_PASSWORD`: RDS instance password
+        - `DATABASE_NAME`: RDS instance name
+        - `DATABASE_USER`: RDS instance user
+        - `BUCKET_NAME`: S3 bucket name specified in [./infrastructure/lib/data-store-stack.ts](./infrastructure/lib/data-store-stack.ts)
+        - `REPOSITORY_NAME`: ECR repository name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
+        - `CONTAINER_NAME`: ECS container name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
+        - Remove `DATABASE_URL` since it is added in the CICD pipeline
+    - Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
         ./scripts/set-ssm-params.sh ./.env.production
         ```
-    - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the deployed ECS container
-- Note: HTTPS is currently not supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled
+    - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by ECS
+- To initialize AWS infrastructure, run the CDK project in [./infrastructure](./infrastructure/)
+    - Bootstrap environment: `cdk bootstrap`
+    - Deploy all: `cdk deploy --all`
+    - Deploy individual stack: `cdk deploy <stack name>`
 
-### VPC
-- Subnets
-    - public subnet with a NAT gateway (required by CodeBuilder projects)
-    - private subnet with a route to the NAT gateway
-- Security groups
-    - `web-tier-sg`: allows inbound HTTP traffic
-    - `db-tier-sg`: allows inbound PostgreSQL traffic from `web-tier-sg`
+### HTTPS Support
+- HTTPS is currently *not* supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled
 
 ### CodePipeline
 - CodeBuildProjects
     - `BuildBackend`
-        - Subnet: private
-        - SG: `web-tier-sg`
-    - `BuildFrontend`
+        - Subnets: private with egress
+        - Security group: web tier
+    - `BuildFrontend`: no networking configuration required
 - Source Stage: GitHub repository
 - Build Stage:
     - Build the backend with `backend-buildspec.yml`
-        - Ensure the CodeBuild project can run in privileged mode so it can build a Docker container
-        - Ensure the RDS instance is running as the build stage involves migrating the database
-        - Ensure the ECR repository already exists as a Docker image will be pushed after the build finishes
-        - Ensure the ECS service runs at least 1 task
+        - Set the desired number of ECS tasks to 1 at minimum
     - Build the frontend with `frontend-buildspec.yml`
 - Deploy stage:
     - Deploy the frontend into S3
     - Deploy the backend into ECS
         - Ensure the backend is already deployed as the server URL is baked into the code during the build by Next.js
 
-### RDS
-- Engine type: RDS
-- Security group: `db-tier-sg`
-
-### ECS
-- Cluster name: `SimpleCloudStorageCluster`
-- Service name: `ScsService`
-- Container ports: 80 and 5432
-- Environment file: `arn:aws:s3:::scs-ecs-env/aws.env`
-    - Bucket and `aws.env` are created by the frontend build stage
-
 ### IAM Profile
 - CodeBuilder backend service
     - AWS Managed policy: `AmazonEC2ContainerRegistryPowerUser`
-    - Custom inline role
-        ```json
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "Statement1",
-                    "Effect": "Allow",
-                    "Action": [
-                        "ssm:GetParameter*"
-                    ],
-                    "Resource": [
-                        "arn:aws:ssm:$YOUR_REGION:$YOUR_ACCOUNT_ID:parameter/*"
-                    ]
-                },
-                {
-                    "Sid": "Statement2",
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:GetBucketLocation",
-                        "s3:CreateBucket",
-                        "s3:PutObject"
-                    ],
-                    "Resource": [
-                        "arn:aws:s3:::*"
-                    ]
-                }
-            ]
-        }
-        ```
-- CodeBuilder frontend service custom inline role
-    ```json
-    {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "Statement1",
-                "Effect": "Allow",
-                "Action": [
-                    "ssm:GetParameter*"
-                ],
-                "Resource": [
-                    "arn:aws:ssm:$YOUR_REGION:$YOUR_ACCOUNT_ID:parameter/*"
-                ]
-            },
-            {
-                "Sid": "Statement2",
-                "Effect": "Allow",
-                "Action": [
-                    "ecs:ListTasks",
-                    "ecs:DescribeTasks",
-                    "ecs:DescribeServices"
-                ],
-                "Resource": [
-                    "arn:aws:ecs:$YOUR_REGION:$YOUR_ACCOUNT_ID:*/*"
-                ]
-            },
-            {
-                "Sid": "Statement3",
-                "Effect": "Allow",
-                "Action": [
-                    "ec2:DescribeNetworkInterfaces"
-                ],
-                "Resource": [
-                    "*"
-                ]
-            }
-        ]
-    }
-    ```
+    - Custom inline role: [./infrastructure/iam/codebuilder-backend-service-role.json](./infrastructure/iam/codebuilder-backend-service-role.json)
+- CodeBuilder frontend service custom inline role: [./infrastructure/iam/codebuilder-frontend-service-role.json](./infrastructure/iam/codebuilder-frontend-service-role.json)
+- CDK policies for current IAM user:
+    - Bootstrap policy: [./infrastructure/iam/cdk-bootstrap-policy.json](./infrastructure/iam/cdk-bootstrap-policy.json)
+    - Deploy Policy: [./infrastructure/iam/cdk-deploy-policy.json](./infrastructure/iam/cdk-deploy-policy.json)

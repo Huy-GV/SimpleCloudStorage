@@ -1,0 +1,37 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter*"
+            ],
+            "Resource": [
+                "arn:aws:ssm:$YOUR_REGION:$YOUR_ACCOUNT_ID:parameter/*"
+            ]
+        },
+        {
+            "Sid": "Statement2",
+            "Effect": "Allow",
+            "Action": [
+                "ecs:ListTasks",
+                "ecs:DescribeTasks",
+                "ecs:DescribeServices"
+            ],
+            "Resource": [
+                "arn:aws:ecs:$YOUR_REGION:$YOUR_ACCOUNT_ID:*/*"
+            ]
+        },
+        {
+            "Sid": "Statement3",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeNetworkInterfaces"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
