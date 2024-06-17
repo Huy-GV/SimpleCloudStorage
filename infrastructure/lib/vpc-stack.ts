@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 export class VpcStack extends cdk.Stack {
 	readonly vpc: IVpc
 	readonly webTierSecurityGroup: ISecurityGroup
+	readonly databaseTierSecurityGroup: ISecurityGroup
 
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
@@ -13,16 +14,20 @@ export class VpcStack extends cdk.Stack {
 			cidr: '10.0.0.0/24',
 			maxAzs: 2,
 			subnetConfiguration: [
-			{
-				cidrMask: 26,
-				name: 'PublicSubnet',
-				subnetType: SubnetType.PUBLIC,
-			},
-			{
-				cidrMask: 26,
-				name: 'PrivateSubnet',
-				subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-			},
+				{
+					cidrMask: 28,
+					name: 'PublicSubnet',
+					subnetType: SubnetType.PUBLIC,
+				},
+				{
+					cidrMask: 28,
+					name: 'PrivateEgressSubnet',
+					subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+				},				{
+					cidrMask: 28,
+					name: 'PrivateIsolatedSubnet',
+					subnetType: SubnetType.PRIVATE_ISOLATED,
+				},
 			],
 		});
 
@@ -33,13 +38,13 @@ export class VpcStack extends cdk.Stack {
 
 		this.webTierSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
 
-		const rdsSecurityGroup = new SecurityGroup(this, 'scs-db-tier-sg', {
+		this.databaseTierSecurityGroup = new SecurityGroup(this, 'scs-db-tier-sg', {
 			vpc: this.vpc,
 			securityGroupName: 'scs-db-tier-sg',
 		});
 
-		this.webTierSecurityGroup.addEgressRule(rdsSecurityGroup, Port.tcp(5432));
-		rdsSecurityGroup.addIngressRule(this.webTierSecurityGroup, Port.tcp(5432));
+		this.webTierSecurityGroup.addEgressRule(this.databaseTierSecurityGroup, Port.tcp(5432));
+		this.databaseTierSecurityGroup.addIngressRule(this.webTierSecurityGroup, Port.tcp(5432));
 
 		new cdk.CfnOutput(this, 'ScsCdkVpcStackOutput', {
 			exportName: 'ScsCdkVpcId',

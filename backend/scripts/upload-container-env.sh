@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BUCKET_NAME="scs-ecs-env"
+BUCKET_NAME=$(aws ssm get-parameter --name "BUCKET_NAME" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
+
 FILE_PATH="./aws.env"
 REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
 
