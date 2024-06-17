@@ -34,13 +34,16 @@ export class VpcStack extends cdk.Stack {
 		this.webTierSecurityGroup = new SecurityGroup(this, 'scs-web-tier-sg', {
 			vpc: this.vpc,
 			securityGroupName: 'scs-web-tier-sg',
+			allowAllOutbound: false
 		});
 
 		this.webTierSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
+		this.webTierSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.HTTPS);
 
 		this.databaseTierSecurityGroup = new SecurityGroup(this, 'scs-db-tier-sg', {
 			vpc: this.vpc,
 			securityGroupName: 'scs-db-tier-sg',
+			allowAllOutbound: false
 		});
 
 		this.webTierSecurityGroup.addEgressRule(this.databaseTierSecurityGroup, Port.tcp(5432));
