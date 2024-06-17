@@ -24,6 +24,6 @@ new ContainerStack(app, 'ContainerStack', {
 	vpc: vpcStack.vpc,
 	s3Bucket: dataStoreStack.s3Bucket,
 	securityGroups: [vpcStack.webTierSecurityGroup]
-})
+});
 
 app.synth();

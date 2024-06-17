@@ -31,27 +31,22 @@ export class VpcStack extends cdk.Stack {
 			],
 		});
 
-		this.webTierSecurityGroup = new SecurityGroup(this, 'scs-web-tier-sg', {
+		this.webTierSecurityGroup = new SecurityGroup(this, 'scs-cdk-web-sg', {
 			vpc: this.vpc,
-			securityGroupName: 'scs-web-tier-sg',
+			securityGroupName: 'scs-cdk-web-sg',
 			allowAllOutbound: false
 		});
 
 		this.webTierSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
 		this.webTierSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.HTTPS);
 
-		this.databaseTierSecurityGroup = new SecurityGroup(this, 'scs-db-tier-sg', {
+		this.databaseTierSecurityGroup = new SecurityGroup(this, 'scs-cdkd-db-sg', {
 			vpc: this.vpc,
-			securityGroupName: 'scs-db-tier-sg',
+			securityGroupName: 'scs-cdk-db-sg',
 			allowAllOutbound: false
 		});
 
 		this.webTierSecurityGroup.addEgressRule(this.databaseTierSecurityGroup, Port.tcp(5432));
 		this.databaseTierSecurityGroup.addIngressRule(this.webTierSecurityGroup, Port.tcp(5432));
-
-		new cdk.CfnOutput(this, 'ScsCdkVpcStackOutput', {
-			exportName: 'ScsCdkVpcId',
-			value: this.vpc.vpcId
-		});
 	}
 }

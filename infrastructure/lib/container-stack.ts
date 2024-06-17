@@ -26,10 +26,10 @@ export class ContainerStack extends cdk.Stack {
             this,
             'ScsCdkTaskDefinition',
             {
-              cpu: 256,
-              memoryLimitMiB: 512,
-              taskRole: exeRole,
-              executionRole: exeRole,
+                cpu: 256,
+                memoryLimitMiB: 512,
+                taskRole: exeRole,
+                executionRole: exeRole,
             },
         );
 
@@ -58,13 +58,20 @@ export class ContainerStack extends cdk.Stack {
                         name: 'http-mappings'
                     },
                     {
+                        containerPort: 443,
+                        hostPort: 443,
+                        protocol: Protocol.TCP,
+                        appProtocol: AppProtocol.http,
+                        name: 'https-mappings'
+                    },
+                    {
                         containerPort: 5432,
                         hostPort: 5432,
                         protocol: Protocol.TCP,
                         appProtocol: AppProtocol.http,
-                        name: 'https-mappings'
+                        name: 'postgresql-mappings'
                     }
-                ]
+                ],
             }
         )
 
@@ -82,12 +89,16 @@ export class ContainerStack extends cdk.Stack {
 
     private createEcsExecutionRole(): Role {
         const taskExecutionRole = new Role(this, 'ScsCdkEcsTaskExecutionRole', {
-          assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
+            assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
 
         // required to pull images from the ECR repository
         taskExecutionRole.addManagedPolicy(
             ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
+        );
+
+        taskExecutionRole.addManagedPolicy(
+            ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')
         );
 
         return taskExecutionRole;
