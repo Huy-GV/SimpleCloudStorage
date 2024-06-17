@@ -3,13 +3,6 @@ FILE_PATH="./aws.env"
 REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
 BUCKET_NAME=$(aws ssm get-parameter --name "BUCKET_NAME" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 
-if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
-    echo "Bucket found"
-else
-    echo "Error: bucket not found"
-    exit -1
-fi
-
 PARAMETERS=("JWT_SECRET" "AWS_ACCESS_KEY" "AWS_SECRET_KEY" "AWS_BUCKET" "AWS_REGION" "CLIENT_URLS" "DATABASE_URL" "SERVER_PORT" "DOWNLOAD_DIR" "AWS_ACCOUNT_ID" "REPOSITORY_NAME")
 for PARAM in "${PARAMETERS[@]}"; do
     QUERY_PARAM="$PARAM"
