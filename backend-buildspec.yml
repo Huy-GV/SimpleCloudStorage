@@ -22,21 +22,13 @@ phases:
       - npm install -g dotenv-cli
   pre_build:
     commands:
-      # - DATABASE_USER=$(aws ssm get-parameter --name "DATABASE_USER" --query Parameter.Value --with-decryption --output text)
-      # - DATABASE_NAME=$(aws ssm get-parameter --name "DATABASE_NAME" --query Parameter.Value --with-decryption --output text)
-      # - DATABASE_PASSWORD=$(aws ssm get-parameter --name "DATABASE_PASSWORD" --query Parameter.Value --with-decryption --output text)
-      # - DATABASE_ENDPOINT=$(aws ssm get-parameter --name "DATABASE_ENDPOINT" --query Parameter.Value --with-decryption --output text)
       - DATABASE_URL=postgresql://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_ENDPOINT/$DATABASE_NAME
-      # - AWS_REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
-      # - AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "_AWS_ACCOUNT_ID" --query Parameter.Value --with-decryption --output text)
-      # - REPOSITORY_NAME=$(aws ssm get-parameter --name "REPOSITORY_NAME" --query Parameter.Value --with-decryption --output text)
       - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPOSITORY_NAME
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-
   build:
     commands:
       - echo "Generating Prisma client"
@@ -56,9 +48,8 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      # - CONTAINER_NAME=$(aws ssm get-parameter --name "CONTAINER_NAME" --query Parameter.Value --with-decryption --output text)
       - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
-      - echo "Updating container environment file"
+      - echo "Updating container environment file in S3 bucket"
       - ./scripts/upload-container-env.sh
 artifacts:
     files: imagedefinitions.json

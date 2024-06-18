@@ -52,12 +52,20 @@ export class FileStorageService {
 		userId: number,
 		viewModel: CreateDirectoryViewModel,
 	): Promise<Result> {
+		if (!await this.userExists(userId)) {
+			return new EmptyResult(
+				ResultCode.Unauthorized,
+				`User ID ${userId} not found`,
+			);
+		}
+
 		return await this.database.$transaction(async (transaction) => {
 			const filesWithIdenticalNameInSharedDirectoryCount =
 				await transaction.file.count({
 					where: {
 						name: viewModel.name,
 						parentFileId: viewModel.parentDirectoryId,
+						ownerUserId: userId
 					},
 				});
 
@@ -88,13 +96,22 @@ export class FileStorageService {
 		userId: number,
 		viewModel: UploadFileViewModel,
 	): Promise<Result> {
+		if (!await this.userExists(userId)) {
+			return new EmptyResult(
+				ResultCode.Unauthorized,
+				`User ID ${userId} not found`,
+			);
+		}
+
 		return await this.database.$transaction(async (transaction) => {
 			const savedName = viewModel.file.originalname;
+
 			const filesWithIdenticalNameInSharedDirectoryCount =
 				await transaction.file.count({
 					where: {
 						name: savedName,
 						parentFileId: viewModel.directoryFileId,
+						ownerUserId: userId
 					},
 				});
 
@@ -136,18 +153,15 @@ export class FileStorageService {
 		downloadFileViewModel: DownloadFileViewModel,
 		userId: number,
 	): Promise<Result<StreamableFile>> {
-		const user = await this.database.user.findUnique({
-			where: {
-				id: userId,
-			},
-		});
-
-		if (!user) {
-			this.logger.error(`User ID ${userId} not found`);
-			return new DataResult(ResultCode.Unauthorized);
+		if (!await this.userExists(userId)) {
+			return new DataResult(
+				ResultCode.Unauthorized,
+				null,
+				`User ID ${userId} not found`,
+			);
 		}
 
-		const tempDirectoryName = this.createTemporaryDirectoryName(user.id);
+		const tempDirectoryName = this.createTemporaryDirectoryName(userId);
 		const downloadDirectoryPath = this.config.get<string>('DOWNLOAD_DIR')
 			?? join(process.cwd(), 'downloads');
 
@@ -217,6 +231,10 @@ export class FileStorageService {
 		});
 
 		return readStream;
+	}
+
+	private async userExists(userId: number) {
+		return userId != null && this.database.user.findFirst({ where: { id: userId } }).then(Boolean);
 	}
 
 	private async addDownloadEntryToZip(

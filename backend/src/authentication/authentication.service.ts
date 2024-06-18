@@ -47,7 +47,7 @@ export class AuthenticationService {
 
 		if (!user) {
 			this.logger.error(`User named ${signInViewModel.userName} not found`);
-			return new DataResult(ResultCode.NotFound);
+			return new DataResult(ResultCode.Unauthorized);
 		}
 
 		const isPasswordValid = !!signInViewModel.password && await bcrypt.compare(

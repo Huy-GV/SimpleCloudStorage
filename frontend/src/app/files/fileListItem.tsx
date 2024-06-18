@@ -22,13 +22,19 @@ export function FileListItem(
 	const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
 	const [newName, setNewName] = useState<string>(name);
 
-	const timeFormat = {
-		hour12: false,
+	const dateFormat: Intl.DateTimeFormatOptions = {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	};
+
+	const timeFormat: Intl.DateTimeFormatOptions = {
+		hour12: true,
 		hour: '2-digit',
 		minute: '2-digit',
-	} as const;
+	};
 
-	const localDate = `${uploadDate.toLocaleTimeString([], timeFormat)} ${uploadDate.getDate()}/${uploadDate.getMonth()}/${uploadDate.getFullYear()}`;
+	const localDate = `${uploadDate.toLocaleDateString('en-GB', dateFormat)} ${uploadDate.toLocaleTimeString([], timeFormat)} `;
 
 	const getFileTypeText = (isDirectory: boolean) => {
 		return isDirectory ? 'Folder' : 'File'
