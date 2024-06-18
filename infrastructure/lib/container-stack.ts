@@ -97,6 +97,7 @@ export class ContainerStack extends cdk.Stack {
             ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
         );
 
+        // required to read .env file stored in s3 bucket
         taskExecutionRole.addManagedPolicy(
             ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')
         );
