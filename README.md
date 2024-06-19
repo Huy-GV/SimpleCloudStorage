@@ -91,6 +91,7 @@ Simple cloud storage application backed by AWS S3.
         - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [./infrastructure/lib/data-store-stack.ts](./infrastructure/lib/data-store-stack.ts)
         - `REPOSITORY_NAME`: ECR repository name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
         - `CONTAINER_NAME`: ECS container name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
+        - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
     - Remove `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
     - Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
