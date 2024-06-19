@@ -284,7 +284,7 @@ export default function Page() {
 						<th className='text-left w-2/5'>Name</th>
 						<th className='text-left'>Size</th>
 						<th className='text-left'>Type</th>
-						<th className='text-right'>Upload Date</th>
+						<th className='text-right pr-4'>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>

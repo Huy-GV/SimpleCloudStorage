@@ -19,7 +19,7 @@ Simple cloud storage application backed by AWS S3.
 
 ## Build and Run Locally
 ### Pre-requisites
-- Install [Node.js](https://nodejs.org/en/download/current)
+- Install [Node.js v20.14.0 LTS](https://nodejs.org/en/download/current)
 - Install `dotenv-cli` globally:
     ```bash
     npm install -g dotenv-cli

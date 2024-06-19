@@ -37,6 +37,14 @@ export class FileStorageService {
 				ownerUserId: userId,
 				parentFileId: parentFileId,
 			},
+			orderBy: [
+				{
+					creationTime: 'desc'
+				},
+				{
+					sizeKb: 'desc'
+				}
+			]
 		});
 
 		return files.map((x) => ({

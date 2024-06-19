@@ -126,9 +126,9 @@ export function FileListItem(
 
 	return (
 		<tr
-			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-100' : ''} ${isDirectory ? 'cursor-pointer' : ''}`}
+			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-200' : 'bg-slate-100'} ${isDirectory ? 'cursor-pointer' : ''}`}
 			onDoubleClick={handleFileClicked}>
-			<td className='py-2 px-1'>
+			<td className='py-2 pl-4 pr-2'>
 				<input
 					type='checkbox'
 					className='w-8 h-8'
@@ -166,7 +166,7 @@ export function FileListItem(
 			</td>
 			<td className='text-left'>{ getFileSizeText(size) }</td>
 			<td className='text-left'>{ getFileTypeText(isDirectory) }</td>
-			<td className='text-right'>{ localDate }</td>
+			<td className='text-right pr-4'>{ localDate }</td>
 		</tr>
 	);
 }
