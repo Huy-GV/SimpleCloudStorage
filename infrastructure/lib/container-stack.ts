@@ -2,14 +2,15 @@ import * as cdk from 'aws-cdk-lib';
 import { ISecurityGroup, IVpc, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { AppProtocol, AwsLogDriver, Cluster, ContainerImage, EnvironmentFile, FargateService, FargateTaskDefinition, Protocol } from 'aws-cdk-lib/aws-ecs';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Effect, ManagedPolicy, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 interface ContainerStackProps extends cdk.StackProps{
     vpc: IVpc,
     securityGroups: ISecurityGroup[]
-    s3Bucket: IBucket,
+    envBucket: IBucket,
+    dataBucket: IBucket,
 }
 
 export class ContainerStack extends cdk.Stack {
@@ -21,7 +22,7 @@ export class ContainerStack extends cdk.Stack {
             clusterName: 'ScsCdkCluster'
         })
 
-        const exeRole = this.createEcsExecutionRole();
+        const exeRole = this.createEcsExecutionRole(props.dataBucket.bucketName);
         const taskDefinition = new FargateTaskDefinition(
             this,
             'ScsCdkTaskDefinition',
@@ -46,7 +47,7 @@ export class ContainerStack extends cdk.Stack {
                 memoryLimitMiB: 256,
                 cpu: 128,
                 environmentFiles: [
-                    EnvironmentFile.fromBucket(props.s3Bucket, 'aws.env')
+                    EnvironmentFile.fromBucket(props.envBucket, 'aws.env')
                 ],
                 logging: logging,
                 portMappings: [
@@ -87,7 +88,7 @@ export class ContainerStack extends cdk.Stack {
         });
     }
 
-    private createEcsExecutionRole(): Role {
+    private createEcsExecutionRole(dataBucketName: string): Role {
         const taskExecutionRole = new Role(this, 'ScsCdkEcsTaskExecutionRole', {
             assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
@@ -101,6 +102,29 @@ export class ContainerStack extends cdk.Stack {
         taskExecutionRole.addManagedPolicy(
             ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')
         );
+
+        const s3AccessPolicy = new PolicyDocument({
+            statements: [
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                        's3:GetObject',
+                        's3:PutObject',
+                        's3:DeleteObject',
+                        's3:DeleteObjects'
+                    ],
+                    resources: [
+                        `arn:aws:s3:::${dataBucketName}/*`,
+                        `arn:aws:s3:::${dataBucketName}`
+                    ],
+                }),
+            ],
+        });
+
+        // Attach custom policy to the role
+        taskExecutionRole.attachInlinePolicy(new Policy(this, 'CdkS3AccessPolicy', {
+            document: s3AccessPolicy,
+        }));
 
         return taskExecutionRole;
     }

@@ -14,11 +14,6 @@ interface S3Object {
 @Injectable()
 export class S3InterfaceService {
 	private readonly logger: Logger = new Logger(S3InterfaceService.name);
-	private readonly awsCredentials: {
-		accessKeyId: string;
-		secretAccessKey: string;
-	};
-
 	private readonly region: string;
 	private readonly bucket: string;
 	private readonly s3Client: S3;
@@ -26,16 +21,21 @@ export class S3InterfaceService {
 	constructor(
 		private readonly config: ConfigService,
 	) {
-		this.awsCredentials = {
-			accessKeyId: this.config.get<string>('AWS_ACCESS_KEY'),
-			secretAccessKey: this.config.get<string>('AWS_SECRET_KEY'),
-		};
-
 		this.region = this.config.get<string>('AWS_REGION');
 		this.bucket = this.config.get<string>('AWS_BUCKET');
 
 		this.s3Client = new S3({
-			credentials: this.awsCredentials,
+			credentials: (() => {
+				if (this.config.get<string>('NODE_ENV').toLowerCase() == "development") {
+					this.logger.debug('Using AWS credentials in development environment')
+					return {
+						accessKeyId: this.config.get<string>('AWS_ACCESS_KEY'),
+						secretAccessKey: this.config.get<string>('AWS_SECRET_KEY'),
+					};
+				}
+
+				return null;
+			})(),
 			region: this.region,
 		});
 	}

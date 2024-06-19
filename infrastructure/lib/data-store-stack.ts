@@ -10,15 +10,21 @@ interface VpcStackProps extends cdk.StackProps{
 }
 
 export class DataStoreStack extends cdk.Stack {
-    readonly s3Bucket: IBucket;
+    readonly envBucket: IBucket;
+    readonly dataBucket: IBucket
 
 	constructor(scope: Construct, id: string, props: VpcStackProps) {
         super(scope, id, props);
 
-        this.s3Bucket = new Bucket(this, 'ScsCdkBucket', {
-            bucketName: "scs-cdk",
+        this.envBucket = new Bucket(this, 'ScsCdkEnvBucket', {
+            bucketName: "scs-cdk-env",
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
+
+        this.dataBucket = new Bucket(this, 'ScsCdkDataBucket', {
+            bucketName: "scs-cdk-data",
+            removalPolicy: cdk.RemovalPolicy.RETAIN
+        })
 
         const dbPassword = cdk.SecretValue.ssmSecure('DATABASE_PASSWORD');
 

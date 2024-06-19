@@ -3,7 +3,7 @@ FILE_PATH="./aws.env"
 REGION=$(aws ssm get-parameter --name "_AWS_REGION" --query Parameter.Value --with-decryption --output text)
 BUCKET_NAME=$(aws ssm get-parameter --name "BUCKET_NAME" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 
-PARAMETERS=("JWT_SECRET" "AWS_ACCESS_KEY" "AWS_SECRET_KEY" "AWS_BUCKET" "AWS_REGION" "CLIENT_URLS" "SERVER_PORT" "DOWNLOAD_DIR" "AWS_ACCOUNT_ID" "REPOSITORY_NAME")
+PARAMETERS=("JWT_SECRET" "AWS_BUCKET" "AWS_REGION" "CLIENT_URLS" "SERVER_PORT" "DOWNLOAD_DIR" "AWS_ACCOUNT_ID" "REPOSITORY_NAME")
 for PARAM in "${PARAMETERS[@]}"; do
     QUERY_PARAM="$PARAM"
     if [[ "$PARAM" == AWS* ]]; then

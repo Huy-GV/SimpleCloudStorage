@@ -22,7 +22,8 @@ const dataStoreStack = new DataStoreStack(app, 'DataStoreStack', {
 new ContainerStack(app, 'ContainerStack', {
 	env: env,
 	vpc: vpcStack.vpc,
-	s3Bucket: dataStoreStack.s3Bucket,
+	envBucket: dataStoreStack.envBucket,
+	dataBucket: dataStoreStack.dataBucket,
 	securityGroups: [vpcStack.webTierSecurityGroup]
 });
 
