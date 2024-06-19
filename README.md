@@ -42,15 +42,18 @@ Simple cloud storage application backed by AWS S3.
     ```
 
 ### Backend
+- Set up a local IAM profile to use S3 client
+    ```bash
+    aws configure --profile simple-cloud-storage
+    export AWS_PROFILE=simple-cloud-storage
+    ```
 - Set up environment file `.env.development.local` in `./backend/src`:
     ```env
     CLIENT_URLS=YOUR_REACT_CLIENT_URL
     JWT_SECRET=YOUR_32_CHARACTER_SECRET
 
-    AWS_ACCESS_KEY=YOUR_AWS_ACCESS_KEY
-    AWS_SECRET_KEY=YOUR_AWS_SECRET_KEY
-    AWS_BUCKET=YOUR_AWS_BUCKET
-    AWS_REGION=YOUR_AWS_REGION
+    DATA_BUCKET_AWS=YOUR_AWS_BUCKET
+    REGION_AWS=YOUR_AWS_REGION
 
     DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
     SERVER_PORT=YOUR_SERVER_PORT
@@ -79,28 +82,22 @@ Simple cloud storage application backed by AWS S3.
     - The server is deployed as a container running on ECS Fargate
     - The client is deployed as a static website in an Amazon S3 bucket
     - The database runs on RDS with PostgreSQL as the engine
-- Before running AWS-related scripts, set up a local IAM profile
-    ```bash
-    aws configure --profile simple-cloud-storage
-
-    export AWS_PROFILE=simple-cloud-storage
-    ```
 - The build stage on AWS CodePipeline uses environment variables stored as SSM parameters
-    - Create an `.env.production` file similar to the above example but with the following variables:
-        - `AWS_ACCOUNT_ID`: AWS account ID
+    - Create an `.env.production` file similar to the above example but with the following additions:
         - `DATABASE_ENDPOINT`: RDS instance endpoint
         - `DATABASE_PASSWORD`: RDS instance password
         - `DATABASE_NAME`: RDS instance name
         - `DATABASE_USER`: RDS instance user
-        - `BUCKET_NAME`: S3 bucket name specified in [./infrastructure/lib/data-store-stack.ts](./infrastructure/lib/data-store-stack.ts)
+        - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [./infrastructure/lib/data-store-stack.ts](./infrastructure/lib/data-store-stack.ts)
         - `REPOSITORY_NAME`: ECR repository name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
         - `CONTAINER_NAME`: ECS container name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
-        - Remove `DATABASE_URL` since it is added in the CICD pipeline
+    - Remove `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
     - Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
         ./scripts/set-ssm-params.sh ./.env.production
         ```
     - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by ECS
+        - The build stage does this by running `upload-container-env.sh`
 - To initialize AWS infrastructure, run the CDK project in [./infrastructure](./infrastructure/)
     - Bootstrap environment: `cdk bootstrap`
     - Deploy all: `cdk deploy --all`

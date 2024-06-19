@@ -25,17 +25,6 @@ export class S3InterfaceService {
 		this.bucket = this.config.get<string>('DATA_BUCKET_AWS');
 
 		this.s3Client = new S3({
-			credentials: (() => {
-				if (this.config.get<string>('NODE_ENV').toLowerCase() == "development") {
-					this.logger.debug('Using AWS credentials in development environment')
-					return {
-						accessKeyId: this.config.get<string>('ACCESS_KEY_AWS'),
-						secretAccessKey: this.config.get<string>('SECRET_KEY_AWS'),
-					};
-				}
-
-				return null;
-			})(),
 			region: this.region,
 		});
 	}

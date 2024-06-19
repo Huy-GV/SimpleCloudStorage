@@ -1,6 +1,6 @@
 #!/bin/bash
 FILE_PATH="./aws.env"
-REGION=$(aws ssm get-parameter --name "REGION_AWS" --query Parameter.Value --with-decryption --output text)
+REGION_AWS=$(aws ssm get-parameter --name "REGION_AWS" --query Parameter.Value --with-decryption --output text)
 DATA_BUCKET_AWS=$(aws ssm get-parameter --name "DATA_BUCKET_AWS" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 ENV_BUCKET_AWS=$(aws ssm get-parameter --name "ENV_BUCKET_AWS" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 
@@ -16,7 +16,7 @@ DATABASE_NAME=$(aws ssm get-parameter --name "DATABASE_NAME" --region "$REGION" 
 DATABASE_PASSWORD=$(aws ssm get-parameter --name "DATABASE_PASSWORD" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 DATABASE_USER=$(aws ssm get-parameter --name "DATABASE_USER" --region "$REGION" --with-decryption --query "Parameter.Value" --output text)
 
-echo "REGION_AWS=$REGION" >> "$FILE_PATH"
+echo "REGION_AWS=$REGION_AWS" >> "$FILE_PATH"
 echo "DATA_BUCKET_AWS=$DATA_BUCKET_AWS" >> "$FILE_PATH"
 echo "DATABASE_ENDPOINT=$DATABASE_ENDPOINT" >> "$FILE_PATH"
 echo "DATABASE_NAME=$DATABASE_NAME" >> "$FILE_PATH"
