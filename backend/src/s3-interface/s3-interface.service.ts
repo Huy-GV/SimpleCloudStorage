@@ -22,7 +22,7 @@ export class S3InterfaceService {
 		private readonly config: ConfigService,
 	) {
 		this.region = this.config.get<string>('REGION_AWS');
-		this.bucket = this.config.get<string>('BUCKET_AWS');
+		this.bucket = this.config.get<string>('DATA_BUCKET_AWS');
 
 		this.s3Client = new S3({
 			credentials: (() => {
