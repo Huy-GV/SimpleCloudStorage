@@ -24,10 +24,6 @@ while IFS= read -r LINE; do
   KEY=$(echo "$LINE" | cut -d '=' -f 1)
   VALUE=$(echo "$LINE" | cut -d '=' -f 2-)
 
-  if [[ $KEY == AWS_* ]]; then
-    KEY="_$KEY"
-  fi
-
   aws ssm put-parameter --name "$KEY" --value "$VALUE" --type "SecureString" --overwrite
   if [ $? -ne 0 ]; then
     echo "Error: Failed to set parameter '$KEY' in AWS SSM." >&2

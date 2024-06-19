@@ -21,16 +21,16 @@ export class S3InterfaceService {
 	constructor(
 		private readonly config: ConfigService,
 	) {
-		this.region = this.config.get<string>('AWS_REGION');
-		this.bucket = this.config.get<string>('AWS_BUCKET');
+		this.region = this.config.get<string>('REGION_AWS');
+		this.bucket = this.config.get<string>('BUCKET_AWS');
 
 		this.s3Client = new S3({
 			credentials: (() => {
 				if (this.config.get<string>('NODE_ENV').toLowerCase() == "development") {
 					this.logger.debug('Using AWS credentials in development environment')
 					return {
-						accessKeyId: this.config.get<string>('AWS_ACCESS_KEY'),
-						secretAccessKey: this.config.get<string>('AWS_SECRET_KEY'),
+						accessKeyId: this.config.get<string>('ACCESS_KEY_AWS'),
+						secretAccessKey: this.config.get<string>('SECRET_KEY_AWS'),
 					};
 				}
 
