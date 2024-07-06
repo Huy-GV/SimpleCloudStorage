@@ -197,6 +197,10 @@ export default function Page() {
 		setIsCreateDirectoryFormDisplayed(false);
 	};
 
+	const handleErrorSet = async (error: string) => {
+		setError(error);
+	}
+
 	const onDirectoryCreationCancelled = async () => {
 		setIsCreateDirectoryFormDisplayed(false);
 	};
@@ -209,9 +213,9 @@ export default function Page() {
 
 	return (
 		<main className='flex flex-col w-3/5 xl:w-3/5 sm:w-5/6 md:w-11/12 m-auto min-w-fit'>
-			<h1 className='text-4xl mb-3'>My Files</h1>
+			<h1 className='text-4xl mb-3 mx-2'>My Files</h1>
 
-			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3'>
+			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3 mx-2'>
 				{
 					directoryChain.map((x, index) => (
 						<Fragment key={x.id}>
@@ -221,7 +225,7 @@ export default function Page() {
 							}
 							<button
 								className={index == directoryChain.length - 1
-									? 'text-black text-2xl'
+									? 'text-black text-xl'
 									: 'text-gray-500 text-xl'
 								}
 								onClick={() => handleDirectoryLinkClicked(x.id)}>
@@ -232,7 +236,7 @@ export default function Page() {
 				}
 			</div>
 
-			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg'>
+			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg mx-auto'>
 				<button
 					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg'
 					onClick={handleDirectoryCreationFormDisplayed}>
@@ -241,7 +245,8 @@ export default function Page() {
 				</button>
 				<FileUploadForm
 					parentDirectoryId={currentDirectoryId}
-					onFileUploaded={onFileUploaded} />
+					onFileUploaded={onFileUploaded}
+					onErrorSet={handleErrorSet}/>
 				<button
 					disabled={selectedFiles.size == 0}
 					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
@@ -281,10 +286,10 @@ export default function Page() {
 							</button>
 						</th>
 
-						<th className='text-left w-2/5'>Name</th>
-						<th className='text-left'>Size</th>
-						<th className='text-left'>Type</th>
-						<th className='text-right pr-4'>Upload Date</th>
+						<th className='text-left w-3/5 sm:w-2/5'>Name</th>
+						<th className='sm:text-left pr-4 md:pr-0 text-right'>Size</th>
+						<th className='text-left hidden sm:table-cell'>Type</th>
+						<th className='text-right pr-4 hidden sm:table-cell'>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>

@@ -7,15 +7,15 @@ import { UploadFileFormProps } from "./definitions";
 export function FileUploadForm(
 	{
 		onFileUploaded,
+		onErrorSet,
 		parentDirectoryId
 	} : UploadFileFormProps
 ) {
 	const router = useRouter();
-	const [error, setError] = useState<string>('');
 
 	const uploadFile = async (fileToUpload: File) => {
 		if (!fileToUpload) {
-			setError('No file selected')
+			onErrorSet('No file selected')
 			return;
 		}
 
@@ -38,11 +38,9 @@ export function FileUploadForm(
 				return;
 			}
 
-			setError('Failed to upload file')
+			onErrorSet('Failed to upload file')
 			return;
 		}
-
-		setError('')
 	}
 
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {

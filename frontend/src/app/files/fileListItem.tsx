@@ -42,7 +42,7 @@ export function FileListItem(
 
 	const getFileSizeText = (sizeKb: number) => {
 		if (isDirectory || Number.isNaN(size)) {
-			return '-'
+			return '- KB'
 		}
 
 		if (sizeKb < 1) {
@@ -124,6 +124,9 @@ export function FileListItem(
 		setIsEditFormDisplayed(false);
 	}
 
+	const fileSizeText = getFileSizeText(size);
+	const fileTypeText = getFileTypeText(isDirectory);
+
 	return (
 		<tr
 			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-200' : 'bg-slate-100'} ${isDirectory ? 'cursor-pointer' : ''}`}
@@ -148,25 +151,30 @@ export function FileListItem(
 							onChange={handleNameChanged}
 							onKeyDown={handleNameChangeSubmitted}/>
 						:
-						<div className='flex flex-row'>
-							<span className='text-nowrap text-ellipsis whitespace-nowrap w-4/5 overflow-x-hidden'>
-								{name}
-							</span>
-							<button
-								className='transition ease-in-out group-hover/file-row:visible ml-auto invisible'
-								onClick={handleFileNameClick}>
-								<FontAwesomeIcon icon={faPenToSquare}/>
-								<span className='ml-3 mr-1 font-semibold'>
-									Edit
+						<>
+							<div className='flex flex-row flex-nowrap align-bottom sm:align-middle'>
+								<span className='text-nowrap self-end sm:self-auto text-ellipsis whitespace-nowrap  w-4/5 overflow-x-hidden'>
+									{name}
 								</span>
-							</button>
-						</div>
-
+								<button
+									className='transition ease-in-out group-hover/file-row:visible ml-auto invisible flex items-center'
+									onClick={handleFileNameClick}>
+									<FontAwesomeIcon icon={faPenToSquare}/>
+									<span className='ml-1 mr-1 font-semibold'>
+										Edit
+									</span>
+								</button>
+							</div>
+							<dl className='sm:hidden'>
+								<dt className='hidden'>Upload Date</dt>
+								<dd className='text-gray-500 text-sm'>{ localDate }</dd>
+							</dl>
+						</>
 				}
 			</td>
-			<td className='text-left'>{ getFileSizeText(size) }</td>
-			<td className='text-left'>{ getFileTypeText(isDirectory) }</td>
-			<td className='text-right pr-4'>{ localDate }</td>
+			<td className='text-right pr-4 text-sm sm:text-base sm:text-left sm:pr-0 '>{ fileSizeText }</td>
+			<td className='text-left hidden sm:table-cell'>{ fileTypeText }</td>
+			<td className='text-right hidden sm:table-cell sm:pr-4'>{ localDate }</td>
 		</tr>
 	);
 }

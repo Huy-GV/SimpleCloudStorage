@@ -20,6 +20,7 @@ export interface CreateDirectoryFormProps {
 export interface UploadFileFormProps {
 	parentDirectoryId: number | null;
 	onFileUploaded: () => Promise<void>;
+	onErrorSet: (errorMessage: string) => Promise<void>;
 }
 
 export interface DirectoryChainItem {
