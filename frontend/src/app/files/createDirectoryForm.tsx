@@ -35,8 +35,7 @@ export function CreateDirectoryForm(
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/create-directory`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 parentDirectoryId: parentDirectoryId,

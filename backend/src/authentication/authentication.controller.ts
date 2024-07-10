@@ -29,7 +29,9 @@ export class AuthenticationController {
 		@Res({ passthrough: true }) response: Response,
 	): void {
 		response.clearCookie(JWT_COOKIE_KEY, {
-			httpOnly: true
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax'
 		});
 
 		return;
@@ -49,7 +51,8 @@ export class AuthenticationController {
 			result.data.token,
 			{
 				httpOnly: true,
-				sameSite: 'strict'
+				secure: true,
+				sameSite: 'lax'
 			}
 		);
 
@@ -70,7 +73,8 @@ export class AuthenticationController {
 			result.data.token,
 			{
 				httpOnly: true,
-				sameSite: 'strict'
+				secure: true,
+				sameSite: 'lax'
 			}
 		);
 

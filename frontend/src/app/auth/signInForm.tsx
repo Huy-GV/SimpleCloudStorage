@@ -39,8 +39,6 @@ export default function SignInForm() {
 			}
 
             console.log('Successfully signed in');
-            const jwt = await response.json();
-            localStorage.setItem("Jwt", jwt.token)
 			router.push('/files')
         } catch (e) {
             console.error('Error signing in: ', e);

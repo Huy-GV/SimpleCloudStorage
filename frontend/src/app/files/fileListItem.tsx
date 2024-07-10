@@ -90,8 +90,7 @@ export function FileListItem(
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/update-name`, {
 			method: 'PUT',
 			headers: {
-				'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('Jwt') || ""}`
+				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
 				id: id,

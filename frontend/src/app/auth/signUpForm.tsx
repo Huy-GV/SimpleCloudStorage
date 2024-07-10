@@ -45,9 +45,6 @@ export default function SignUpForm() {
                 return;
             }
 
-            const jwt = await response.json();
-            localStorage.setItem("Jwt", jwt.token)
-
 			router.push('/files')
         } catch (e) {
             console.error('Failed to sign up: ', e)
