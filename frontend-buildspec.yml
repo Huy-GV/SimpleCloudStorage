@@ -8,7 +8,7 @@ phases:
   pre_build:
     commands:
       - REGION_AWS=$(aws ssm get-parameter --name "REGION_AWS" --query Parameter.Value --with-decryption --output text)
-      - SERVER_URL=$(aws ssm get-parameter --name "$SERVER_URL" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
+      - SERVER_URL=$(aws ssm get-parameter --name "SERVER_URL" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
       - cd ./frontend
       - printf 'NEXT_PUBLIC_SERVER_URL=%s' $SERVER_URL > .env.production
 
