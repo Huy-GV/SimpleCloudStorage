@@ -131,7 +131,7 @@ export class ContainerStack extends cdk.Stack {
 				targets: [fargateService],
 				targetType: aws_elasticloadbalancingv2.TargetType.IP,
 				healthCheck: {
-					path: '/health',
+					path: '/api/v1/health',
 					interval: Duration.seconds(30),
 					timeout: Duration.seconds(5)
 				}

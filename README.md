@@ -15,7 +15,7 @@ Simple cloud storage application backed by AWS S3.
 ### Technologies
 - Languages: TypeScript, HTML, CSS, Bash
 - Frameworks: React, Next.js, Tailwind CSS, NestJS, Prisma
-- Development Tools: PostgreSQL, AWS CDK, S3, VPC, RDS, CodeBuild, CodePipeline, ECR, ECS, SSM, IAM
+- Development Tools: PostgreSQL, AWS CDK, S3, VPC, RDS, CodeBuild, CodePipeline, ECR, ECS Fargate, SSM, IAM, CloudFront
 
 ## Build and Run Locally
 ### Pre-requisites
@@ -80,18 +80,24 @@ Simple cloud storage application backed by AWS S3.
 - The application can be built and deployed automatically using a CI/CD service from AWS
     - 2 separate AWS pipelines are used to build and deploy the client and server
     - The server is deployed as a container running on ECS Fargate
-    - The client is deployed as a static website in an Amazon S3 bucket
+    - The client is deployed as a static website in an Amazon S3 bucket and served by CloudFront
     - The database runs on RDS with PostgreSQL as the engine
 - Deployment steps:
-    1. Initialise AWS credentials:
+    1. Obtain a HTTPS certificate using ACM and Route 53 then configure an .env file in `infrastructure/bin`
+        ```env
+        Aws__CertificateArn=your.aws.cert.arn
+        Aws__HostedZoneName=your.domain.name.com
+        ```
+    2. Initialise AWS credentials:
         ```bash
         aws configure profile simple-cloud-storage
         export AWS_PROFILE=simple-cloud-storage
         cdk bootstrap
         ```
-    2. Deploy all cdk stacks with `cdk deploy --all`
-    3. Create an `.env.production` file similar to the above example but with the following changes:
+    3. Deploy all cdk stacks with `cdk deploy --all`
+    4. Create an `.env.production` file similar to the above example but with the following changes:
         - Additions:
+            - `SERVER_URL`: `<domain name>/api/v1`
             - `DATABASE_ENDPOINT`: RDS instance endpoint
             - `DATABASE_PASSWORD`: RDS instance password
             - `DATABASE_NAME`: RDS instance name
@@ -102,11 +108,13 @@ Simple cloud storage application backed by AWS S3.
             - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
         - Removals:
             - `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
-    4. Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
+    5. Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
         ./scripts/set-ssm-params.sh ./.env.production
         ```
         - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the Fargate service
+    6. Create an S3 bucket for the frontend, enable hosting, disable public access, and create a CloudFront distribution using a valid HTTPS certificate
+    7. Release change on the backend and frontend pipeline
 
 ### HTTPS Support
 - HTTPS is currently *not* supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled

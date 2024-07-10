@@ -24,7 +24,7 @@ export class DataStoreStack extends cdk.Stack {
         this.dataBucket = new Bucket(this, 'ScsCdkDataBucket', {
             bucketName: "scs-cdk-data",
             removalPolicy: cdk.RemovalPolicy.DESTROY
-        })
+        });
 
         const dbPassword = cdk.SecretValue.ssmSecure('DATABASE_PASSWORD');
 
