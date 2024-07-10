@@ -6,30 +6,37 @@ export class VpcStack extends cdk.Stack {
 	readonly vpc: IVpc
 	readonly webTierSecurityGroup: ISecurityGroup
 	readonly databaseTierSecurityGroup: ISecurityGroup
+	readonly loadBalancerTierSecurityGroup: ISecurityGroup
 
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
 
 		this.vpc = new Vpc(this, 'scs-vpc', {
-			cidr: '10.0.0.0/24',
+			cidr: '10.0.0.0/20',
 			maxAzs: 2,
 			subnetConfiguration: [
 				{
-					cidrMask: 28,
+					cidrMask: 26,
 					name: 'PublicSubnet',
 					subnetType: SubnetType.PUBLIC,
 				},
 				{
-					cidrMask: 28,
+					cidrMask: 26,
 					name: 'PrivateEgressSubnet',
 					subnetType: SubnetType.PRIVATE_WITH_EGRESS,
 				},				{
-					cidrMask: 28,
+					cidrMask: 26,
 					name: 'PrivateIsolatedSubnet',
 					subnetType: SubnetType.PRIVATE_ISOLATED,
 				},
 			],
 		});
+
+		this.loadBalancerTierSecurityGroup = new SecurityGroup(this, 'scs-cdk-alb-sg', {
+			vpc: this.vpc,
+			securityGroupName: 'scs-cdk-alb-sg',
+			allowAllOutbound: false
+		})
 
 		this.webTierSecurityGroup = new SecurityGroup(this, 'scs-cdk-web-sg', {
 			vpc: this.vpc,
@@ -37,16 +44,20 @@ export class VpcStack extends cdk.Stack {
 			allowAllOutbound: false
 		});
 
-		this.webTierSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
-		this.webTierSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.HTTPS);
-
 		this.databaseTierSecurityGroup = new SecurityGroup(this, 'scs-cdk-db-sg', {
 			vpc: this.vpc,
 			securityGroupName: 'scs-cdk-db-sg',
 			allowAllOutbound: false
 		});
 
-		this.webTierSecurityGroup.addEgressRule(this.databaseTierSecurityGroup, Port.tcp(5432));
-		this.databaseTierSecurityGroup.addIngressRule(this.webTierSecurityGroup, Port.tcp(5432));
+		this.loadBalancerTierSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.HTTPS);
+		this.loadBalancerTierSecurityGroup.addIngressRule(Peer.anyIpv6(), Port.HTTPS);
+		this.loadBalancerTierSecurityGroup.addEgressRule(this.webTierSecurityGroup, Port.HTTP);
+
+		this.webTierSecurityGroup.addIngressRule(this.loadBalancerTierSecurityGroup, Port.HTTP);
+		this.webTierSecurityGroup.addEgressRule(Peer.anyIpv4(), Port.HTTPS);
+		this.webTierSecurityGroup.addEgressRule(this.databaseTierSecurityGroup, Port.POSTGRES);
+
+		this.databaseTierSecurityGroup.addIngressRule(this.webTierSecurityGroup, Port.POSTGRES);
 	}
 }

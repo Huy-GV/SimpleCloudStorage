@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { ISecurityGroup, IVpc, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { aws_elasticloadbalancingv2, Duration } from 'aws-cdk-lib';
+import { ISecurityGroup, IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { AppProtocol, AwsLogDriver, Cluster, ContainerImage, EnvironmentFile, FargateService, FargateTaskDefinition, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { Effect, ManagedPolicy, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -8,9 +9,12 @@ import { Construct } from 'constructs';
 
 interface ContainerStackProps extends cdk.StackProps{
     vpc: IVpc,
-    securityGroups: ISecurityGroup[]
+    webTierSecurityGroups: ISecurityGroup[],
+    loadBalancerTierSecurityGroup: ISecurityGroup,
     envBucket: IBucket,
     dataBucket: IBucket,
+    awsCertificateArn: string,
+    awsHostedZoneName: string
 }
 
 export class ContainerStack extends cdk.Stack {
@@ -20,9 +24,13 @@ export class ContainerStack extends cdk.Stack {
         const cluster = new Cluster(this, 'ScsCdkCluster', {
             vpc: props.vpc,
             clusterName: 'ScsCdkCluster'
-        })
+        });
 
-        const exeRole = this.createEcsExecutionRole(props.dataBucket.bucketName);
+        const exeRole = this.createEcsExecutionRole(
+            props.dataBucket.bucketName,
+            props.envBucket.bucketName
+        );
+
         const taskDefinition = new FargateTaskDefinition(
             this,
             'ScsCdkTaskDefinition',
@@ -37,7 +45,7 @@ export class ContainerStack extends cdk.Stack {
         const ecrRepository = new Repository(this, 'ScsCdkRepository', {
             repositoryName: 'scs-cdk-repository',
             removalPolicy: cdk.RemovalPolicy.DESTROY
-        })
+        });
 
         const logging = new AwsLogDriver({ streamPrefix: "scs" });
         taskDefinition.addContainer(
@@ -74,21 +82,66 @@ export class ContainerStack extends cdk.Stack {
                     }
                 ],
             }
-        )
+        );
 
-        new FargateService(this, 'ScsCdkFargateService', {
+        const fargateService = new FargateService(this, 'ScsCdkFargateService', {
             taskDefinition,
             cluster: cluster,
+
+            // set to 0 so the stack deployment succeeds even when the pipeline has not run
             desiredCount: 0,
             assignPublicIp: true,
-            securityGroups: props.securityGroups,
+            securityGroups: props.webTierSecurityGroups,
             vpcSubnets: {
                 subnets: props.vpc.publicSubnets
             },
         });
+
+        const appLoadBalancer = new cdk.aws_elasticloadbalancingv2.ApplicationLoadBalancer(
+			this,
+			'ScsCdkAlb',
+			{
+				vpc: props.vpc,
+				securityGroup: props.loadBalancerTierSecurityGroup,
+				vpcSubnets: props.vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
+				internetFacing: true
+			}
+		);
+
+		const listener = appLoadBalancer.addListener('HttpsListener', {
+			port: 443,
+			open: true,
+			certificates: [cdk.aws_certificatemanager.Certificate.fromCertificateArn(
+				this,
+				'ScsCdkHttpsCertificateArn',
+				props.awsCertificateArn)]
+		});
+
+		const targetGroup = new aws_elasticloadbalancingv2.ApplicationTargetGroup(
+			this,
+			'ScsAlbTargetGroup',
+			{
+				vpc: props.vpc,
+				port: 80,
+				targets: [fargateService],
+				targetType: aws_elasticloadbalancingv2.TargetType.IP,
+				healthCheck: {
+					path: '/',
+					interval: Duration.seconds(30),
+					timeout: Duration.seconds(5)
+				}
+			}
+		);
+
+		listener.addTargetGroups('DefaultTargetGroup', {
+			targetGroups: [targetGroup]
+		});
     }
 
-    private createEcsExecutionRole(dataBucketName: string): Role {
+    private createEcsExecutionRole(
+        dataBucketName: string,
+        envBucketName: string
+    ): Role {
         const taskExecutionRole = new Role(this, 'ScsCdkEcsTaskExecutionRole', {
             assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
@@ -98,12 +151,26 @@ export class ContainerStack extends cdk.Stack {
             ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
         );
 
-        // required to read .env file stored in s3 bucket
-        taskExecutionRole.addManagedPolicy(
-            ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')
-        );
+        const envBucketAccessPolicy = new PolicyDocument({
+            statements: [
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                        "s3:Get*",
+                        "s3:List*",
+                        "s3:Describe*",
+                        "s3-object-lambda:Get*",
+                        "s3-object-lambda:List*"
+                    ],
+                    resources: [
+                        `arn:aws:s3:::${envBucketName}/*`,
+                        `arn:aws:s3:::${envBucketName}`
+                    ],
+                }),
+            ],
+        });
 
-        const s3AccessPolicy = new PolicyDocument({
+        const dataBucketAccessPolicy = new PolicyDocument({
             statements: [
                 new PolicyStatement({
                     effect: Effect.ALLOW,
@@ -120,9 +187,14 @@ export class ContainerStack extends cdk.Stack {
             ],
         });
 
-        // Attach custom policy to the role
-        taskExecutionRole.attachInlinePolicy(new Policy(this, 'CdkS3AccessPolicy', {
-            document: s3AccessPolicy,
+        // required to read .env file stored in s3 bucket
+        taskExecutionRole.attachInlinePolicy(new Policy(this, 'ScsCdkEnvBucketAccessPolicy', {
+            document: envBucketAccessPolicy,
+        }));
+
+        // required to store files at runtime
+        taskExecutionRole.attachInlinePolicy(new Policy(this, 'ScsCdkDataBucketAccessPolicy', {
+            document: dataBucketAccessPolicy,
         }));
 
         return taskExecutionRole;

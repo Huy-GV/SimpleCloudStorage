@@ -82,27 +82,31 @@ Simple cloud storage application backed by AWS S3.
     - The server is deployed as a container running on ECS Fargate
     - The client is deployed as a static website in an Amazon S3 bucket
     - The database runs on RDS with PostgreSQL as the engine
-- The build stage on AWS CodePipeline uses environment variables stored as SSM parameters
-    - Create an `.env.production` file similar to the above example but with the following additions:
-        - `DATABASE_ENDPOINT`: RDS instance endpoint
-        - `DATABASE_PASSWORD`: RDS instance password
-        - `DATABASE_NAME`: RDS instance name
-        - `DATABASE_USER`: RDS instance user
-        - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [./infrastructure/lib/data-store-stack.ts](./infrastructure/lib/data-store-stack.ts)
-        - `REPOSITORY_NAME`: ECR repository name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
-        - `CONTAINER_NAME`: ECS container name specified in [./infrastructure/lib/container-stack.ts](./infrastructure/lib/container-stack.ts)
-        - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
-    - Remove `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
-    - Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
+- Deployment steps:
+    1. Initialise AWS credentials:
+        ```bash
+        aws configure profile simple-cloud-storage
+        export AWS_PROFILE=simple-cloud-storage
+        cdk bootstrap
+        ```
+    2. Deploy all cdk stacks with `cdk deploy --all`
+    3. Create an `.env.production` file similar to the above example but with the following changes:
+        - Additions:
+            - `DATABASE_ENDPOINT`: RDS instance endpoint
+            - `DATABASE_PASSWORD`: RDS instance password
+            - `DATABASE_NAME`: RDS instance name
+            - `DATABASE_USER`: RDS instance user
+            - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [DataStoreStack](./infrastructure/lib/data-store-stack.ts)
+            - `REPOSITORY_NAME`: ECR repository name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
+            - `CONTAINER_NAME`: ECS container name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
+            - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
+        - Removals:
+            - `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
+    4. Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
         ```bash
         ./scripts/set-ssm-params.sh ./.env.production
         ```
-    - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by ECS
-        - The build stage does this by running `upload-container-env.sh`
-- To initialize AWS infrastructure, run the CDK project in [./infrastructure](./infrastructure/)
-    - Bootstrap environment: `cdk bootstrap`
-    - Deploy all: `cdk deploy --all`
-    - Deploy individual stack: `cdk deploy <stack name>`
+        - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the Fargate service
 
 ### HTTPS Support
 - HTTPS is currently *not* supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled
