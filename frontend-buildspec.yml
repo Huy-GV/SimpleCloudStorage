@@ -4,8 +4,6 @@ phases:
   install:
     runtime-versions:
       nodejs: 21.6.1
-    commands:
-      - echo "Install phase"
 
   pre_build:
     commands:
@@ -17,7 +15,6 @@ phases:
 
   build:
     commands:
-      - echo "Building frontend"
       - npm install
       - npm run build
 

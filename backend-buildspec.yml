@@ -14,16 +14,13 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo "Install phase"
       - cd ./backend
       - chmod +x ./scripts/upload-container-env.sh
-      - echo "Building backend"
       - npm install
       - npm install -g dotenv-cli
   pre_build:
     commands:
       - DATABASE_URL=postgresql://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_ENDPOINT/$DATABASE_NAME
-      - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPOSITORY_NAME
@@ -31,15 +28,11 @@ phases:
       - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
-      - echo "Generating Prisma client"
       - cd ./src/data/models
       - npx prisma generate
-      - echo "Performing database migration"
       - npx dotenv -v DATABASE_URL="$DATABASE_URL" -- npx prisma migrate deploy
       - cd ../../../
-      - echo "Running unit tests"
       - npm run test
-      - echo "Building Docker image..."
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
