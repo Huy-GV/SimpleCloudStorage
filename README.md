@@ -3,19 +3,16 @@
 ## Overview
 Simple cloud storage application backed by AWS S3.
 
-<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/b1a63f41-39c3-4a5f-9d5f-7aeffa9bc919" width=70% alt="image">
+<img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/7046da91-1c04-4af6-9a43-403ed61a81a4" width=70% alt="image">
 
 ## Features
-- Folder Creation: Users can create folders to organize their files.
-- File Upload: Upload files to the application for storage.
-- File and Folder Management: Change the names of files and folders, navigate between different folders via breadcrumb menu.
-- File Download: Download files and folders from the application to local storage.
-- File and Folder Deletion: Delete unwanted files and folders from the application.
+- Folder Creation and File Upload
+- File and Folder Management: Change the names of files and folders, navigate between different folders via breadcrumb menu, download and delete files/folders.
 
 ### Technologies
 - Languages: TypeScript, HTML, CSS, Bash
 - Frameworks: React, Next.js, Tailwind CSS, NestJS, Prisma
-- Development Tools: PostgreSQL, AWS CDK, S3, VPC, RDS, CodeBuild, CodePipeline, ECR, ECS Fargate, SSM, IAM, CloudFront
+- Development Tools: PostgreSQL, AWS CDK, S3, VPC, RDS, CodeBuild, CodePipeline, ECR, ECS Fargate, SSM, IAM, CloudFront, Route 53
 
 ## Build and Run Locally
 ### Pre-requisites
@@ -37,7 +34,6 @@ Simple cloud storage application backed by AWS S3.
     ```
 - Start the frontend:
     ```bash
-    cd ./frontend
     npm run dev
     ```
 
@@ -71,7 +67,6 @@ Simple cloud storage application backed by AWS S3.
     ```
 - Start the backend:
     ```bash
-    cd ./backend
     npm run start:dev
     ```
 
@@ -113,11 +108,8 @@ Simple cloud storage application backed by AWS S3.
         ./scripts/set-ssm-params.sh ./.env.production
         ```
         - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the Fargate service
-    6. Create an S3 bucket for the frontend, enable hosting, disable public access, and create a CloudFront distribution using a valid HTTPS certificate
+    6. Create an S3 bucket for the frontend, enable hosting, disable public access, and create a CloudFront distribution using a HTTPS certificate in the us-east-1 region
     7. Release change on the backend and frontend pipeline
-
-### HTTPS Support
-- HTTPS is currently *not* supported, and neither is HTTP cookies so JWTs are currently stored in web storage, and the deployed application can only be run with web security disabled
 
 ### CodePipeline
 - CodeBuildProjects
@@ -133,7 +125,6 @@ Simple cloud storage application backed by AWS S3.
 - Deploy stage:
     - Deploy the frontend into S3
     - Deploy the backend into ECS
-        - Ensure the backend is already deployed as the server URL is baked into the code during the build by Next.js
 
 ### IAM Profile
 - CodeBuilder backend service
