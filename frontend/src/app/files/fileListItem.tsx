@@ -130,7 +130,7 @@ export function FileListItem(
 		<tr
 			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-200' : 'bg-slate-100'} ${isDirectory ? 'cursor-pointer' : ''}`}
 			onDoubleClick={handleFileClicked}>
-			<td className='py-2 pl-4 pr-2'>
+			<td className='py-1 pl-2 pr-1'>
 				<input
 					type='checkbox'
 					className='w-8 h-8'
@@ -173,7 +173,7 @@ export function FileListItem(
 			</td>
 			<td className='text-right pr-4 text-sm sm:text-base sm:text-left sm:pr-0 '>{ fileSizeText }</td>
 			<td className='text-left hidden sm:table-cell'>{ fileTypeText }</td>
-			<td className='text-right hidden sm:table-cell sm:pr-4'>{ localDate }</td>
+			<td className='text-right hidden sm:table-cell sm:pr-2'>{ localDate }</td>
 		</tr>
 	);
 }

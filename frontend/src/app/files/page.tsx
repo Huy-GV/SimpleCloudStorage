@@ -233,9 +233,9 @@ export default function Page() {
 				}
 			</div>
 
-			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg mx-auto'>
+			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg mx-auto justify-normal sm:justify-evenly'>
 				<button
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg'
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg w-full sm:w-fit'
 					onClick={handleDirectoryCreationFormDisplayed}>
 					<FontAwesomeIcon icon={faPlus} />
 					<span className='ml-2'>Add Folder</span>
@@ -246,14 +246,14 @@ export default function Page() {
 					onErrorSet={handleErrorSet}/>
 				<button
 					disabled={selectedFiles.size == 0}
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg w-full sm:w-fit'
 					onClick={handleFileDownload}>
 					<FontAwesomeIcon icon={faDownload} />
 					<span className='ml-2'>Download</span>
 				</button>
 				<button
 					disabled={selectedFiles.size == 0}
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg'
+					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg w-full sm:w-fit'
 					onClick={handleFileDelete}>
 					<FontAwesomeIcon icon={faTrash} />
 					<span className='ml-2'>Delete</span>
@@ -270,7 +270,7 @@ export default function Page() {
 			<table className='border-collapse'>
 				<thead>
 					<tr>
-						<th className='text-left w-1/6 h-full'>
+						<th className='text-left h-full w-1/6 md:w-1/12'>
 							<button
 								className={`bg-gray-300 my-1 p-2 rounded-md ${selectedFiles.size != 0
 										? 'visible'
@@ -279,14 +279,14 @@ export default function Page() {
 								}
 								onClick={handleFilesDeselected}>
 								<FontAwesomeIcon icon={faXmark}/>
-								<span className='ml-3'>{selectedFiles.size}</span>
+								<span className='ml-2 sm:ml-3 sm:text-sm'>{selectedFiles.size}</span>
 							</button>
 						</th>
 
 						<th className='text-left w-3/5 sm:w-2/5'>Name</th>
 						<th className='sm:text-left pr-4 md:pr-0 text-right'>Size</th>
 						<th className='text-left hidden sm:table-cell'>Type</th>
-						<th className='text-right pr-4 hidden sm:table-cell'>Upload Date</th>
+						<th className='text-right pr-2 hidden sm:table-cell'>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>

@@ -50,12 +50,12 @@ export function FileUploadForm(
 	}
 
 	return (
-		<form encType='multipart/form-data'>
+		<form encType='multipart/form-data' className='w-full sm:w-fit'>
 			{
 				<>
 					<label
 						htmlFor='file'
-						className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg'>
+						className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg text-center'>
 						<FontAwesomeIcon icon={faUpload} />
 						<span className='ml-2'>
 							Upload
