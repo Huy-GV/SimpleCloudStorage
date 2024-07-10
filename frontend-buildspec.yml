@@ -7,11 +7,10 @@ phases:
 
   pre_build:
     commands:
-      - TASK_ARN=$(aws ecs list-tasks --cluster SimpleCloudStorageCluster --service-name ScsService --query "taskArns[0]" --output text)
-      - ENI_ID=$(aws ecs describe-tasks --cluster SimpleCloudStorageCluster --tasks $TASK_ARN --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" --output text)
-      - SERVER_URL=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --query "NetworkInterfaces[0].Association.PublicIp" --output text)
+      - REGION_AWS=$(aws ssm get-parameter --name "REGION_AWS" --query Parameter.Value --with-decryption --output text)
+      - SERVER_URL=$(aws ssm get-parameter --name "$SERVER_URL" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
       - cd ./frontend
-      - printf 'NEXT_PUBLIC_SERVER_URL=http://%s' $SERVER_URL > .env.production
+      - printf 'NEXT_PUBLIC_SERVER_URL=%s' $SERVER_URL > .env.production
 
   build:
     commands:

@@ -4,6 +4,8 @@ import { ISecurityGroup, IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { AppProtocol, AwsLogDriver, Cluster, ContainerImage, EnvironmentFile, FargateService, FargateTaskDefinition, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { Effect, ManagedPolicy, Policy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { ARecord, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
@@ -111,10 +113,13 @@ export class ContainerStack extends cdk.Stack {
 		const listener = appLoadBalancer.addListener('HttpsListener', {
 			port: 443,
 			open: true,
-			certificates: [cdk.aws_certificatemanager.Certificate.fromCertificateArn(
-				this,
-				'ScsCdkHttpsCertificateArn',
-				props.awsCertificateArn)]
+            certificates: [
+                cdk.aws_certificatemanager.Certificate.fromCertificateArn(
+				    this,
+				    'ScsCdkHttpsCertificateArn',
+                    props.awsCertificateArn
+                )
+            ]
 		});
 
 		const targetGroup = new aws_elasticloadbalancingv2.ApplicationTargetGroup(
@@ -126,7 +131,7 @@ export class ContainerStack extends cdk.Stack {
 				targets: [fargateService],
 				targetType: aws_elasticloadbalancingv2.TargetType.IP,
 				healthCheck: {
-					path: '/',
+					path: '/health',
 					interval: Duration.seconds(30),
 					timeout: Duration.seconds(5)
 				}
@@ -135,6 +140,20 @@ export class ContainerStack extends cdk.Stack {
 
 		listener.addTargetGroups('DefaultTargetGroup', {
 			targetGroups: [targetGroup]
+        });
+
+        const hostedZone = PublicHostedZone.fromLookup(
+			this,
+			'ScsCdkHostedZone',
+			{
+				domainName: props.awsHostedZoneName
+			}
+		);
+
+		new ARecord(this, 'ScsCdkAliasRecord', {
+			zone: hostedZone,
+			target: RecordTarget.fromAlias(new LoadBalancerTarget(appLoadBalancer)),
+			recordName: ''
 		});
     }
 

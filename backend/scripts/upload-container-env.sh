@@ -4,7 +4,8 @@ REGION_AWS=$(aws ssm get-parameter --name "REGION_AWS" --query Parameter.Value -
 DATA_BUCKET_AWS=$(aws ssm get-parameter --name "DATA_BUCKET_AWS" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
 ENV_BUCKET_AWS=$(aws ssm get-parameter --name "ENV_BUCKET_AWS" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
 
-PARAMETERS=("JWT_SECRET" "CLIENT_URLS" "SERVER_PORT" "DOWNLOAD_DIR" "REPOSITORY_NAME")
+
+PARAMETERS=("JWT_SECRET" "SERVER_URL" "SERVER_PORT" "DOWNLOAD_DIR" "REPOSITORY_NAME")
 for PARAM in "${PARAMETERS[@]}"; do
     PARAM_VALUE=$(aws ssm get-parameter --name "$PARAM" --region "$REGION_AWS" --with-decryption --query "Parameter.Value" --output text)
 
