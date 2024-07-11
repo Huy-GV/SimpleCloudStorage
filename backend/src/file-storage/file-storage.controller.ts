@@ -11,8 +11,9 @@ import {
 	StreamableFile,
 	Param,
 	ParseIntPipe,
+	Res,
 } from "@nestjs/common";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { FileStorageService } from "./file-storage.service";
 import { FileInterceptor } from "@nestjs/platform-express/multer";
 import { USER_CONTEXT_KEY } from "../authentication/constants";
@@ -22,69 +23,69 @@ import { DeleteFilesViewModel } from "../data/viewModels/deleteFilesViewModel";
 import { DownloadFileViewModel } from "../data/viewModels/downloadFilesViewModel";
 import { UpdateFileNameViewModel } from "../data/viewModels/updateFileNameViewModel";
 import { UploadFileViewModel } from "../data/viewModels/uploadFileViewModel";
-import throwHttpExceptionOnFailure from "../utils/httpCodeConvertor";
+import { throwHttpExceptionOnFailure, convertToHttpStatusCode } from "../utils/httpCodeConvertor";
 
 @Controller("files")
 export class FileStorageController {
 	constructor(private readonly fileStorage: FileStorageService) {}
 
-  @Get("/:directoryId")
-	async getAllFilesInDirectory(
-    @Req() request: Request,
-    @Param("directoryId", new ParseIntPipe()) directoryId?: number | null,
+	@Get("/:directoryId")
+		async getAllFilesInDirectory(
+		@Req() request: Request,
+		@Param("directoryId", new ParseIntPipe()) directoryId?: number | null,
+		): Promise<FileDto[]> {
+			const userId = request[USER_CONTEXT_KEY].sub;
+			return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
+		}
+
+	@Get()
+	async getAllFilesInRootDirectory(
+		@Req() request: Request,
 	): Promise<FileDto[]> {
 		const userId = request[USER_CONTEXT_KEY].sub;
-		return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
+		return await this.fileStorage.getAllFiles(userId, null);
 	}
 
-  @Get()
-  async getAllFilesInRootDirectory(
-    @Req() request: Request,
-  ): Promise<FileDto[]> {
-  	const userId = request[USER_CONTEXT_KEY].sub;
-  	return await this.fileStorage.getAllFiles(userId, null);
-  }
+	@Post("/upload")
+	@UseInterceptors(FileInterceptor("file"))
+	async uploadFile(
+		@UploadedFile() file: Express.Multer.File,
+		@Req() request: Request,
+		@Body() rawViewModel: UploadFileViewModel,
+	): Promise<void> {
+		const viewModel = { ...rawViewModel, file: file };
+		const userId: number = request[USER_CONTEXT_KEY].sub;
+		const result = await this.fileStorage.uploadFile(
+			userId,
+			viewModel,
+		);
 
-  @Post("/upload")
-  @UseInterceptors(FileInterceptor("file"))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() request: Request,
-    @Body() rawViewModel: UploadFileViewModel,
-  ): Promise<void> {
-	const viewModel = { ...rawViewModel, file: file };
-  	const userId: number = request[USER_CONTEXT_KEY].sub;
-  	const result = await this.fileStorage.uploadFile(
-  		userId,
-  		viewModel,
-  	);
+		throwHttpExceptionOnFailure(result);
+	}
 
-  	throwHttpExceptionOnFailure(result);
-  }
+	@Post("/create-directory")
+	async createDirectory(
+		@Req() request: Request,
+		@Body() viewModel: CreateDirectoryViewModel,
+	): Promise<void> {
+		const userId: number = request[USER_CONTEXT_KEY].sub;
+		const result = await this.fileStorage.createDirectory(userId, viewModel);
 
-  @Post("/create-directory")
-  async createDirectory(
-    @Req() request: Request,
-    @Body() viewModel: CreateDirectoryViewModel,
-  ): Promise<void> {
-  	const userId: number = request[USER_CONTEXT_KEY].sub;
-  	const result = await this.fileStorage.createDirectory(userId, viewModel);
+		throwHttpExceptionOnFailure(result);
+	}
 
-  	throwHttpExceptionOnFailure(result);
-  }
+	@Put("/update-name")
+	async updateFileName(
+		@Req() request: Request,
+		@Body() viewModel: UpdateFileNameViewModel,
+	): Promise<void> {
+		const result = await this.fileStorage.updateFileName(
+			viewModel,
+			request[USER_CONTEXT_KEY].sub,
+		);
 
-  @Put("/update-name")
-  async updateFileName(
-    @Req() request: Request,
-    @Body() viewModel: UpdateFileNameViewModel,
-  ): Promise<void> {
-  	const result = await this.fileStorage.updateFileName(
-  		viewModel,
-  		request[USER_CONTEXT_KEY].sub,
-  	);
-
-  	throwHttpExceptionOnFailure(result);
-  }
+		throwHttpExceptionOnFailure(result);
+	}
 
   @Delete("")
   async deleteFiles(
@@ -99,18 +100,24 @@ export class FileStorageController {
   	throwHttpExceptionOnFailure(result);
   }
 
-  @Post("/download")
-  async getFile(
-    @Req() request: Request,
-    @Body() body: DownloadFileViewModel,
-  ): Promise<StreamableFile> {
-  	const result = await this.fileStorage.downloadFiles(
-  		body,
-  		request[USER_CONTEXT_KEY].sub,
-  	);
+	@Post("/download")
+	async getFile(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response,
+		@Body() body: DownloadFileViewModel,
+	): Promise<StreamableFile> {
+  		const result = await this.fileStorage.downloadFiles(
+			body,
+			request[USER_CONTEXT_KEY].sub,
+		);
 
-  	throwHttpExceptionOnFailure(result);
+		response.set({
+			'Content-Type': 'application/zip',
+			'Content-Disposition': 'attachment; filename="download.zip"',
+		});
 
-  	return result.data;
-  }
+		response.status(convertToHttpStatusCode(result));
+
+		return result.data;
+ 	}
 }

@@ -209,7 +209,7 @@ export default function Page() {
 	}, []);
 
 	return (
-		<main className='flex flex-col w-3/5 xl:w-3/5 sm:w-5/6 md:w-11/12 min-w-fit mx-auto mb-16'>
+		<main className='flex flex-col w-screen sm:w-5/6 md:w-11/12 xl:w-3/5 mx-auto mb-16'>
 			<h1 className='text-4xl mb-3 mx-2'>My Files</h1>
 
 			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3 mx-2'>
@@ -267,7 +267,7 @@ export default function Page() {
 				</p>
 			}
 
-			<table className='border-collapse'>
+			<table className='border-collapse table-fixed mx-auto w-full sm:w-11/12'>
 				<thead>
 					<tr>
 						<th className='text-left h-full w-1/6 md:w-1/12'>

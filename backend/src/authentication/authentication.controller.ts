@@ -13,7 +13,7 @@ import { JWT_COOKIE_KEY } from './constants';
 import { JwtDto } from '../data/dtos/jwtDto';
 import { SignInViewModel } from '../data/viewModels/signInViewModel';
 import { SignUpViewModel } from '../data/viewModels/signUpViewModel';
-import throwHttpExceptionOnFailure from '../utils/httpCodeConvertor';
+import { throwHttpExceptionOnFailure } from '../utils/httpCodeConvertor';
 import { AuthenticationService } from './authentication.service';
 
 @Controller('auth')

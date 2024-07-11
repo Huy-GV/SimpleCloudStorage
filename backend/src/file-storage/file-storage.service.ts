@@ -238,6 +238,10 @@ export class FileStorageService {
 			);
 		});
 
+		readStream.on('error', (e) => {
+			this.logger.error(`Error downloading files '${e.name}': '${e.message}'`);
+		});
+
 		return readStream;
 	}
 
