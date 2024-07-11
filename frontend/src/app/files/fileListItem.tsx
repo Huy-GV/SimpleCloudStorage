@@ -85,8 +85,12 @@ export function FileListItem(
 		}
 
 		e.preventDefault();
-		setIsEditFormDisplayed(false);
+		if (newName.trim() === name) {
+			setIsEditFormDisplayed(false);
+			return
+		}
 
+		setIsEditFormDisplayed(false);
 		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/update-name`, {
 			method: 'PUT',
 			headers: {
@@ -128,7 +132,19 @@ export function FileListItem(
 
 	return (
 		<tr
-			className={`group/file-row hover:bg-blue-100 transition ease-in-out select-none ${selected ? 'bg-blue-200' : 'bg-slate-100'} ${isDirectory ? 'cursor-pointer' : ''}`}
+			className={
+				`group/file-row hover:bg-blue-100 transition ease-in-out select-none
+				${
+					selected
+						? 'bg-blue-100'
+						: ''
+				}
+				${
+					isDirectory
+						? 'cursor-pointer'
+						: ''
+				}
+				`}
 			onDoubleClick={handleFileClicked}>
 			<td className='py-1 pl-2 pr-1'>
 				<input

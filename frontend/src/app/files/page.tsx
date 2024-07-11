@@ -209,7 +209,7 @@ export default function Page() {
 	}, []);
 
 	return (
-		<main className='flex flex-col w-3/5 xl:w-3/5 sm:w-5/6 md:w-11/12 m-auto min-w-fit'>
+		<main className='flex flex-col w-3/5 xl:w-3/5 sm:w-5/6 md:w-11/12 min-w-fit mx-auto mb-16'>
 			<h1 className='text-4xl mb-3 mx-2'>My Files</h1>
 
 			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3 mx-2'>
@@ -233,7 +233,7 @@ export default function Page() {
 				}
 			</div>
 
-			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap shadow-lg mx-auto justify-normal sm:justify-evenly'>
+			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap'>
 				<button
 					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg w-full sm:w-fit'
 					onClick={handleDirectoryCreationFormDisplayed}>

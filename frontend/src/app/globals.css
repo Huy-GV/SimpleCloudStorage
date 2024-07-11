@@ -7,3 +7,7 @@
     text-wrap: balance;
   }
 }
+
+td {
+  border-bottom: 1px solid theme('colors.slate.300')
+}
