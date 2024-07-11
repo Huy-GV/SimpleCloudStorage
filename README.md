@@ -45,7 +45,6 @@ Simple cloud storage application backed by AWS S3.
     ```
 - Set up environment file `.env.development.local` in `./backend/src`:
     ```env
-    CLIENT_URLS=YOUR_REACT_CLIENT_URL
     JWT_SECRET=YOUR_32_CHARACTER_SECRET
 
     DATA_BUCKET_AWS=YOUR_AWS_BUCKET
@@ -77,60 +76,67 @@ Simple cloud storage application backed by AWS S3.
     - The server is deployed as a container running on ECS Fargate
     - The client is deployed as a static website in an Amazon S3 bucket and served by CloudFront
     - The database runs on RDS with PostgreSQL as the engine
-- Deployment steps:
-    1. Obtain a HTTPS certificate using ACM and Route 53 then configure an .env file in `infrastructure/bin`
-        ```env
-        Aws__CertificateArn=your.aws.cert.arn
-        Aws__HostedZoneName=your.domain.name.com
-        ```
-    2. Initialise AWS credentials:
-        ```bash
-        aws configure profile simple-cloud-storage
-        export AWS_PROFILE=simple-cloud-storage
-        cdk bootstrap
-        ```
-    3. Deploy all cdk stacks with `cdk deploy --all`
-    4. Create an `.env.production` file similar to the above example but with the following changes:
-        - Additions:
-            - `SERVER_URL`: `<domain name>/api/v1`
-            - `DATABASE_ENDPOINT`: RDS instance endpoint
-            - `DATABASE_PASSWORD`: RDS instance password
-            - `DATABASE_NAME`: RDS instance name
-            - `DATABASE_USER`: RDS instance user
-            - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [DataStoreStack](./infrastructure/lib/data-store-stack.ts)
-            - `REPOSITORY_NAME`: ECR repository name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
-            - `CONTAINER_NAME`: ECS container name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
-            - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
-        - Removals:
-            - `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
-    5. Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
-        ```bash
-        ./scripts/set-ssm-params.sh ./.env.production
-        ```
-        - The parameters set by SSM will be used to create `aws.env` which is then uploaded to S3 and used by the Fargate service
-    6. Create an S3 bucket for the frontend, enable hosting, disable public access, and create a CloudFront distribution using a HTTPS certificate in the us-east-1 region
-    7. Release change on the backend and frontend pipeline
+
+### Deployment steps:
+1. Obtain a HTTPS certificate using ACM and Route 53 then configure an .env file in `infrastructure/bin`
+    ```env
+    Aws__CertificateArn=your.aws.cert.arn
+    Aws__HostedZoneName=your.domain.name.com
+    ```
+2. Initialise AWS credentials:
+    ```bash
+    aws configure profile simple-cloud-storage
+    export AWS_PROFILE=simple-cloud-storage
+    cdk bootstrap
+    ```
+3. Provision AWS resources with `cdk deploy --all`
+4. Create an `.env.production` file similar to the above example but with the following changes:
+    - Changes:
+        - `SERVER_PORT`: 80
+    - Additions:
+        - `SERVER_URL`: `<domain name>/api/v1`
+        - `DATABASE_ENDPOINT`: RDS instance endpoint
+        - `DATABASE_PASSWORD`: RDS instance password
+        - `DATABASE_NAME`: RDS instance name
+        - `DATABASE_USER`: RDS instance user
+        - `ENV_BUCKET_AWS`: S3 bucket used to store `.env` file used by the ECS container as specified in [DataStoreStack](./infrastructure/lib/data-store-stack.ts)
+        - `REPOSITORY_NAME`: ECR repository name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
+        - `CONTAINER_NAME`: ECS container name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)
+        - `ACCOUNT_ID_AWS`: ID of AWS account, used to determine the ECR repository at build stage
+    - Removals:
+        - `DATABASE_URL` from `.env.production` since it is added in the CI/CD pipeline
+5. Run `set-ssm-params.sh` to store all production environment variables from your local `.env` file in AWS SSM parameters:
+    ```bash
+    ./scripts/set-ssm-params.sh ./.env.production
+    ```
+    - The parameters set by SSM will be used to create `aws.env` stored in S3 and used by the Fargate service
+6. Create another S3 bucket to host the frontend:
+    - Enable website hosting and public access
+    - Create a CloudFront distribution using a HTTPS certificate in the us-east-1 region
+    - Create an origin access control and apply the generated policy to the S3 bucket
+7. Release change on the backend and frontend pipelines
+8. Set the desired task count to at least 1
 
 ### CodePipeline
 - CodeBuildProjects
     - `BuildBackend`
-        - Subnets: private with egress
+        - Subnets: private subnets with egress
         - Security group: web tier
     - `BuildFrontend`: no networking configuration required
 - Source Stage: GitHub repository
 - Build Stage:
     - Build the backend with `backend-buildspec.yml`
-        - Set the desired number of ECS tasks to 1 at minimum
     - Build the frontend with `frontend-buildspec.yml`
 - Deploy stage:
-    - Deploy the frontend into S3
-    - Deploy the backend into ECS
+    - Deploy the frontend into S3 bucket
+    - Deploy the backend into ECS Fargate
 
 ### IAM Profile
 - CodeBuilder backend service
     - AWS Managed policy: `AmazonEC2ContainerRegistryPowerUser`
     - Custom inline role: [./infrastructure/iam/codebuilder-backend-service-role.json](./infrastructure/iam/codebuilder-backend-service-role.json)
-- CodeBuilder frontend service custom inline role: [./infrastructure/iam/codebuilder-frontend-service-role.json](./infrastructure/iam/codebuilder-frontend-service-role.json)
+- CodeBuilder frontend service custom inline role:
+    - Custom inline role:[./infrastructure/iam/codebuilder-frontend-service-role.json](./infrastructure/iam/codebuilder-frontend-service-role.json)
 - CDK policies for current IAM user:
     - Bootstrap policy: [./infrastructure/iam/cdk-bootstrap-policy.json](./infrastructure/iam/cdk-bootstrap-policy.json)
     - Deploy Policy: [./infrastructure/iam/cdk-deploy-policy.json](./infrastructure/iam/cdk-deploy-policy.json)
