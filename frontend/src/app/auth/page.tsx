@@ -18,12 +18,12 @@ export default function Page() {
 		);
 	}, [])
 
-  return (
-	  <main className='flex flex-col items-center rounded-md xl:w-2/5 md-x-3/5 m-auto p-8'>
+  	return (
+	  	<main className='flex flex-col items-center rounded-md w-full sm:w-3/5 md:w-2/5 m-auto p-8'>
 		{
 			useSignUp
 			?
-				<div className='w-4/5'>
+				<div className='w-full'>
 					<SignUpForm></SignUpForm>
 					<div className='flex flex-col items-end mt-3'>
 						<p>Already have an account?</p>
@@ -35,7 +35,7 @@ export default function Page() {
 					</div>
 				</div>
 			:
-				<div className='w-4/5'>
+				<div className='w-full'>
 					<SignInForm></SignInForm>
 					<div className='flex flex-col items-end mt-3'>
 						<p>Haven&apos;t got an account?</p>
@@ -47,6 +47,6 @@ export default function Page() {
 					</div>
 				</div>
 		}
-	</main>
-  )
+		</main>
+	)
 }

@@ -17,16 +17,17 @@ export class VpcStack extends cdk.Stack {
 			subnetConfiguration: [
 				{
 					cidrMask: 26,
-					name: 'PublicSubnet',
+					name: 'Public',
 					subnetType: SubnetType.PUBLIC,
 				},
 				{
 					cidrMask: 26,
-					name: 'PrivateEgressSubnet',
+					name: 'PrivateEgress',
 					subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-				},				{
+				},				
+				{
 					cidrMask: 26,
-					name: 'PrivateIsolatedSubnet',
+					name: 'PrivateIsolated',
 					subnetType: SubnetType.PRIVATE_ISOLATED,
 				},
 			],

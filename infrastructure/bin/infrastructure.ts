@@ -21,7 +21,7 @@ export function parseEnvFile(): AppConfiguration | null {
     });
 
     if (envConfigResult.error) {
-        console.error(envConfigResult);
+        console.error(envConfigResult.error);
         return null;
     }
 
@@ -46,17 +46,17 @@ const appConfig = parseEnvFile() || exit(1);
 const app = new cdk.App();
 
 const env = { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION };
-const vpcStack = new VpcStack(app, 'VpcStack', {
+const vpcStack = new VpcStack(app, 'ScsVpcStack', {
 	env: env,
 });
 
-const dataStoreStack = new DataStoreStack(app, 'DataStoreStack', {
+const dataStoreStack = new DataStoreStack(app, 'ScsDataStoreStack', {
 	env: env,
 	vpc: vpcStack.vpc,
 	securityGroups: [vpcStack.databaseTierSecurityGroup]
 });
 
-new ContainerStack(app, 'ContainerStack', {
+new ContainerStack(app, 'ScsContainerStack', {
 	env: env,
 	vpc: vpcStack.vpc,
 	envBucket: dataStoreStack.envBucket,
