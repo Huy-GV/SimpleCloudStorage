@@ -7,6 +7,7 @@ import { DirectoryChainItem, FileItemProps } from "./definitions";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
+import { sleep } from '../../utilities';
 
 export default function Page() {
 	const router = useRouter();
@@ -23,36 +24,42 @@ export default function Page() {
 	const [error, setError] = useState<string>('');
 	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
 
-	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemProps[] | null> => {
+	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemProps[]> => {
 		const url = directoryId == null
 			? `${process.env.NEXT_PUBLIC_SERVER_URL}/files/`
 			: `${process.env.NEXT_PUBLIC_SERVER_URL}/files/${directoryId}`;
 
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			credentials: 'include'
-		});
+		try {
+			const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include'
+			});
 
-		if (!response.ok) {
-			setError("Failed to get files");
-			if (response.status === 401 || response.status === 403) {
-				router.push('/auth');
+			if (!response.ok) {
+				setError(`Failed to get files: ${response.statusText}`);
+				if (response.status === 401 || response.status === 403) {
+					await sleep(2000);
+					router.push('/auth');
+				}
+
+				return [];
 			}
 
-			return null;
+			setError('')
+			const files: FileItemProps[] = await response.json();
+			return files;
+		} catch {
+			setError("Failed to get files: could not connect to server");
+			return [];
 		}
-
-		setError('')
-		const files: FileItemProps[] = await response.json();
-		return files;
 	}
 
 	const reloadFileList = async (directoryId: number | null): Promise<void> => {
 		const files = await fetchAllFiles(directoryId);
-		setFileItemMap(new Map(files?.map(x => [x.id, x])) ?? new Map());
+		setFileItemMap(new Map(files.map(x => [x.id, x])));
 	}
 
 	const handleFileSelected = (fileId: number) => {
@@ -79,9 +86,9 @@ export default function Page() {
 		});
 
 		if (!response.ok) {
-			setError("Failed to delete files");
-
+			setError(`Failed to delete ${selectedFiles.size} files: ${response.statusText}`);
 			if (response.status === 401 || response.status === 403) {
+				await sleep(2000);
 				router.push('/auth');
 			}
 
@@ -120,9 +127,9 @@ export default function Page() {
 		})
 
 		if (!response.ok) {
-			setError("Failed to download files");
-
+			setError(`Failed to download ${selectedFiles.size} files: ${response.statusText}`);
 			if (response.status === 401 || response.status === 403) {
+				await sleep(2000);
 				router.push('/auth');
 			}
 
@@ -233,7 +240,7 @@ export default function Page() {
 				}
 			</div>
 
-			<div className='flex flex-row gap-2 mb-4 p-4 rounded-md flex-wrap'>
+			<div className='flex flex-row gap-2 mb-4 m-4 pt-4 flex-wrap border-t border-slate-300'>
 				<button
 					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg w-full sm:w-fit'
 					onClick={handleDirectoryCreationFormDisplayed}>
@@ -262,8 +269,8 @@ export default function Page() {
 			</div>
 			{
 				error &&
-				<p className='text-red-700 bg-red-50 p-3 my-3'>
-					Error: {error}
+				<p className='text-red-700 bg-red-50 p-3 m-4'>
+					{error}
 				</p>
 			}
 

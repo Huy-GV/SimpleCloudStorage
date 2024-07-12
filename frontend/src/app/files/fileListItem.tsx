@@ -168,7 +168,7 @@ export function FileListItem(
 						:
 						<>
 							<div className='flex flex-row flex-nowrap align-bottom sm:align-middle'>
-								<span className='text-nowrap self-end sm:self-auto text-ellipsis whitespace-nowrap  w-4/5 overflow-x-hidden'>
+								<span className='text-nowrap self-end sm:self-auto text-ellipsis whitespace-nowrap w-4/5 overflow-x-hidden'>
 									{name}
 								</span>
 								<button

@@ -30,12 +30,11 @@ export function FileUploadForm(
 		});
 
 		if (!response.ok) {
+			onErrorSet(`Failed to upload file: ${response.statusText}`)
 			if (response.status === 401 || response.status === 403) {
 				router.push('/auth');
-				return;
 			}
 
-			onErrorSet('Failed to upload file')
 			return;
 		}
 	}
