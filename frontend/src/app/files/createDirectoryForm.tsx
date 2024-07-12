@@ -74,6 +74,8 @@ export function CreateDirectoryForm(
             </td>
             <td className='text-left'>0 KB</td>
             <td className='text-right'></td>
+            <td className='text-right'></td>
+            <td className='text-right'></td>
         </tr>
     );
 }

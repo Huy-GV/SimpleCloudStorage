@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UploadFileFormProps } from "./definitions";
+import { sleep } from '../../utilities';
 
 export function FileUploadForm(
 	{
@@ -30,12 +31,13 @@ export function FileUploadForm(
 		});
 
 		if (!response.ok) {
-			onErrorSet(`Failed to upload file: ${response.statusText}`)
 			if (response.status === 401 || response.status === 403) {
+				onErrorSet(`Failed to upload file: authentication failed`);
+				await sleep(1500);
 				router.push('/auth');
+			} else {
+				onErrorSet(`Failed to upload file: ${response.status} error`);
 			}
-
-			return;
 		}
 	}
 

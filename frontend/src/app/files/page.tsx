@@ -39,10 +39,12 @@ export default function Page() {
 			});
 
 			if (!response.ok) {
-				setError(`Failed to get files: ${response.statusText}`);
 				if (response.status === 401 || response.status === 403) {
-					await sleep(2000);
+					setError(`Failed to load files: authentication error`);
+					await sleep(1500);
 					router.push('/auth');
+				} else {
+					setError(`Failed to load files: ${response.status} error`);
 				}
 
 				return [];
@@ -86,13 +88,15 @@ export default function Page() {
 		});
 
 		if (!response.ok) {
-			setError(`Failed to delete ${selectedFiles.size} files: ${response.statusText}`);
 			if (response.status === 401 || response.status === 403) {
-				await sleep(2000);
+				setError(`Failed to delete ${selectedFiles.size} files: authentication error`);
+				await sleep(1500);
 				router.push('/auth');
+			} else {
+				setError(`Failed to delete ${selectedFiles.size} files: ${response.status} error`);
 			}
 
-			return null;
+			return;
 		}
 
 		setError('');
@@ -127,13 +131,15 @@ export default function Page() {
 		})
 
 		if (!response.ok) {
-			setError(`Failed to download ${selectedFiles.size} files: ${response.statusText}`);
 			if (response.status === 401 || response.status === 403) {
-				await sleep(2000);
+				setError(`Failed to download ${selectedFiles.size} files: authentication failed`);
+				await sleep(1500);
 				router.push('/auth');
+			} else {
+				setError(`Failed to download ${selectedFiles.size} files: ${response.status} error`);
 			}
 
-			return null;
+			return;
 		}
 
 		const blob = await response.blob();
@@ -201,7 +207,7 @@ export default function Page() {
 		setIsCreateDirectoryFormDisplayed(false);
 	};
 
-	const handleErrorSet = async (error: string) => {
+	const handleErrorSet = (error: string) => {
 		setError(error);
 	}
 
@@ -216,7 +222,7 @@ export default function Page() {
 	}, []);
 
 	return (
-		<main className='flex flex-col w-screen sm:w-5/6 md:w-11/12 xl:w-3/5 mx-auto mb-16'>
+		<main className='flex flex-col w-screen sm:w-11/12 md:w-11/12 xl:w-3/5 mx-auto mb-16'>
 			<h1 className='text-4xl mb-3 mx-2'>My Files</h1>
 
 			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3 mx-2'>
@@ -229,8 +235,8 @@ export default function Page() {
 							}
 							<button
 								className={index == directoryChain.length - 1
-									? 'text-black text-xl'
-									: 'text-gray-500 text-xl'
+									? 'text-black sm:text-lg md:text-xl'
+									: 'text-gray-500 sm:text-lg md:text-xl'
 								}
 								onClick={() => handleDirectoryLinkClicked(x.id)}>
 								{ x.name }
@@ -274,12 +280,13 @@ export default function Page() {
 				</p>
 			}
 
-			<table className='border-collapse table-fixed mx-auto w-full sm:w-11/12'>
+			<table className='border-collapse table-fixed mx-auto w-full'>
 				<thead>
 					<tr>
-						<th className='text-left h-full w-1/6 md:w-1/12'>
+						<th className='text-left h-full w-1/6 sm:w-1/12'>
 							<button
-								className={`bg-gray-300 my-1 p-2 rounded-md ${selectedFiles.size != 0
+								className={`bg-gray-300 my-1 p-2 rounded-md
+									${selectedFiles.size != 0
 										? 'visible'
 										: 'invisible'
 									}`
@@ -290,10 +297,10 @@ export default function Page() {
 							</button>
 						</th>
 
-						<th className='text-left w-3/5 sm:w-2/5'>Name</th>
-						<th className='sm:text-left pr-4 md:pr-0 text-right'>Size</th>
-						<th className='text-left hidden sm:table-cell'>Type</th>
-						<th className='text-right pr-2 hidden sm:table-cell'>Upload Date</th>
+						<th className='sm:w-4/12 md:text-base md:w-5/12 lg:w-5/12 w-4/6 text-left'>Name</th>
+						<th className='sm:w-2/12 md:text-base md:w-2/12 lg:w-2/12 text-right sm:text-left pr-4 md:pr-0'>Size</th>
+						<th className='sm:w-1/12 md:text-base md:w-1/12 lg:w-1/12 text-left hidden sm:table-cell'>Type</th>
+						<th className='sm:w-4/12 md:text-base md:w-3/12 lg:w-3/12 text-right pr-2 hidden sm:table-cell'>Upload Date</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -308,6 +315,7 @@ export default function Page() {
 					{
 						Array.from(fileItemMap.values()).map(item => (
 							<FileListItem
+								onErrorSet={handleErrorSet}
 								onDirectoryClicked={async () => handleDirectoryEntered(item.id)}
 								onFileNameChanged={onFileNameChanged}
 								onFileSelect={() => handleFileSelected(item.id)}

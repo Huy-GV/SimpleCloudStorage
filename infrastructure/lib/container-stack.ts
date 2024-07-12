@@ -153,7 +153,7 @@ export class ContainerStack extends cdk.Stack {
 		new ARecord(this, 'ScsCdkAliasRecord', {
 			zone: hostedZone,
 			target: RecordTarget.fromAlias(new LoadBalancerTarget(appLoadBalancer)),
-			recordName: ''
+			recordName: 'scs-api'
 		});
     }
 

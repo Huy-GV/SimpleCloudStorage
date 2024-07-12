@@ -1,4 +1,8 @@
-export interface FileItemProps {
+export interface CanRaiseError {
+	onErrorSet: (errorMessage: string) => void;
+}
+
+export interface FileItemProps extends CanRaiseError {
 	id: number;
 	name: string;
 	size: number;
@@ -17,10 +21,9 @@ export interface CreateDirectoryFormProps {
 	onCancel: () => void;
 }
 
-export interface UploadFileFormProps {
+export interface UploadFileFormProps extends CanRaiseError  {
 	parentDirectoryId: number | null;
 	onFileUploaded: () => Promise<void>;
-	onErrorSet: (errorMessage: string) => Promise<void>;
 }
 
 export interface DirectoryChainItem {

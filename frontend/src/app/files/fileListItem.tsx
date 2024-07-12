@@ -3,6 +3,7 @@ import { FileItemProps } from './definitions';;
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { sleep } from '../../utilities';
 
 export function FileListItem(
 	{
@@ -15,7 +16,8 @@ export function FileListItem(
 		parentDirectoryId,
 		onDirectoryClicked,
 		onFileSelect,
-		onFileNameChanged
+		onFileNameChanged,
+		onErrorSet
 	} : FileItemProps
 ) {
 	const router = useRouter();
@@ -113,6 +115,16 @@ export function FileListItem(
 			return;
 		}
 
+		if (!response.ok) {
+			if (response.status === 401 || response.status === 403) {
+				onErrorSet(`Failed to change name of '${name}': authentication failed`);
+				await sleep(1500);
+				router.push('/auth');
+			} else {
+				onErrorSet(`Failed to change name of '${name}': ${response.status} error`);
+			}
+		}
+
 		onFileNameChanged();
 	}
 
@@ -172,7 +184,7 @@ export function FileListItem(
 									{name}
 								</span>
 								<button
-									className='transition ease-in-out group-hover/file-row:visible ml-auto invisible flex items-center'
+									className='transition ease-in-out  group-hover/file-row:visible ml-auto invisible flex items-center  hover:scale-110'
 									onClick={handleFileNameClick}>
 									<FontAwesomeIcon icon={faPenToSquare}/>
 									<span className='ml-1 mr-1 font-semibold'>
@@ -187,9 +199,9 @@ export function FileListItem(
 						</>
 				}
 			</td>
-			<td className='text-right pr-4 text-sm sm:text-base sm:text-left sm:pr-0 '>{ fileSizeText }</td>
-			<td className='text-left hidden sm:table-cell'>{ fileTypeText }</td>
-			<td className='text-right hidden sm:table-cell sm:pr-2'>{ localDate }</td>
+			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-right pr-4 sm:text-left sm:pr-0'>{ fileSizeText }</td>
+			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-left hidden sm:table-cell'>{ fileTypeText }</td>
+			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-right hidden sm:table-cell sm:pr-2 whitespace-nowrap'>{ localDate }</td>
 		</tr>
 	);
 }
