@@ -14,7 +14,6 @@ import {
 	Res,
 } from "@nestjs/common";
 import { Request, Response } from "express";
-import { FileStorageService } from "./file-storage.service";
 import { FileInterceptor } from "@nestjs/platform-express/multer";
 import { USER_CONTEXT_KEY } from "../authentication/constants";
 import { FileDto } from "../data/dtos/fileDto";
@@ -24,10 +23,17 @@ import { DownloadFileViewModel } from "../data/viewModels/downloadFilesViewModel
 import { UpdateFileNameViewModel } from "../data/viewModels/updateFileNameViewModel";
 import { UploadFileViewModel } from "../data/viewModels/uploadFileViewModel";
 import { throwHttpExceptionOnFailure, convertToHttpStatusCode } from "../utils/httpCodeConvertor";
+import { FileTransporter } from "./file-transporter.service";
+import { FileMetadataReader } from "./file-metadata-reader.service";
+import { FileMetadataWriter } from "./file-metadata-writer.service";
 
 @Controller("files")
-export class FileStorageController {
-	constructor(private readonly fileStorage: FileStorageService) {}
+export class FileController {
+	constructor(
+		private readonly fileMetadataReader: FileMetadataReader,
+		private readonly fileMetadataWriter: FileMetadataWriter,
+		private readonly fileTransporter: FileTransporter
+	) { }
 
 	@Get("/:directoryId")
 		async getAllFilesInDirectory(
@@ -35,7 +41,7 @@ export class FileStorageController {
 		@Param("directoryId", new ParseIntPipe()) directoryId?: number | null,
 		): Promise<FileDto[]> {
 			const userId = request[USER_CONTEXT_KEY].sub;
-			return await this.fileStorage.getAllFiles(userId, directoryId ?? null);
+			return await this.fileMetadataReader.getAllFiles(userId, directoryId ?? null);
 		}
 
 	@Get()
@@ -43,7 +49,7 @@ export class FileStorageController {
 		@Req() request: Request,
 	): Promise<FileDto[]> {
 		const userId = request[USER_CONTEXT_KEY].sub;
-		return await this.fileStorage.getAllFiles(userId, null);
+		return await this.fileMetadataReader.getAllFiles(userId, null);
 	}
 
 	@Post("/upload")
@@ -55,7 +61,7 @@ export class FileStorageController {
 	): Promise<void> {
 		const viewModel = { ...rawViewModel, file: file };
 		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.uploadFile(
+		const result = await this.fileTransporter.uploadFile(
 			userId,
 			viewModel,
 		);
@@ -69,7 +75,7 @@ export class FileStorageController {
 		@Body() viewModel: CreateDirectoryViewModel,
 	): Promise<void> {
 		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileStorage.createDirectory(userId, viewModel);
+		const result = await this.fileMetadataWriter.createDirectory(userId, viewModel);
 
 		throwHttpExceptionOnFailure(result);
 	}
@@ -79,7 +85,7 @@ export class FileStorageController {
 		@Req() request: Request,
 		@Body() viewModel: UpdateFileNameViewModel,
 	): Promise<void> {
-		const result = await this.fileStorage.updateFileName(
+		const result = await this.fileMetadataWriter.updateFileName(
 			viewModel,
 			request[USER_CONTEXT_KEY].sub,
 		);
@@ -92,7 +98,7 @@ export class FileStorageController {
     @Req() request: Request,
     @Body() viewModel: DeleteFilesViewModel,
   ): Promise<void> {
-  	const result = await this.fileStorage.deleteFiles(
+  	const result = await this.fileMetadataWriter.deleteFiles(
   		viewModel.fileIds,
   		request[USER_CONTEXT_KEY].sub,
   	);
@@ -106,7 +112,7 @@ export class FileStorageController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() body: DownloadFileViewModel,
 	): Promise<StreamableFile> {
-  		const result = await this.fileStorage.downloadFiles(
+  		const result = await this.fileTransporter.downloadFiles(
 			body,
 			request[USER_CONTEXT_KEY].sub,
 		);

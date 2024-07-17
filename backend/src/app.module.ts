@@ -1,6 +1,6 @@
 import { Logger, Module } from '@nestjs/common';
 import { AuthenticationModule } from './authentication/authentication.module';
-import { FileStorageModule } from './file-storage/file-storage.module';
+import { FileModule } from './file/file.module';
 import { DatabaseModule } from './database/database.module';
 import { DatabaseService } from './database/database.service';
 import { ConfigModule } from '@nestjs/config';
@@ -20,7 +20,7 @@ const resolveEnvFile = () => {
 			isGlobal: true,
 		}),
 		AuthenticationModule,
-		FileStorageModule,
+		FileModule,
 		DatabaseModule,
 		S3InterfaceModule,
 	],

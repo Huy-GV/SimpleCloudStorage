@@ -22,7 +22,7 @@ async function bootstrap() {
 
 	app.setGlobalPrefix('/api/v1')
 	app.use(cookieParser());
-	const port = config.get<number>('SERVER_PORT');
+	const port = config.getOrThrow<number>('SERVER_PORT');
 	new Logger(AppModule.name).log(`Server listening on port: ${port}`)
 	await app.listen(port);
 }

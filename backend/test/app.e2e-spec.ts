@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { ConfigModule } from '@nestjs/config';
 import { AuthenticationModule } from '../src/authentication/authentication.module';
 import { DatabaseModule } from '../src/database/database.module';
-import { FileStorageModule } from '../src/file-storage/file-storage.module';
+import { FileModule } from '../src/file/file.module';
 import { S3InterfaceModule } from '../src/s3-interface/s3-interface.module';
 import { DatabaseService } from '../src/database/database.service';
 import { AppModule } from '../src/app.module';
@@ -21,7 +21,7 @@ describe('AppController (e2e)', () => {
 					isGlobal: true,
 				}),
 				AuthenticationModule,
-				FileStorageModule,
+				FileModule,
 				DatabaseModule,
 				S3InterfaceModule,
 				AppModule
