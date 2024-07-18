@@ -3,6 +3,7 @@
 ## Overview
 Simple cloud storage application backed by AWS S3.
 
+<em>Demo</em>
 <p>
     <img src="https://github.com/Huy-GV/SimpleCloudStorage/assets/78300296/99d94c6e-de62-415e-9a7b-3f10e1e4405b" width=80% alt="image">
 </p>
@@ -52,13 +53,13 @@ Simple cloud storage application backed by AWS S3.
 - Set up environment file `.env.development.local` in `./backend/src`:
     ```env
     JWT_SECRET=YOUR_32_CHARACTER_SECRET
-
     DATA_BUCKET_AWS=YOUR_AWS_BUCKET
     REGION_AWS=YOUR_AWS_REGION
-
     DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
     SERVER_PORT=YOUR_SERVER_PORT
     DOWNLOAD_DIR=YOUR_TEMPORARY_DOWNLOAD_DIR
+    NODE_ENV=development
+    AWS_PROFILE=simple-cloud-storage
     ```
 - Create a PostgreSQL database:
     ```bash

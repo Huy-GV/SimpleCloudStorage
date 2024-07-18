@@ -92,8 +92,7 @@ export class FileTransporter {
 		}
 
 		const tempDirectoryName = this.createTemporaryDirectoryName(userId);
-		const downloadDirectoryPath = this.config.get<string>('DOWNLOAD_DIR')
-			?? join(process.cwd(), 'downloads');
+		const downloadDirectoryPath = this.config.get<string>('DOWNLOAD_DIR', join(process.cwd(), 'downloads'));
 
 		const tempDirectoryPath = join(
 			this.expandEnvVariables(downloadDirectoryPath),

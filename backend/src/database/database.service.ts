@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
-import { DefaultArgs } from '@prisma/client/runtime/library';
+import { PrismaClient } from '@prisma/client';
+import { ITXClientDenyList } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class DatabaseService extends PrismaClient implements OnModuleInit {
@@ -9,4 +9,4 @@ export class DatabaseService extends PrismaClient implements OnModuleInit {
 	}
 }
 
-export type TransactionClientAlias = Omit<PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+export type TransactionClientAlias = Omit<PrismaClient, ITXClientDenyList>

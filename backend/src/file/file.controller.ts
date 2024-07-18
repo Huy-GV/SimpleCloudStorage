@@ -26,6 +26,8 @@ import { throwHttpExceptionOnFailure, convertToHttpStatusCode } from "../utils/h
 import { FileTransporter } from "./file-transporter.service";
 import { FileMetadataReader } from "./file-metadata-reader.service";
 import { FileMetadataWriter } from "./file-metadata-writer.service";
+import { UserContextDto } from "../data/dtos/userContextDto";
+import { constants } from 'http2';
 
 @Controller("files")
 export class FileController {
@@ -48,8 +50,8 @@ export class FileController {
 	async getAllFilesInRootDirectory(
 		@Req() request: Request,
 	): Promise<FileDto[]> {
-		const userId = request[USER_CONTEXT_KEY].sub;
-		return await this.fileMetadataReader.getAllFiles(userId, null);
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
+		return await this.fileMetadataReader.getAllFiles(userContext.userId, null);
 	}
 
 	@Post("/upload")
@@ -60,9 +62,9 @@ export class FileController {
 		@Body() rawViewModel: UploadFileViewModel,
 	): Promise<void> {
 		const viewModel = { ...rawViewModel, file: file };
-		const userId: number = request[USER_CONTEXT_KEY].sub;
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
 		const result = await this.fileTransporter.uploadFile(
-			userId,
+			userContext.userId,
 			viewModel,
 		);
 
@@ -74,8 +76,8 @@ export class FileController {
 		@Req() request: Request,
 		@Body() viewModel: CreateDirectoryViewModel,
 	): Promise<void> {
-		const userId: number = request[USER_CONTEXT_KEY].sub;
-		const result = await this.fileMetadataWriter.createDirectory(userId, viewModel);
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
+		const result = await this.fileMetadataWriter.createDirectory(userContext.userId, viewModel);
 
 		throwHttpExceptionOnFailure(result);
 	}
@@ -85,9 +87,10 @@ export class FileController {
 		@Req() request: Request,
 		@Body() viewModel: UpdateFileNameViewModel,
 	): Promise<void> {
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
 		const result = await this.fileMetadataWriter.updateFileName(
 			viewModel,
-			request[USER_CONTEXT_KEY].sub,
+			userContext.userId
 		);
 
 		throwHttpExceptionOnFailure(result);
@@ -98,9 +101,10 @@ export class FileController {
     @Req() request: Request,
     @Body() viewModel: DeleteFilesViewModel,
   ): Promise<void> {
+	const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
   	const result = await this.fileMetadataWriter.deleteFiles(
   		viewModel.fileIds,
-  		request[USER_CONTEXT_KEY].sub,
+		  userContext.userId
   	);
 
   	throwHttpExceptionOnFailure(result);
@@ -112,14 +116,15 @@ export class FileController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() body: DownloadFileViewModel,
 	): Promise<StreamableFile> {
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
   		const result = await this.fileTransporter.downloadFiles(
 			body,
-			request[USER_CONTEXT_KEY].sub,
+			userContext.userId,
 		);
 
 		response.set({
-			'Content-Type': 'application/zip',
-			'Content-Disposition': 'attachment; filename="download.zip"',
+			[constants.HTTP2_HEADER_CONTENT_TYPE]: 'application/zip',
+			[constants.HTTP2_HEADER_CONTENT_DISPOSITION]: 'attachment; filename="download.zip"',
 		});
 
 		response.status(convertToHttpStatusCode(result));

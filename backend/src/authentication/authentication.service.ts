@@ -7,6 +7,8 @@ import { JwtDto } from '../data/dtos/jwtDto';
 import { DataResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
 import { SignInViewModel } from '../data/viewModels/signInViewModel';
+import { jwtPayloadFromUserContext } from '../data/dtos/jwtPayloadDto';
+import { UserContextDto } from '../data/dtos/userContextDto';
 
 @Injectable()
 export class AuthenticationService {
@@ -60,11 +62,8 @@ export class AuthenticationService {
 			return new DataResult(ResultCode.Unauthorized);
 		}
 
-		const payload = {
-			sub: user.id,
-			username: user.name,
-		};
-
+		const userContext: UserContextDto = { userId: user.id, userName: user.name };
+		const payload = jwtPayloadFromUserContext(userContext);
 		const jwtDto = new JwtDto(await this.jwtService.signAsync(payload));
 
 		return new DataResult(ResultCode.Success, jwtDto);

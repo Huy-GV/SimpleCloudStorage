@@ -3,7 +3,7 @@ import {
 	ConflictException,
 	ForbiddenException,
 	HttpStatus,
-	NotFoundException,
+	NotFoundException
 } from '@nestjs/common';
 import { ResultCode } from '../data/results/resultCode';
 import { Result } from '../data/results/result';

@@ -9,13 +9,14 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import {
-	AUTH_HEADER_KEY,
 	ALLOW_ANONYMOUS_KEY,
 	JWT_COOKIE_KEY,
 	USER_CONTEXT_KEY,
 	BEARER_STR,
 } from './constants';
 import { ConfigService } from '@nestjs/config';
+import { UserContextDto } from '../data/dtos/userContextDto';
+import { constants } from 'http2';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -48,8 +49,7 @@ export class AuthenticationGuard implements CanActivate {
 				secret: this.config.get<string>('JWT_SECRET'),
 			});
 
-			// TODO: build a complex User model by loading info from the db?
-			request[USER_CONTEXT_KEY] = payload;
+			request[USER_CONTEXT_KEY] = new UserContextDto(payload.sub, payload.userName);
 		} catch (e) {
 			this.logger.error(e);
 			throw new UnauthorizedException();
@@ -73,7 +73,7 @@ export class AuthenticationGuard implements CanActivate {
 	}
 
 	private extractTokenFromAuthHeader(request: Request): string | null {
-		const authHeader = request.headers[AUTH_HEADER_KEY];
+		const authHeader = request.headers[constants.HTTP2_HEADER_AUTHORIZATION];
 		if (!authHeader || typeof authHeader !== 'string') {
 			return null;
 		}
