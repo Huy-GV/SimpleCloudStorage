@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { DataResult, EmptyResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
+import { Readable } from 'stream';
 
 interface S3Object {
   key: string;
@@ -29,17 +30,15 @@ export class S3InterfaceService {
 		});
 	}
 
-	async getPublicUrl(objectUrl: string): Promise<string> {
+	async downloadFile(objectUrl: string): Promise<NodeJS.ReadableStream> {
 		const { bucket, key } = this.extractS3ObjectProperties(objectUrl);
 		const getObjectCommand = new GetObjectCommand({
 			Bucket: bucket,
 			Key: key,
 		});
 
-		const durationInSeconds = 60 * 60;
-		return await getSignedUrl(this.s3Client, getObjectCommand, {
-			expiresIn: durationInSeconds,
-		});
+		const response = await this.s3Client.send(getObjectCommand);
+		return response.Body as NodeJS.ReadableStream
 	}
 
 	async uploadFile(fileToUpload: Express.Multer.File): Promise<Result<string>> {

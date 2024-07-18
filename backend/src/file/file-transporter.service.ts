@@ -1,8 +1,7 @@
 import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as archiver from 'archiver';
-import axios from 'axios';
-import { existsSync, createWriteStream, createReadStream } from 'fs';
+import { existsSync, createWriteStream, createReadStream, ReadStream } from 'fs';
 import { mkdir, rm, unlink } from 'fs/promises';
 import { join } from 'path';
 import { DatabaseService } from '../database/database.service';
@@ -235,7 +234,10 @@ export class FileTransporter {
 		tempParentDirectoryPath: string,
 		zipParentDirectoryPath: string,
 	): Promise<void> {
-		// index within the parent directory is used instead of the current directory name to keep the path of temporary download directory as short as possible.
+		/*
+		index within the parent directory is used instead of the current file name
+		to minimize the path length of the temporary download directory
+		*/
 		const currentTempDirectoryPath = join(
 			tempParentDirectoryPath,
 			directoryIndex.toString(),
@@ -275,18 +277,12 @@ export class FileTransporter {
 		tempDirectoryPath: string,
 		zipDirectoryPath: string,
 	) {
-		const signedUrl = await this.s3Service.getPublicUrl(file.uri);
+		const downloadedFileStream = await this.s3Service.downloadFile(file.uri);
 
-		// axios is used since node-fetch does not handle imports properly and native fetch does not support NodeJS.ReadableStream
-		const response = await axios({
-			method: 'get',
-			url: signedUrl,
-			responseType: 'stream',
-		});
-
-		const downloadedFileStream = response.data;
-
-		// index within the parent directory is used instead of the current file name to keep the path of temporary download directory as short as possible.
+		/*
+		index within the parent directory is used instead of the current file name
+		to minimize the path length of the temporary download directory
+		*/
 		const tempFilePath = join(tempDirectoryPath, index.toString());
 		const zipFilePath = join(zipDirectoryPath, file.name);
 
@@ -298,8 +294,8 @@ export class FileTransporter {
 			fileWriteStream.on('error', reject);
 		});
 
-		const fileReadStream = createReadStream(tempFilePath);
-		archive.append(fileReadStream, { name: zipFilePath });
+		const tempFileReadStream = createReadStream(tempFilePath);
+		archive.append(tempFileReadStream, { name: zipFilePath });
 	}
 
 	private createTemporaryDirectoryName(userId: number) {
