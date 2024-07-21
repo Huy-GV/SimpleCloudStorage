@@ -10,6 +10,7 @@ import { EmptyResult, DataResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
 import { DownloadFileViewModel } from '../data/viewModels/downloadFilesViewModel';
 import { UploadFileViewModel } from '../data/viewModels/uploadFileViewModel';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class FileTransporter {
@@ -51,26 +52,39 @@ export class FileTransporter {
 				);
 			}
 
-			const s3UploadResult = await this.s3Service.uploadFile(viewModel.file);
+			const s3UploadResult = await this.s3Service.uploadFile(viewModel.file, userId);
 			if (!s3UploadResult.successful) {
 				throw new Error(s3UploadResult.statusText);
 			}
 
-			await transaction.file.create({
-				data: {
-					name: savedName,
-					parentFileId: viewModel.directoryFileId,
-					uri: s3UploadResult.data,
-					ownerUserId: userId,
-					creationTime: new Date(),
-					sizeKb: viewModel.file.size / 1000,
-					isDirectory: false,
-				},
-			});
+			try {
+				await transaction.file.create({
+					data: {
+						name: savedName,
+						parentFileId: viewModel.directoryFileId,
+						uri: s3UploadResult.data,
+						ownerUserId: userId,
+						creationTime: new Date(),
+						sizeKb: viewModel.file.size / 1000,
+						isDirectory: false,
+					},
+				});
+
+			} catch (error) {
+				this.logger.error(`Failed to add file to database: ${error}`);
+				this.logger.log(`Deleting uploaded S3 file`);
+				const deleteResult = await this.s3Service.deleteObjects([s3UploadResult.data]);
+				if (!deleteResult.successful) {
+					this.logger.log(`Failed to delete recently upload file: ${deleteResult.statusText}`);
+				}
+
+				return new EmptyResult(ResultCode.UnspecifiedError);
+			}
+
 
 			return new EmptyResult(ResultCode.Success);
 		}, {
-			timeout: 15000
+			timeout: 20000
 		});
 	}
 
@@ -90,7 +104,7 @@ export class FileTransporter {
 			);
 		}
 
-		const tempDirectoryName = this.createTemporaryDirectoryName(userId);
+		const tempDirectoryName = `${userId}_${randomUUID()}`;
 		const downloadDirectoryPath = this.config.get<string>('DOWNLOAD_DIR', join(process.cwd(), 'downloads'));
 
 		const tempDirectoryPath = join(
@@ -126,10 +140,7 @@ export class FileTransporter {
 			}
 
 			const rootZipFileName = '';
-			for (const [index, file] of files.entries()) {
-				await this.addDownloadEntryToZip(index, file, archive, tempDirectoryPath, rootZipFileName)
-			}
-
+			await this.downloadFilesInDirectory(files, archive, tempDirectoryPath, rootZipFileName)
 			await archive.finalize();
 			const downloadStream = this.createStreamableZipFile(tempDirectoryPath, fullZipFilePath);
 			return new DataResult(
@@ -165,12 +176,28 @@ export class FileTransporter {
 		return readStream;
 	}
 
+	private async downloadFilesInDirectory(
+		files: {
+			id: number;
+			name: string;
+			uri: string;
+			isDirectory: boolean;
+		}[],
+		archive: archiver.Archiver,
+		tempDirectoryPath: string,
+		zipDirectoryPath: string
+	) {
+		for (const [index, file] of files.entries()) {
+			await this.addDownloadEntryToZip(index.toString(), file, archive, tempDirectoryPath, zipDirectoryPath)
+		}
+	}
+
 	private async userExists(userId: number) {
 		return userId != null && this.database.user.findFirst({ where: { id: userId } }).then(Boolean);
 	}
 
 	private async addDownloadEntryToZip(
-		index: number,
+		tempEntryName: string,
 		file: {
 			id: number,
 			uri: string,
@@ -179,23 +206,23 @@ export class FileTransporter {
 		},
 		archive: archiver.Archiver,
 		tempDirectoryPath: string,
-		rootZipFileName: string,
+		zipDirectoryPath: string,
 	) {
 		if (file.isDirectory) {
 			await this.addDirectoryToZip(
 				file,
-				index,
+				tempEntryName,
 				archive,
 				tempDirectoryPath,
-				rootZipFileName,
+				zipDirectoryPath,
 			);
 		} else {
 			await this.addFileToZip(
 				file,
-				index,
+				tempEntryName,
 				archive,
 				tempDirectoryPath,
-				rootZipFileName,
+				zipDirectoryPath,
 			);
 		}
 	}
@@ -229,7 +256,7 @@ export class FileTransporter {
 
 	private async addDirectoryToZip(
 		directoryFile: { id: number; name: string; },
-		directoryIndex: number,
+		tempDirectoryName: string,
 		archive: archiver.Archiver,
 		tempParentDirectoryPath: string,
 		zipParentDirectoryPath: string,
@@ -240,7 +267,7 @@ export class FileTransporter {
 		*/
 		const currentTempDirectoryPath = join(
 			tempParentDirectoryPath,
-			directoryIndex.toString(),
+			tempDirectoryName,
 		);
 
 		const currentZipDirectoryPath = join(
@@ -264,15 +291,12 @@ export class FileTransporter {
 
 		// archive.directory() does not work if directory is empty
 		archive.append('', { name: `${currentZipDirectoryPath}/` });
-
-		for (const [index, file] of files.entries()) {
-			await this.addDownloadEntryToZip(index, file, archive, currentTempDirectoryPath, currentZipDirectoryPath);
-		}
+		await this.downloadFilesInDirectory(files, archive, currentTempDirectoryPath, currentZipDirectoryPath);
 	}
 
 	private async addFileToZip(
 		file: { name: string; uri: string },
-		index: number,
+		tempFileName: string,
 		archive: archiver.Archiver,
 		tempDirectoryPath: string,
 		zipDirectoryPath: string,
@@ -283,7 +307,7 @@ export class FileTransporter {
 		index within the parent directory is used instead of the current file name
 		to minimize the path length of the temporary download directory
 		*/
-		const tempFilePath = join(tempDirectoryPath, index.toString());
+		const tempFilePath = join(tempDirectoryPath, tempFileName);
 		const zipFilePath = join(zipDirectoryPath, file.name);
 
 		// wait until the s3 object is written to the temporary directory
@@ -296,10 +320,5 @@ export class FileTransporter {
 
 		const tempFileReadStream = createReadStream(tempFilePath);
 		archive.append(tempFileReadStream, { name: zipFilePath });
-	}
-
-	private createTemporaryDirectoryName(userId: number) {
-		const timestamp = new Date().getTime();
-		return `${userId}_${timestamp}`;
 	}
 }

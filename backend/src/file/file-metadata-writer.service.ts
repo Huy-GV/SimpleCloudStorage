@@ -165,6 +165,7 @@ export class FileMetadataWriter {
 				const directories = filesToDelete.filter(
 					(x) => x.isDirectory,
 				);
+				
 				const resultCollections = await Promise.all(
 					directories.map((x) =>
 						this.deleteNestedFiles(userId, x.id, transaction),
@@ -201,6 +202,8 @@ export class FileMetadataWriter {
 			});
 
 			return new EmptyResult(ResultCode.Success);
+		}, {
+			timeout: 20000
 		});
 	}
 }

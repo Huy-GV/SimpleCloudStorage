@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { DataResult, EmptyResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
-import { Readable } from 'stream';
+import { randomUUID } from 'crypto';
 
 interface S3Object {
   key: string;
@@ -41,12 +40,15 @@ export class S3InterfaceService {
 		return response.Body as NodeJS.ReadableStream
 	}
 
-	async uploadFile(fileToUpload: Express.Multer.File): Promise<Result<string>> {
-		const objectKey = encodeURI(Date.now() + '_' + fileToUpload.originalname);
+	async uploadFile(fileToUpload: Express.Multer.File, userId: number): Promise<Result<string>> {
+		const objectKey = `${userId}_${randomUUID()}`
 		const putObjectCommand = new PutObjectCommand({
 			Bucket: this.bucket,
 			Key: objectKey,
 			Body: fileToUpload.buffer,
+			Metadata: {
+				"userId": userId.toString()
+			}
 		});
 
 		const s3Result = await this.s3Client.send(putObjectCommand);

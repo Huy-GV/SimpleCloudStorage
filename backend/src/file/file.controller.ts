@@ -96,19 +96,19 @@ export class FileController {
 		throwHttpExceptionOnFailure(result);
 	}
 
-  @Delete("")
-  async deleteFiles(
-    @Req() request: Request,
-    @Body() viewModel: DeleteFilesViewModel,
-  ): Promise<void> {
-	const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
-  	const result = await this.fileMetadataWriter.deleteFiles(
-  		viewModel.fileIds,
-		  userContext.userId
-  	);
+	@Delete("")
+	async deleteFiles(
+		@Req() request: Request,
+		@Body() viewModel: DeleteFilesViewModel,
+	): Promise<void> {
+		const userContext = request[USER_CONTEXT_KEY] as UserContextDto;
+		const result = await this.fileMetadataWriter.deleteFiles(
+			viewModel.fileIds,
+			userContext.userId
+		);
 
-  	throwHttpExceptionOnFailure(result);
-  }
+		throwHttpExceptionOnFailure(result);
+	}
 
 	@Post("/download")
 	async getFile(
