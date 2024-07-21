@@ -144,9 +144,7 @@ export default function Page() {
 
 		const blob = await response.blob();
 		clickDownloadLink(blob);
-
 		setError('');
-		setSelectedFiles(new Set());
 	}
 
 	const handleFilesDeselected = () => {
@@ -169,7 +167,7 @@ export default function Page() {
 				...currentDirectoryChain,
 				{
 					id: selectedDirectoryId,
-					name: fileItemMap.get(selectedDirectoryId!)?.name ?? 'unknown'
+					name: fileItemMap.get(selectedDirectoryId!)!.name
 				}
 			]
 		});
