@@ -1,8 +1,8 @@
 export enum ResultCode {
-    Success,
-    UnspecifiedError,
-    Unauthorized,
-    NotFound,
-    InvalidState,
-    InvalidArguments,
+    Success = 0,
+    UnspecifiedError = 1,
+    Unauthorized = 2,
+    NotFound = 3,
+    InvalidState = 4,
+    InvalidArguments = 5,
 }
