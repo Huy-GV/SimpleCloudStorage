@@ -19,7 +19,7 @@ export class FileTransporter {
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly s3Service: S3InterfaceService,
-		private readonly config: ConfigService
+		private readonly config: ConfigService,
 	) {}
 
 	async uploadFile(
@@ -36,16 +36,16 @@ export class FileTransporter {
 		return await this.database.$transaction(async (transaction) => {
 			const savedName = viewModel.file.originalname;
 
-			const filesWithIdenticalNameInSharedDirectoryCount =
+			const filesWithIdenticalExists=
 				await transaction.file.count({
 					where: {
 						name: savedName,
 						parentFileId: viewModel.directoryFileId,
 						ownerUserId: userId
 					},
-				});
+				}) > 0;
 
-			if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+			if (filesWithIdenticalExists) {
 				return new EmptyResult(
 					ResultCode.InvalidArguments,
 					`File or directory with name '${savedName}' already exists in the upload directory`,
@@ -54,7 +54,7 @@ export class FileTransporter {
 
 			const s3UploadResult = await this.s3Service.uploadFile(viewModel.file, userId);
 			if (!s3UploadResult.successful) {
-				throw new Error(s3UploadResult.statusText);
+				return s3UploadResult;
 			}
 
 			try {
@@ -62,7 +62,7 @@ export class FileTransporter {
 					data: {
 						name: savedName,
 						parentFileId: viewModel.directoryFileId,
-						uri: s3UploadResult.data,
+						uri: s3UploadResult.data!,
 						ownerUserId: userId,
 						creationTime: new Date(),
 						sizeKb: viewModel.file.size / 1000,
@@ -95,7 +95,7 @@ export class FileTransporter {
 	async downloadFiles(
 		downloadFileViewModel: DownloadFileViewModel,
 		userId: number,
-	): Promise<Result<StreamableFile>> {
+	): Promise<Result<StreamableFile | null>> {
 		if (!await this.userExists(userId)) {
 			return new DataResult(
 				ResultCode.Unauthorized,

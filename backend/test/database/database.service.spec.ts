@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseService } from '../../src/database/database.service';
+import { PrismaClient } from '@prisma/client';
 
 describe('DatabaseService', () => {
 	let service: DatabaseService;
@@ -14,5 +15,6 @@ describe('DatabaseService', () => {
 
 	it('should be defined', () => {
 		expect(service).toBeDefined();
+		expect(service).toBeInstanceOf(PrismaClient)
 	});
 });

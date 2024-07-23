@@ -1,14 +1,17 @@
 import { plainToInstance } from "class-transformer";
-import { IsIn, IsNumber, IsOptional, Max, Min, MinLength, validateSync } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, validateSync } from "class-validator";
 
 class EnvironmentVariables {
     @MinLength(32)
     JWT_SECRET: string;
 
+    @IsNotEmpty()
     DATA_BUCKET_AWS: string;
 
+    @IsNotEmpty()
     REGION_AWS: string;
 
+    @IsNotEmpty()
     DATABASE_URL: string;
 
     @IsNumber()
@@ -22,6 +25,7 @@ class EnvironmentVariables {
     @IsIn(['development', 'production'])
     NODE_ENV: string;
 
+    @IsNotEmpty()
     AWS_PROFILE: string;
 }
 

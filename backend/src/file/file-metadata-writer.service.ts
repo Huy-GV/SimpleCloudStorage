@@ -28,16 +28,16 @@ export class FileMetadataWriter {
 		}
 
 		return await this.database.$transaction(async (transaction) => {
-			const filesWithIdenticalNameInSharedDirectoryCount =
+			const identicalFileNameExists =
 				await transaction.file.count({
 					where: {
 						name: viewModel.name,
 						parentFileId: viewModel.parentDirectoryId,
 						ownerUserId: userId
 					},
-				});
+				}) > 0;
 
-			if (filesWithIdenticalNameInSharedDirectoryCount > 0) {
+			if (identicalFileNameExists) {
 				return new EmptyResult(
 					ResultCode.InvalidArguments,
 					`File or directory with name '${viewModel.name}' already exists in the current directory`,
@@ -165,7 +165,7 @@ export class FileMetadataWriter {
 				const directories = filesToDelete.filter(
 					(x) => x.isDirectory,
 				);
-				
+
 				const resultCollections = await Promise.all(
 					directories.map((x) =>
 						this.deleteNestedFiles(userId, x.id, transaction),
@@ -185,10 +185,7 @@ export class FileMetadataWriter {
 
 			const s3Result = await this.s3Service.deleteObjects(s3Urls);
 			if (!s3Result.successful) {
-				throw new Error(
-					'Failed to delete s3 objects: ' +
-						s3Result.code.toString(),
-				);
+				return s3Result;
 			}
 
 			// deleting the top level files will cascade-delete all nested files, including directories

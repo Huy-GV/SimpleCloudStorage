@@ -48,8 +48,9 @@ export class AuthenticationService {
 		});
 
 		if (!user) {
-			this.logger.error(`User named ${signInViewModel.userName} not found`);
-			return new DataResult(ResultCode.Unauthorized);
+			const error = `User named ${signInViewModel.userName} not found`;
+			this.logger.error(error);
+			return new DataResult(ResultCode.Unauthorized, null, error);
 		}
 
 		const isPasswordValid = !!signInViewModel.password && await bcrypt.compare(
@@ -58,8 +59,9 @@ export class AuthenticationService {
 		);
 
 		if (!isPasswordValid) {
-			this.logger.error(`Invalid password for user named ${signInViewModel.userName}`);
-			return new DataResult(ResultCode.Unauthorized);
+			const error = `Invalid password for user named ${signInViewModel.userName}`;
+			this.logger.error(error);
+			return new DataResult(ResultCode.Unauthorized, null, error);
 		}
 
 		const userContext: UserContextDto = { userId: user.id, userName: user.name };
