@@ -96,7 +96,7 @@ Simple cloud storage application backed by AWS S3.
     export AWS_PROFILE=simple-cloud-storage
     cdk bootstrap
     ```
-3. Provision AWS resources with `cdk deploy --all`
+3. Provision network and data store infrastructure `cdk deploy DataStoreStack`
 4. Create an `.env.production` file similar to the above example but with the following changes:
     - Changes:
         - `SERVER_PORT`: 80
@@ -117,12 +117,13 @@ Simple cloud storage application backed by AWS S3.
     ./scripts/set-ssm-params.sh ./.env.production
     ```
     - The parameters set by SSM will be used to create `aws.env` stored in S3 and used by the Fargate service
-6. Create another S3 bucket to host the frontend:
+6. Provision Container Stack: `cdk deploy ScsContainerStack`
+7. Create another S3 bucket to host the frontend:
     - Enable website hosting and public access
     - Create a CloudFront distribution using a HTTPS certificate in the us-east-1 region
     - Create an origin access control and apply the generated policy to the S3 bucket
-7. Release change on the backend and frontend pipelines
-8. Set the desired task count to at least 1
+8. Release change on the backend and frontend pipelines
+9. Set the desired task count to at least 1
 
 ### CodePipeline
 - CodeBuildProjects
