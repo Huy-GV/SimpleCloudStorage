@@ -1,9 +1,8 @@
 import { ChangeEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { UploadFileFormProps } from "./definitions";
-import { sleep } from '../../utilities';
+import { UploadFileFormProps } from "./models";
+import { uploadFile } from '../../api/fileApis';
 
 export function FileUploadForm(
 	{
@@ -12,41 +11,31 @@ export function FileUploadForm(
 		parentDirectoryId
 	} : UploadFileFormProps
 ) {
-	const router = useRouter();
-
-	const uploadFile = async (fileToUpload: File) => {
-		if (!fileToUpload) {
-			onErrorSet('No file selected')
-			return;
-		}
-
-		const formData = new FormData();
-		formData.append('file', fileToUpload);
-		formData.append('directoryFileId', JSON.stringify(parentDirectoryId));
-
-		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/upload`, {
-			method: 'POST',
-			body: formData,
-			credentials: 'include'
-		});
-
-		if (!response.ok) {
-			if (response.status === 401 || response.status === 403) {
-				onErrorSet(`Failed to upload file: authentication failed`);
-				await sleep(1500);
-				router.push('/auth');
-			} else {
-				onErrorSet(`Failed to upload file: ${response.status} error`);
-			}
-		}
-	}
-
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		if (!e.target.files || !e.target.files[0]) {
 			return;
 		}
 
-		await uploadFile(e.target.files[0]);
+		const fileToUpload = e.target.files[0]
+		if (!fileToUpload) {
+			onErrorSet({
+				message: "No file selected",
+				statusCode: 'unknown'
+			});
+			return;
+		}
+
+		const result = await uploadFile(fileToUpload, parentDirectoryId);
+		if (!result.rawResponse?.ok ) {
+			onErrorSet({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
+			});
+			
+			return;
+		}
+
+		onErrorSet(null);
 		await onFileUploaded();
 	}
 

@@ -1,5 +1,7 @@
+import { RequestError } from "../../api/models";
+
 export interface CanRaiseError {
-	onErrorSet: (errorMessage: string) => void;
+	onErrorSet: (errorMessage: RequestError | null) => void;
 }
 
 export interface FileItemProps extends CanRaiseError {
@@ -15,7 +17,7 @@ export interface FileItemProps extends CanRaiseError {
 	onFileNameChanged: () => void;
 }
 
-export interface CreateDirectoryFormProps {
+export interface CreateDirectoryFormProps extends CanRaiseError {
 	parentDirectoryId: number | null;
 	onDirectoryCreated: () => void;
 	onCancel: () => void;
