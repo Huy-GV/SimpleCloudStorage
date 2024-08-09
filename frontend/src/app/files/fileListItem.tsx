@@ -1,9 +1,8 @@
 import { ChangeEvent, useState } from 'react';
-import { FileItemProps } from './definitions';;
-import { useRouter } from 'next/navigation';
+import { FileItemProps } from './models';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
-import { sleep } from '../../utilities';
+import { changeFileName } from '../../api/fileApis';
 
 export function FileListItem(
 	{
@@ -20,7 +19,6 @@ export function FileListItem(
 		onErrorSet
 	} : FileItemProps
 ) {
-	const router = useRouter();
 	const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
 	const [newName, setNewName] = useState<string>(name);
 
@@ -78,6 +76,7 @@ export function FileListItem(
 	const handleNameChangeSubmitted = async (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === 'Escape') {
 			setIsEditFormDisplayed(false);
+			setNewName(name);
 			e.preventDefault();
 			return;
 		}
@@ -93,39 +92,16 @@ export function FileListItem(
 		}
 
 		setIsEditFormDisplayed(false);
-		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/update-name`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				id: id,
-				newFileName: newName,
-				parentDirectoryId: parentDirectoryId
-			}),
-			credentials: 'include'
-		})
-
-		if (!response.ok) {
-			if (response.status === 401 || response.status === 403) {
-				router.push('/auth');
-				return;
-			}
-
-			return;
+		const result = await changeFileName(id, name, newName, parentDirectoryId);
+		if (!result.rawResponse?.ok) {
+			onErrorSet({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
+			});
+		} else {
+			onFileNameChanged();
+			onErrorSet(null);
 		}
-
-		if (!response.ok) {
-			if (response.status === 401 || response.status === 403) {
-				onErrorSet(`Failed to change name of '${name}': authentication failed`);
-				await sleep(1500);
-				router.push('/auth');
-			} else {
-				onErrorSet(`Failed to change name of '${name}': ${response.status} error`);
-			}
-		}
-
-		onFileNameChanged();
 	}
 
 	const handleFileClicked = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {

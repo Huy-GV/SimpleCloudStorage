@@ -1,5 +1,6 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from '../../api/authApis';
 
 export default function SignInForm() {
 	const router = useRouter();
@@ -16,39 +17,15 @@ export default function SignInForm() {
         setPassword(e.target.value);
 	}
 
-	const signIn = async () => {
-		const requestBody = {
-            userName,
-            password
-        };
-
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-in`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody),
-                credentials: 'include'
-            });
-
-			if (!response.ok) {
-				console.error('Error signing in: ', response.status);
-                setError("Incorrect credentials");
-				return
-			}
-
-            console.log('Successfully signed in');
-			router.push('/files')
-        } catch (e) {
-            console.error('Error signing in: ', e);
-            setError("Unknown Error");
-        }
-	}
-
 	const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		await signIn()
+
+        const result = await signIn(userName, password);
+        if (!result.rawResponse?.ok) {
+			setError(result.message);
+        } else {
+            router.push('/files');
+        }
     }
 
     return (

@@ -1,12 +1,14 @@
 import { ChangeEvent, useState } from 'react';;
 import { useRouter } from 'next/navigation';
-import { CreateDirectoryFormProps } from './definitions';
+import { CreateDirectoryFormProps } from './models';
+import { createDirectory } from '../../api/fileApis';
 
 export function CreateDirectoryForm(
     {
         parentDirectoryId,
         onDirectoryCreated,
-        onCancel
+        onCancel,
+        onErrorSet,
     } : CreateDirectoryFormProps
 ) {
     const router = useRouter();
@@ -32,29 +34,16 @@ export function CreateDirectoryForm(
         }
 
         e.preventDefault();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/create-directory`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                parentDirectoryId: parentDirectoryId,
-                name: directoryName
-            }),
-            credentials: 'include'
-        })
-
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                router.push('/auth');
-                return;
-            }
-
-            return;
+        const result = await createDirectory(parentDirectoryId, directoryName);
+        if (!result.rawResponse?.ok) {
+			onErrorSet({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
+			});
+		} else {
+            setDirectoryName('')
+            onDirectoryCreated();
         }
-
-        setDirectoryName('')
-        onDirectoryCreated();
     }
 
     return (

@@ -66,7 +66,7 @@ describe('FileMetadataWriter', () => {
 			mockDbContext.databaseService.user.findFirst.mockResolvedValue({
 				id: userId,
 				name: randomBytes(10).toString('hex'),
-				email: randomBytes(10).toString('hex'),
+				// email: randomBytes(10).toString('hex'),
 				password: randomBytes(10).toString('hex'),
 			});
 
@@ -101,7 +101,7 @@ describe('FileMetadataWriter', () => {
 			mockDbContext.databaseService.user.findFirst.mockResolvedValue({
 				id: userId,
 				name: randomBytes(10).toString('hex'),
-				email: randomBytes(10).toString('hex'),
+				// email: randomBytes(10).toString('hex'),
 				password: randomBytes(10).toString('hex'),
 			});
 

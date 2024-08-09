@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation';
+import { signUp } from '../../api/authApis';
 
 export default function SignUpForm() {
 
@@ -7,7 +8,6 @@ export default function SignUpForm() {
     const [error, setError] = useState<string>('');
     const [userName, setUserName] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
 
     const handleUserNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUserName(e.target.value)
@@ -17,44 +17,14 @@ export default function SignUpForm() {
         setPassword(e.target.value)
     }
 
-    const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value)
-    }
-
-    const signUp = async () => {
-        const requestBody = {
-            userName,
-            password,
-            email,
-        };
-
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-up`,
-                {
-                    body: JSON.stringify(requestBody),
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                })
-
-            if (!response.ok) {
-                console.error('Failed to sign up: ', response.statusText)
-                setError("Incorrect credentials");
-                return;
-            }
-
-			router.push('/files')
-        } catch (e) {
-            console.error('Failed to sign up: ', e)
-            setError('An unknown error occurred');
-        }
-    }
-
     const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        await signUp();
+        const result = await signUp(userName, password);
+        if (!result.rawResponse?.ok) {
+			setError(result.message);
+        } else {
+            router.push('/files');
+        }
     }
 
     return (
@@ -75,16 +45,6 @@ export default function SignUpForm() {
                     name='userName'
                     value={userName}
                     onChange={handleUserNameChange}
-                    required />
-
-                <label htmlFor='email'>Email</label>
-                <input
-                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
-                    type='text'
-                    id='email'
-                    name="email"
-                    value={email}
-                    onChange={handleEmailChange}
                     required />
 
                 <label htmlFor='password'>Password</label>
