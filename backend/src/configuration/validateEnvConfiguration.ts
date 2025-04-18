@@ -48,7 +48,8 @@ function IsNotEmptyInDevelopment(validationOptions?: ValidationOptions) {
             },
         });
     };
-  }
+}
+
 
 export function validateEnvConfiguration(config: Record<string, unknown>) {
     const envConfiguration = plainToInstance(
@@ -65,4 +66,26 @@ export function validateEnvConfiguration(config: Record<string, unknown>) {
     }
 
     return envConfiguration;
-  }
+}
+
+export function ensureValidDatabaseUrl() {
+	if (process.env.DATABASE_URL) {
+		return;
+	}
+
+	const requiredVariables = ['DATABASE_HOST', 'DATABASE_PORT', 'DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWORD'];
+	for (const key of requiredVariables) {
+		if (!process.env[key]) {
+			throw new Error(`Database environment variable '${key}' missing`);
+		}
+	}
+
+	const { DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_PORT, DATABASE_NAME } = process.env;
+
+	process.env.DATABASE_URL = `postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}`;
+}
+
+export function resolveEnvFile() {
+	const env = !process.env.NODE_ENV ? '.env.development.local' : `.env.${process.env.NODE_ENV}`;
+	return env;
+}

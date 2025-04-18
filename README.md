@@ -84,7 +84,40 @@ Simple cloud storage application backed by AWS S3.
     - The client is deployed as a static website in an Amazon S3 bucket and served by CloudFront
     - The database runs on RDS with PostgreSQL as the engine
 
-### Deployment steps:
+### Deployment
+1. Obtain a HTTPS certificate using ACM and Route 53 then configure an .env file in `infrastructure/bin`
+    ```env
+    Aws__CertificateArn=your.aws.cert.arn
+    Aws__HostedZoneName=your.domain.name.com
+    ```
+2. Initialise AWS credentials:
+    ```bash
+    aws configure profile simple-cloud-storage
+    export AWS_PROFILE=simple-cloud-storage
+    cdk bootstrap
+    ```
+3. Create a database password as a secret on AWS SSM:
+    ```bash
+    aws ssm put-parameter --name " /scs/db/password" --value "PASSWORD_VALUE" --type "SecureString" --overwrite
+    ```
+4. Create an `.env.production` file in `./backend` with the following fields:
+    | Environment Variables | Description                                                                                  |
+    |-----------------------|----------------------------------------------------------------------------------------------|
+    | `SERVER_PORT`         | 80                                                                                           |
+    | `SERVER_URL`          | `<domain name>/api/v1`                                                                       |
+    | `DATABASE_ENDPOINT`   | RDS instance endpoint                                                                        |
+    | `DATABASE_NAME`       | RDS instance name                                                                            |
+    | `DATABASE_USER`       | RDS instance user                                                                            |
+    | `ENV_BUCKET_AWS`      | S3 bucket used to store `.env` file used by the ECS container                                |
+    | `REPOSITORY_NAME`     | ECR repository name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts)|
+    | `CONTAINER_NAME`      | ECS container name specified in [ContainerStack.ts](./infrastructure/lib/container-stack.ts) |
+    | `ACCOUNT_ID_AWS`      | ID of AWS account, used to determine the ECR repository at build stage                       |
+5. Provision AWS resources
+    ```bash
+    cdk deploy --all
+    ```
+
+### Deployment steps (old)
 1. Obtain a HTTPS certificate using ACM and Route 53 then configure an .env file in `infrastructure/bin`
     ```env
     Aws__CertificateArn=your.aws.cert.arn

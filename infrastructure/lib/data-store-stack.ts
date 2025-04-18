@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { InstanceClass, InstanceSize, ISecurityGroup, IVpc, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -11,7 +12,9 @@ interface VpcStackProps extends cdk.StackProps{
 
 export class DataStoreStack extends cdk.Stack {
     readonly envBucket: IBucket;
-    readonly dataBucket: IBucket
+    readonly dataBucket: IBucket;
+    readonly ecrRepository: Repository;
+    readonly database: DatabaseInstance;
 
 	constructor(scope: Construct, id: string, props: VpcStackProps) {
         super(scope, id, props);
@@ -26,7 +29,12 @@ export class DataStoreStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
 
-        const dbPassword = cdk.SecretValue.ssmSecure('DATABASE_PASSWORD');
+        this.ecrRepository = new Repository(this, 'ScsCdkRepository', {
+            repositoryName: 'scs-cdk-repository',
+            removalPolicy: cdk.RemovalPolicy.DESTROY
+        });
+
+        const dbPassword = cdk.SecretValue.ssmSecure('/scs/db/password');
 
         new DatabaseInstance(this, 'ScsCdkRds', {
             engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.VER_16 }),

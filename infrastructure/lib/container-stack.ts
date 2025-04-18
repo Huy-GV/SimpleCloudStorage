@@ -15,17 +15,20 @@ interface ContainerStackProps extends cdk.StackProps{
     loadBalancerTierSecurityGroup: ISecurityGroup,
     envBucket: IBucket,
     dataBucket: IBucket,
+    ecrRepository: Repository,
     awsCertificateArn: string,
     awsHostedZoneName: string
 }
 
 export class ContainerStack extends cdk.Stack {
+    readonly fargateService: FargateService;
+
 	constructor(scope: Construct, id: string, props: ContainerStackProps) {
         super(scope, id, props);
 
         const cluster = new Cluster(this, 'ScsCdkCluster', {
             vpc: props.vpc,
-            clusterName: 'ScsCdkCluster'
+            clusterName: 'scs-cdk-cluster'
         });
 
         const exeRole = this.createEcsExecutionRole(
@@ -44,17 +47,12 @@ export class ContainerStack extends cdk.Stack {
             },
         );
 
-        const ecrRepository = new Repository(this, 'ScsCdkRepository', {
-            repositoryName: 'scs-cdk-repository',
-            removalPolicy: cdk.RemovalPolicy.DESTROY
-        });
-
         const logging = new AwsLogDriver({ streamPrefix: "scs" });
         taskDefinition.addContainer(
             'ScsCdkContainer',
             {
                 containerName: 'scs-cdk-container',
-                image: ContainerImage.fromEcrRepository(ecrRepository, 'latest'),
+                image: ContainerImage.fromEcrRepository(props.ecrRepository, 'latest'),
                 memoryLimitMiB: 256,
                 cpu: 128,
                 environmentFiles: [
@@ -87,7 +85,7 @@ export class ContainerStack extends cdk.Stack {
             }
         );
 
-        const fargateService = new FargateService(this, 'ScsCdkFargateService', {
+        this.fargateService = new FargateService(this, 'ScsCdkFargateService', {
             taskDefinition,
             cluster: cluster,
 
@@ -129,7 +127,7 @@ export class ContainerStack extends cdk.Stack {
 			{
 				vpc: props.vpc,
 				port: 80,
-				targets: [fargateService],
+				targets: [this.fargateService],
 				targetType: aws_elasticloadbalancingv2.TargetType.IP,
 				healthCheck: {
 					path: '/api/v1/health',

@@ -7,10 +7,17 @@ import { ContainerStack } from '../lib/container-stack';
 import { config } from "dotenv";
 import { join } from 'path';
 import { exit } from 'process';
+import { BackendPipelineStack } from '../lib/backend-pipeline-stack';
 
 export interface AppConfiguration {
     awsCertificateArn: string;
     awsHostedZoneName: string;
+    awsRegion: string;
+    awsAccountId: string;
+
+    gitHubOwner:  string;
+	gitHubRepositoryName: string;
+	gitHubSecretName: string;
 }
 
 export function parseEnvFile(): AppConfiguration | null {
@@ -56,7 +63,7 @@ const dataStoreStack = new DataStoreStack(app, 'ScsDataStoreStack', {
 	securityGroups: [vpcStack.databaseTierSecurityGroup]
 });
 
-new ContainerStack(app, 'ScsContainerStack', {
+const containerStack = new ContainerStack(app, 'ScsContainerStack', {
 	env: env,
 	vpc: vpcStack.vpc,
 	envBucket: dataStoreStack.envBucket,
@@ -64,7 +71,25 @@ new ContainerStack(app, 'ScsContainerStack', {
 	webTierSecurityGroups: [vpcStack.webTierSecurityGroup],
 	loadBalancerTierSecurityGroup: vpcStack.loadBalancerTierSecurityGroup,
 	awsCertificateArn: appConfig.awsCertificateArn,
-	awsHostedZoneName: appConfig.awsHostedZoneName
+    awsHostedZoneName: appConfig.awsHostedZoneName,
+    ecrRepository: dataStoreStack.ecrRepository
 });
+
+new BackendPipelineStack(app, 'ScsBackendPipelineStack', {
+    env: env,
+
+	gitHubOwner: appConfig.gitHubOwner,
+	gitHubRepositoryName: appConfig.gitHubRepositoryName,
+    gitHubSecretName: appConfig.gitHubSecretName,
+
+	fargateService: containerStack.fargateService,
+	ecrRepository: dataStoreStack.ecrRepository,
+	awsRegion: appConfig.awsRegion,
+    awsAccountId: appConfig.awsAccountId,
+    
+	dbUserId: 'postgres',
+	dbEndpoint: dataStoreStack.database.dbInstanceEndpointAddress,
+	dbName: dataStoreStack.database.instanceIdentifier,
+})
 
 app.synth();

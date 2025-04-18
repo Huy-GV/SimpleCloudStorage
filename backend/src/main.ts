@@ -22,9 +22,13 @@ async function bootstrap() {
 
 	app.setGlobalPrefix('/api/v1')
 	app.use(cookieParser());
-	const port = config.getOrThrow<number>('SERVER_PORT');
-	new Logger(AppModule.name).log(`Server listening on port: ${port}`)
-	await app.listen(port);
+
+	const serverPort = config.getOrThrow<number>('SERVER_PORT');
+	const logger = new Logger(AppModule.name);
+	logger.log(`Server running in environment: ${process.env.NODE_ENV}`);
+	logger.log(`Server listening on port: ${serverPort}`);
+
+	await app.listen(serverPort);
 }
 
 bootstrap();
