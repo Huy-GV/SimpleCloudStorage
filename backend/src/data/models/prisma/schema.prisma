@@ -12,7 +12,6 @@ datasource db {
 
 model User {
 	id			Int @default(autoincrement()) @id
-//	email 		String	@unique
 	name		String? @unique
 	password 	String
 
@@ -24,7 +23,7 @@ model File {
 	name			String
 	uri				String
 	sizeKb			Int
-	creationTime	DateTime
+	createdAt		DateTime @default(now())
 	isDirectory		Boolean
 
 	ownerUserId	 	Int

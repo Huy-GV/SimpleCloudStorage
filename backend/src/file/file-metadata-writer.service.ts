@@ -51,7 +51,6 @@ export class FileMetadataWriter {
 					ownerUserId: userId,
 					sizeKb: 0,
 					uri: '',
-					creationTime: new Date(),
 					isDirectory: true,
 				},
 			});

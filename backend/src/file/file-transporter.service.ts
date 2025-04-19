@@ -64,7 +64,6 @@ export class FileTransporter {
 						parentFileId: viewModel.directoryFileId,
 						uri: s3UploadResult.data!,
 						ownerUserId: userId,
-						creationTime: new Date(),
 						sizeKb: viewModel.file.size / 1000,
 						isDirectory: false,
 					},

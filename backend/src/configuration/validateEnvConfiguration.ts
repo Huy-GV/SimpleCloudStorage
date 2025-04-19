@@ -1,9 +1,10 @@
 import { plainToInstance } from "class-transformer";
-import { IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
+import { IsDataURI, IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
+import * as os from 'os';
 
 class EnvironmentVariables {
     @MinLength(32)
-    JWT_SECRET: string;
+    JWT_SECRET: string = "default_jwt_secret_32_chars_minimum_string";
 
     @IsNotEmpty()
     DATA_BUCKET_AWS: string;
@@ -20,10 +21,10 @@ class EnvironmentVariables {
     SERVER_PORT: number = 5000
 
     @IsOptional()
-    DOWNLOAD_DIR: string;
+    DOWNLOAD_DIR: string = `${os.tmpdir()}/simple-cloud-storage/downloads`;
 
     @IsIn(['development', 'production'])
-    NODE_ENV: string;
+    NODE_ENV: string = "development";
 
     @IsNotEmptyInDevelopment()
     AWS_PROFILE: string;

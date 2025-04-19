@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from '../../api/authApis';
+import { signIn } from '@api/authApis';
 
 export default function SignInForm() {
 	const router = useRouter();

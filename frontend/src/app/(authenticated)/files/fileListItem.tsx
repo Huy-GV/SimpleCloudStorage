@@ -1,8 +1,9 @@
 import { ChangeEvent, useState } from 'react';
-import { FileItemProps } from './models';
+import { FileItemProps } from './types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
-import { changeFileName } from '../../api/fileApis';
+import { changeFileName } from '@api/fileApis';
+import { faFolder } from '@fortawesome/free-solid-svg-icons/faFolder';
 
 const dateFormat: Intl.DateTimeFormatOptions = {
 	year: 'numeric',
@@ -16,7 +17,12 @@ const timeFormat: Intl.DateTimeFormatOptions = {
 	minute: '2-digit',
 };
 
-export function FileListItem(
+function getFileExtension(filename: string): string {
+	const parts = filename.split('.');
+	return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
+}
+
+export default function FileListItem(
 	{
 		id,
 		name,
@@ -176,7 +182,11 @@ export function FileListItem(
 				}
 			</td>
 			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-right pr-4 sm:text-left sm:pr-0'>{ fileSizeText }</td>
-			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-left hidden sm:table-cell'>{ fileTypeText }</td>
+			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-left hidden sm:table-cell'>
+				{
+					isDirectory ? <FontAwesomeIcon icon={faFolder} /> : <span>{`.${getFileExtension(name)}`}</span>
+				}
+			</td>
 			<td className='text-gray-500 text-sm sm:text-sm lg:text-base text-right hidden sm:table-cell sm:pr-2 whitespace-nowrap'>{ localDate }</td>
 		</tr>
 	);

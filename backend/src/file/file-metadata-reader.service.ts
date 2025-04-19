@@ -19,7 +19,7 @@ export class FileMetadataReader {
 			},
 			orderBy: [
 				{
-					creationTime: 'desc'
+					createdAt: 'desc'
 				},
 				{
 					sizeKb: 'desc'
@@ -30,7 +30,7 @@ export class FileMetadataReader {
 		return files.map((x) => ({
 			id: x.id,
 			name: x.name,
-			uploadDate: x.creationTime,
+			uploadDate: x.createdAt,
 			size: x.sizeKb,
 			isDirectory: x.isDirectory,
 		}));

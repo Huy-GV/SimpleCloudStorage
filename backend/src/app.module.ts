@@ -9,7 +9,7 @@ import { AppController } from './app.controller';
 import { validateEnvConfiguration } from './configuration/validateEnvConfiguration';
 
 const resolveEnvFile = () => {
-	const env = !process.env.NODE_ENV ? '.env.development.local' : `.env.${process.env.NODE_ENV}`;
+	const env = !process.env.NODE_ENV ? '.env.development' : `.env.${process.env.NODE_ENV}`;
 	new Logger(AppModule.name).log(`Using environment '${env}'`);
 	return env;
 }

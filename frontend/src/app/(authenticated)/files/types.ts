@@ -1,4 +1,4 @@
-import { RequestError } from "../../api/models";
+import { RequestError } from "@api/models";
 
 export interface CanRaiseError {
 	onErrorSet: (errorMessage: RequestError | null) => void;

@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation';
-import { signUp } from '../../api/authApis';
+import { signUp } from '@api/authApis';
 
 export default function SignUpForm() {
 
@@ -8,6 +8,7 @@ export default function SignUpForm() {
     const [error, setError] = useState<string>('');
     const [userName, setUserName] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [repeatPassword, setRepeatPassword] = useState<string>('');
 
     const handleUserNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUserName(e.target.value)
@@ -17,10 +18,15 @@ export default function SignUpForm() {
         setPassword(e.target.value)
     }
 
+    const handleRepeatPasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setRepeatPassword(e.target.value)
+    }
+
     const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const result = await signUp(userName, password);
         if (!result.rawResponse?.ok) {
+            debugger
 			setError(result.message);
         } else {
             router.push('/files');
@@ -57,6 +63,22 @@ export default function SignUpForm() {
                     onChange={handlePasswordChange}
                     required />
 
+                <label htmlFor='password'>Repeat Password</label>
+                <input
+                    className='my-1 p-2 w-full outline-orange-50 border border-gray-300 focus:border-blue-500 rounded-md'
+                    type='password'
+                    id='retype-password'
+                    name='retype-password'
+                    value={repeatPassword}
+                    onChange={handleRepeatPasswordChange}
+                    required />
+                {
+                    password && password !== repeatPassword && (
+                        <p className='text-orange-700 bg-orange-50 p-3 my-3'>
+                            Repeat password must match original password
+                        </p>
+                    )
+                }
                 <button type="submit" className='bg-blue-700 bg-none border-none text-white p-3 rounded-md mt-2 shadow-md hover:shadow-lg'>
                     Sign Up
                 </button>

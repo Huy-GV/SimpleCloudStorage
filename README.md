@@ -50,26 +50,9 @@ Simple cloud storage application backed by AWS S3.
     aws configure --profile simple-cloud-storage
     export AWS_PROFILE=simple-cloud-storage
     ```
-- Set up environment file `.env.development.local` in `./backend/src`:
-    ```env
-    JWT_SECRET=YOUR_32_CHARACTER_SECRET
-    DATA_BUCKET_AWS=YOUR_AWS_BUCKET
-    REGION_AWS=YOUR_AWS_REGION
-    DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@YOUR_SERVER:5432/YOUR_DATABASE_NAME"
-    SERVER_PORT=YOUR_SERVER_PORT
-    DOWNLOAD_DIR=YOUR_TEMPORARY_DOWNLOAD_DIR
-    NODE_ENV=development
-    AWS_PROFILE=simple-cloud-storage
-    ```
-- Create a PostgreSQL database:
+- Set up environment file `.env.development` in `./backend/src`:
     ```bash
-    psql
-    CREATE DATABASE simple_cloud_storage;
-    ```
-- Migrate PostgreSQL database with Prisma in `./backend/src/data/models/`
-    ```bash
-    cd ./backend/src/data/models/
-    npx dotenv -e ../../../.env.development.local -- npx prisma migrate dev
+    cp ./.env.development.example ./,env.development
     ```
 - Start the backend:
     ```bash

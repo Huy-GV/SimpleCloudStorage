@@ -126,7 +126,7 @@ yarn-error.log*
 
 # local env files
 .env**
-
+!*.example
 # vercel
 .vercel
 

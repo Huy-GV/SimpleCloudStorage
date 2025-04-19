@@ -32,6 +32,7 @@ export async function signUp(userName: string, password: string) {
                 userName,
                 password,
             }),
+            credentials: 'include',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

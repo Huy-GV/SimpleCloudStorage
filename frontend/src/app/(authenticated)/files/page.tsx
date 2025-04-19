@@ -1,15 +1,16 @@
 "use client"
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
-import { FileListItem } from "./fileListItem";
+import { useCallback, useEffect, useRef, useState } from 'react'
+import FileListItem from "./fileListItem";
 import { useRouter } from 'next/navigation';
-import { FileUploadForm } from "./fileUploadForm";
-import { DirectoryChainItem, FileItemProps } from "./models";
+import FileUploadForm from "./fileUploadForm";
+import { DirectoryChainItem } from "./types";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { CreateDirectoryForm } from "./createDirectoryForm";
-import { sleep } from '../../utilities';
-import { deleteFiles, downloadFiles, fetchAllFiles } from '../../api/fileApis';
-import { FileItem, RequestError } from '../../api/models';
+import { faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import CreateDirectoryForm from "./createDirectoryForm";
+import { sleep } from '@/utilities';
+import { deleteFiles, downloadFiles, fetchAllFiles } from '@api/fileApis';
+import { FileItem, RequestError } from '@api/models';
+import FileBreadcrumbMenu from './fileBreadcrumbMenu';
 
 export default function Page() {
 
@@ -75,7 +76,7 @@ export default function Page() {
 
 		const url = URL.createObjectURL(blob);
 		downloadAnchor.setAttribute('href', url)
-		downloadAnchor.setAttribute('download', 'downloaded.zip')
+		downloadAnchor.setAttribute('download', `simple-cloud-storage-${new Date().toISOString()}.zip`)
 
 		downloadAnchor.click();
 
@@ -172,31 +173,10 @@ export default function Page() {
 	return (
 		<main className='flex flex-col w-screen sm:w-11/12 md:w-11/12 xl:w-3/5 mx-auto mb-16'>
 			<h1 className='text-4xl mb-3 mx-2'>My Files</h1>
-
-			<div className='flex flex-row flex-wrap items-center gap-1.5 my-3 mx-2'>
-				{
-					directoryChain.map((x, index) => (
-						<Fragment key={x.id}>
-							{
-								index > 0 &&
-								<FontAwesomeIcon icon={faChevronRight} />
-							}
-							<button
-								className={index == directoryChain.length - 1
-									? 'text-black sm:text-lg md:text-xl'
-									: 'text-gray-500 sm:text-lg md:text-xl'
-								}
-								onClick={() => handleDirectoryLinkClicked(x.id)}>
-								{ x.name }
-							</button>
-						</Fragment>
-					))
-				}
-			</div>
-
+			<FileBreadcrumbMenu directoryChain={directoryChain} onClick={handleDirectoryLinkClicked} />
 			<div className='flex flex-row gap-2 mb-4 m-4 pt-4 flex-wrap border-t border-slate-300'>
 				<button
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer shadow-md hover:shadow-lg w-full sm:w-fit'
+					className="bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 font-medium hover:bg-blue-900 transition-all duration-200 w-full sm:w-fit"
 					onClick={handleDirectoryCreationFormDisplayed}>
 					<FontAwesomeIcon icon={faPlus} />
 					<span className='ml-2'>Add Folder</span>
@@ -207,14 +187,14 @@ export default function Page() {
 					onErrorSet={handleErrorSet}/>
 				<button
 					disabled={selectedFiles.size == 0}
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg w-full sm:w-fit'
+					className="bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 font-medium hover:bg-blue-900 transition-all duration-200 w-full sm:w-fit "
 					onClick={handleFileDownload}>
 					<FontAwesomeIcon icon={faDownload} />
 					<span className='ml-2'>Download</span>
 				</button>
 				<button
 					disabled={selectedFiles.size == 0}
-					className='bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 shadow-md hover:shadow-lg w-full sm:w-fit'
+					className="bg-blue-700 text-white p-3 border-none rounded-md text-base block hover:cursor-pointer disabled:hover:cursor-default disabled:opacity-50 font-medium hover:bg-blue-900 transition-all duration-00 w-full sm:w-fit"
 					onClick={handleFileDelete}>
 					<FontAwesomeIcon icon={faTrash} />
 					<span className='ml-2'>Delete</span>

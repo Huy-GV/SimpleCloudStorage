@@ -1,8 +1,8 @@
 import { ChangeEvent, useState } from 'react';
-import { CreateDirectoryFormProps } from './models';
-import { createDirectory } from '../../api/fileApis';
+import { CreateDirectoryFormProps } from './types';
+import { createDirectory } from '@api/fileApis';
 
-export function CreateDirectoryForm(
+export default function CreateDirectoryForm(
     {
         parentDirectoryId,
         onDirectoryCreated,
