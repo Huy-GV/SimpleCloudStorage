@@ -12,7 +12,7 @@ import { JwtDto } from '../../src/data/dtos/jwtDto';
 import { SignUpViewModel } from '../../src/data/viewModels/signUpViewModel';
 import { SilentLoggerService } from '../mocks/silent-logger';
 
-jest.mock('bcrypt');
+const mockedbcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('AuthenticationService', () => {
 	let service: AuthenticationService;
@@ -67,7 +67,7 @@ describe('AuthenticationService', () => {
 				password: randomString.substring(11)
 			} as SignInViewModel
 
-			(bcrypt.compare as jest.Mock).mockResolvedValue(false);
+			mockedbcrypt.compare = jest.fn().mockResolvedValue(false);
 			mockDbContext.databaseService.user.findFirst.mockResolvedValue(user);
 			const result = await service.signIn(viewModel);
 			const expected = new DataResult(ResultCode.Unauthorized, null, `Invalid password for user named ${viewModel.userName}`);
@@ -108,7 +108,7 @@ describe('AuthenticationService', () => {
 				password: user.password,
 			} as SignInViewModel
 
-			(bcrypt.compare as jest.Mock).mockResolvedValue(true);
+			mockedbcrypt.compare = jest.fn().mockResolvedValue(true);
 			mockDbContext.databaseService.user.findFirst.mockResolvedValue(user);
 			jest.spyOn(jwtService, 'signAsync').mockImplementation(() => {
 				return new Promise(resolve => resolve(token))

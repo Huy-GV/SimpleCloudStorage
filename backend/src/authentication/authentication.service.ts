@@ -24,7 +24,7 @@ export class AuthenticationService {
 			data: {
 				name: signUpViewModel.userName,
 				password: await bcrypt.hash(signUpViewModel.password, 5),
-				email: signUpViewModel.email,
+				// email: signUpViewModel.email,
 			},
 		});
 

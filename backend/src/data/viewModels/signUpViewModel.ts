@@ -6,9 +6,9 @@ export class SignUpViewModel {
 	@Transform(({ value }) => value.trim())
 	readonly userName: string;
 
-	@IsEmail()
-	@Transform(({ value }) => value.trim())
-	readonly email: string;
+	// @IsEmail()
+	// @Transform(({ value }) => value.trim())
+	// readonly email: string;
 
 	@IsNotEmpty()
 	readonly password: string;

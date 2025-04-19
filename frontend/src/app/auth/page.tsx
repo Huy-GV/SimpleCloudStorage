@@ -3,19 +3,14 @@
 import { useEffect, useState } from 'react'
 import SignUpForm from "./signUpForm";
 import SignInForm from "./signInForm";
+import { signOut } from '@/api/authApis';
 
 export default function Page() {
   	const [useSignUp, setUseSignUp] = useState<boolean>(false);
   	const toggleUseSignUp = () => { setUseSignUp(!useSignUp) };
 
 	useEffect(() => {
-		fetch(
-			`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/sign-out`,
-			{
-				method: 'GET',
-				credentials: 'include'
-			}
-		);
+		signOut();
 	}, [])
 
   	return (

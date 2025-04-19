@@ -33,16 +33,13 @@ phases:
       - npx dotenv -v DATABASE_URL="$DATABASE_URL" -- npx prisma migrate deploy
       - cd ../../../
       - npm run test
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG .
   post_build:
     commands:
       - echo "Updating container environment file in S3 bucket"
       - ./scripts/upload-container-env.sh
-      - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions file...
       - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
 artifacts:
     files: imagedefinitions.json

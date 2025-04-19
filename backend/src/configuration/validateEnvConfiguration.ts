@@ -1,14 +1,17 @@
 import { plainToInstance } from "class-transformer";
-import { IsIn, IsNumber, IsOptional, Max, Min, MinLength, validateSync } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
 
 class EnvironmentVariables {
     @MinLength(32)
     JWT_SECRET: string;
 
+    @IsNotEmpty()
     DATA_BUCKET_AWS: string;
 
+    @IsNotEmpty()
     REGION_AWS: string;
 
+    @IsNotEmpty()
     DATABASE_URL: string;
 
     @IsNumber()
@@ -22,8 +25,30 @@ class EnvironmentVariables {
     @IsIn(['development', 'production'])
     NODE_ENV: string;
 
+    @IsNotEmptyInDevelopment()
     AWS_PROFILE: string;
 }
+
+function IsNotEmptyInDevelopment(validationOptions?: ValidationOptions) {
+    return function (object: Object, propertyName: string) {
+        registerDecorator({
+            name: IsNotEmptyInDevelopment.name,
+            target: object.constructor,
+            propertyName: propertyName,
+            options: validationOptions,
+            constraints: [],
+            validator: {
+                validate(value: any, args: ValidationArguments) {
+                    const isDevelopment = process.env.NODE_ENV?.trim() === 'development';
+                    return !isDevelopment || (value?.trim().length ?? 0 > 0);
+                },
+                defaultMessage(args: ValidationArguments) {
+                    return `${args.property} should not be empty in Development environment`;
+                },
+            },
+        });
+    };
+  }
 
 export function validateEnvConfiguration(config: Record<string, unknown>) {
     const envConfiguration = plainToInstance(

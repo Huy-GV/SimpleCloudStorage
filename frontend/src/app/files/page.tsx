@@ -1,68 +1,49 @@
 "use client"
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { FileListItem } from "./fileListItem";
 import { useRouter } from 'next/navigation';
 import { FileUploadForm } from "./fileUploadForm";
-import { DirectoryChainItem, FileItemProps } from "./definitions";
+import { DirectoryChainItem, FileItemProps } from "./models";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faDownload, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CreateDirectoryForm } from "./createDirectoryForm";
 import { sleep } from '../../utilities';
+import { deleteFiles, downloadFiles, fetchAllFiles } from '../../api/fileApis';
+import { FileItem, RequestError } from '../../api/models';
 
 export default function Page() {
-	const router = useRouter();
 
 	const downloadedFileRef = useRef<HTMLAnchorElement>(null);
 	const [currentDirectoryId, setCurrentDirectoryId] = useState<number | null>(null);
 
 	const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set());
 
-	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItemProps>>(new Map());
+	const [fileItemMap, setFileItemMap] = useState<Map<number, FileItem>>(new Map());
 
 	const [directoryChain, setDirectoryChain] = useState<DirectoryChainItem[]>([]);
 
-	const [error, setError] = useState<string>('');
+	const [error, setError] = useState<RequestError | null>(null);
 	const [isCreateDirectoryFormDisplayed, setIsCreateDirectoryFormDisplayed] = useState<boolean>();
 
-	const fetchAllFiles = async (directoryId: number | null): Promise<FileItemProps[]> => {
-		const url = directoryId == null
-			? `${process.env.NEXT_PUBLIC_SERVER_URL}/files/`
-			: `${process.env.NEXT_PUBLIC_SERVER_URL}/files/${directoryId}`;
-
-		try {
-			const response = await fetch(url, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include'
+	const router = useRouter();
+	const reloadFileList = useCallback(async (directoryId: number | null) => {
+		const result = await fetchAllFiles(directoryId);
+		if (!result.rawResponse?.ok) {
+			setError({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
 			});
-
-			if (!response.ok) {
-				if (response.status === 401 || response.status === 403) {
-					setError(`Failed to load files: authentication error`);
-					await sleep(1500);
-					router.push('/auth');
-				} else {
-					setError(`Failed to load files: ${response.status} error`);
-				}
-
-				return [];
-			}
-
-			setError('')
-			const files: FileItemProps[] = await response.json();
-			return files;
-		} catch {
-			setError("Failed to get files: could not connect to server");
-			return [];
+		} else {
+			setFileItemMap(new Map(result.files.map(x => [x.id, x])))
+			setError(null);
 		}
-	}
+	}, [setFileItemMap]);
 
-	const reloadFileList = async (directoryId: number | null): Promise<void> => {
-		const files = await fetchAllFiles(directoryId);
-		setFileItemMap(new Map(files.map(x => [x.id, x])));
-	}
+	useEffect(() => {
+		if (error && (error.statusCode === '401' || error.statusCode === '403')) {
+			sleep(1500).then(() => router.push('/auth'));
+		}
+	}, [error, router]);
 
 	const handleFileSelected = (fileId: number) => {
 		const newFileSet = new Set(selectedFiles);
@@ -76,32 +57,17 @@ export default function Page() {
 	}
 
 	const handleFileDelete = async () => {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files`, {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				fileIds: Array.from(selectedFiles)
-			}),
-			credentials: 'include'
-		});
-
-		if (!response.ok) {
-			if (response.status === 401 || response.status === 403) {
-				setError(`Failed to delete ${selectedFiles.size} files: authentication error`);
-				await sleep(1500);
-				router.push('/auth');
-			} else {
-				setError(`Failed to delete ${selectedFiles.size} files: ${response.status} error`);
-			}
-
-			return;
+		const result = await deleteFiles(selectedFiles);
+		if (!(result.rawResponse?.ok ?? false)) {
+			setError({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
+			});
+		} else {
+			setError(null);
+			setSelectedFiles(new Set());
+			await reloadFileList(currentDirectoryId);
 		}
-
-		setError('');
-		setSelectedFiles(new Set());
-		await reloadFileList(currentDirectoryId);
 	}
 
 	const clickDownloadLink = (blob: Blob) => {
@@ -119,32 +85,17 @@ export default function Page() {
 	}
 
 	const handleFileDownload = async () => {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/files/download`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				fileIds: Array.from(selectedFiles)
-			}),
-			credentials: 'include'
-		})
-
-		if (!response.ok) {
-			if (response.status === 401 || response.status === 403) {
-				setError(`Failed to download ${selectedFiles.size} files: authentication failed`);
-				await sleep(1500);
-				router.push('/auth');
-			} else {
-				setError(`Failed to download ${selectedFiles.size} files: ${response.status} error`);
-			}
-
-			return;
+		const result = await downloadFiles(selectedFiles);
+		if (!result.rawResponse?.ok ) {
+			setError({
+				message: result.message,
+				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
+			});
+		} else {
+			const blob = await result.rawResponse.blob();
+			clickDownloadLink(blob);
+			setError(null);
 		}
-
-		const blob = await response.blob();
-		clickDownloadLink(blob);
-		setError('');
 	}
 
 	const handleFilesDeselected = () => {
@@ -200,24 +151,23 @@ export default function Page() {
 		await reloadFileList(currentDirectoryId);
 	};
 
-	const onDirectoryCreated = async () => {
+	const handleDirectoryCreated = async () => {
 		await reloadFileList(currentDirectoryId);
 		setIsCreateDirectoryFormDisplayed(false);
 	};
 
-	const handleErrorSet = (error: string) => {
+	const handleErrorSet = (error: RequestError | null) => {
 		setError(error);
 	}
 
-	const onDirectoryCreationCancelled = async () => {
+	const handleDirectoryCreationCancelled = async () => {
 		setIsCreateDirectoryFormDisplayed(false);
 	};
 
 	useEffect(() => {
 		reloadFileList(null)
-			.then(() => setDirectoryChain([{ id: null, name: 'Home' }]));
-		// deps array is empty so that the file list reloads correctly when navigating to another directory
-	}, []);
+		  	.then(() => setDirectoryChain([{ id: null, name: 'Home' }]));
+	}, [reloadFileList, setDirectoryChain]);
 
 	return (
 		<main className='flex flex-col w-screen sm:w-11/12 md:w-11/12 xl:w-3/5 mx-auto mb-16'>
@@ -274,7 +224,7 @@ export default function Page() {
 			{
 				error &&
 				<p className='text-red-700 bg-red-50 p-3 m-4'>
-					{error}
+					{error.message}
 				</p>
 			}
 
@@ -305,8 +255,9 @@ export default function Page() {
 					{
 						isCreateDirectoryFormDisplayed && (
 							<CreateDirectoryForm
-								onDirectoryCreated={onDirectoryCreated}
-								onCancel={onDirectoryCreationCancelled}
+								onErrorSet={handleErrorSet}
+								onDirectoryCreated={handleDirectoryCreated}
+								onCancel={handleDirectoryCreationCancelled}
 								parentDirectoryId={currentDirectoryId}/>
 						)
 					}

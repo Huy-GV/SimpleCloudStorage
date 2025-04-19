@@ -53,6 +53,7 @@ export class ContainerStack extends cdk.Stack {
         taskDefinition.addContainer(
             'ScsCdkContainer',
             {
+                containerName: 'scs-cdk-container',
                 image: ContainerImage.fromEcrRepository(ecrRepository, 'latest'),
                 memoryLimitMiB: 256,
                 cpu: 128,
