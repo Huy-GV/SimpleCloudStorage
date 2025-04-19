@@ -109,6 +109,7 @@ describe('AuthenticationService', () => {
 			} as SignInViewModel
 
 			mockedbcrypt.compare = jest.fn().mockResolvedValue(true);
+			mockedbcrypt.hash = jest.fn().mockResolvedValue("fake-password");
 			mockDbContext.databaseService.user.findFirst.mockResolvedValue(user);
 			jest.spyOn(jwtService, 'signAsync').mockImplementation(() => {
 				return new Promise(resolve => resolve(token))

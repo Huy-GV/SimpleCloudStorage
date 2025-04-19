@@ -23,15 +23,9 @@ Simple cloud storage application backed by AWS S3.
 
 ## Build and Run Locally
 ### Pre-requisites
-- Install [Node.js v20.14.0 LTS](https://nodejs.org/en/download/current)
-- Install `dotenv-cli` globally:
-    ```bash
-    npm install -g dotenv-cli
-    ```
-- Install dependencies by running this command in `/backend` and `/frontend`:
-    ```bash
-    npm install
-    ```
+- Install [Node.js v22 LTS](https://nodejs.org/en/download)
+- Install `dotenv-cli` globally: `npm install -g dotenv-cli`
+- Install dependencies in `/backend` and `/frontend`: `npm install`
 - Install [PostgreSQL](https://www.postgresql.org/download/)
 
 ### Frontend
@@ -52,7 +46,7 @@ Simple cloud storage application backed by AWS S3.
     ```
 - Set up environment file `.env.development` in `./backend/src`:
     ```bash
-    cp ./.env.development.example ./,env.development
+    cp ./.env.development.example ./.env.development
     ```
 - Start the backend:
     ```bash
