@@ -1,42 +1,20 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent } from 'react';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { UploadFileFormProps } from "./types";
-import { uploadFile } from '@api/fileApis';
 
-export default function FileUploadForm(
-	{
-		onFileUploaded,
-		onErrorSet,
-		parentDirectoryId
-	} : UploadFileFormProps
-) {
+interface FileUploadFormProps  {
+	onFileUploaded: (fileLists: FileList) => Promise<void>;
+}
+
+export default function FileUploadForm({
+	onFileUploaded,
+} : FileUploadFormProps) {
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		if (!e.target.files || !e.target.files[0]) {
 			return;
 		}
 
-		const fileToUpload = e.target.files[0]
-		if (!fileToUpload) {
-			onErrorSet({
-				message: "No file selected",
-				statusCode: 'unknown'
-			});
-			return;
-		}
-
-		const result = await uploadFile(fileToUpload, parentDirectoryId);
-		if (!result.rawResponse?.ok ) {
-			onErrorSet({
-				message: result.message,
-				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
-			});
-
-			return;
-		}
-
-		onErrorSet(null);
-		await onFileUploaded();
+		await onFileUploaded(e.target.files);
 	}
 
 	return (

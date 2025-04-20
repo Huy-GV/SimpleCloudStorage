@@ -21,3 +21,5 @@ export interface FileItem {
 	parentDirectoryId: number | null;
 	isDirectory: boolean;
 }
+
+export type FileItemMap = Map<number, FileItem>;

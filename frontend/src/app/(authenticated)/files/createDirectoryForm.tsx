@@ -1,13 +1,14 @@
 import { ChangeEvent, useState } from 'react';
-import { CreateDirectoryFormProps } from './types';
-import { createDirectory } from '@api/fileApis';
+
+interface CreateDirectoryFormProps  {
+	onDirectoryCreated: (directoryName: string) => void;
+	onCancel: () => void;
+}
 
 export default function CreateDirectoryForm(
     {
-        parentDirectoryId,
         onDirectoryCreated,
         onCancel,
-        onErrorSet,
     } : CreateDirectoryFormProps
 ) {
     const [directoryName, setDirectoryName] = useState<string>('');
@@ -32,19 +33,8 @@ export default function CreateDirectoryForm(
         }
 
         e.preventDefault();
-        const result = await createDirectory(parentDirectoryId, directoryName);
-        if (!result.rawResponse?.ok) {
-			onErrorSet({
-				message: result.message,
-				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
-			});
-
-            return;
-		}
-
-        onErrorSet(null);
         setDirectoryName('');
-        onDirectoryCreated();
+        onDirectoryCreated(directoryName);
     }
 
     return (

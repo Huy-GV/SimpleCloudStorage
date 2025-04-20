@@ -1,8 +1,6 @@
 import { ChangeEvent, useState } from 'react';
-import { FileItemProps } from './types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
-import { changeFileName } from '@api/fileApis';
 import { faFolder } from '@fortawesome/free-solid-svg-icons/faFolder';
 
 const dateFormat: Intl.DateTimeFormatOptions = {
@@ -22,6 +20,20 @@ function getFileExtension(filename: string): string {
 	return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
 }
 
+
+export interface FileItemProps {
+	id: number;
+	name: string;
+	size: number;
+	selected: boolean;
+	uploadDate: Date;
+	currentDirectoryId: number | null;
+	isDirectory: boolean;
+	onDirectoryClicked: () => void;
+	onFileSelected: () => void;
+	onFileNameChanged: (id: number, currentName: string, newName: string, currentDirectoryId: number | null) => void;
+}
+
 export default function FileListItem(
 	{
 		id,
@@ -30,21 +42,16 @@ export default function FileListItem(
 		uploadDate,
 		size,
 		isDirectory,
-		parentDirectoryId,
+		currentDirectoryId,
 		onDirectoryClicked,
-		onFileSelect,
+		onFileSelected,
 		onFileNameChanged,
-		onErrorSet
 	} : FileItemProps
 ) {
 	const [isEditFormDisplayed, setIsEditFormDisplayed] = useState<boolean>(false);
 	const [newName, setNewName] = useState<string>(name);
 
 	const localDate = `${uploadDate.toLocaleDateString('en-GB', dateFormat)} ${uploadDate.toLocaleTimeString([], timeFormat)} `;
-
-	const getFileTypeText = (isDirectory: boolean) => {
-		return isDirectory ? 'Folder' : 'File'
-	}
 
 	const getFileSizeText = (sizeKb: number) => {
 		if (isDirectory || Number.isNaN(size)) {
@@ -67,8 +74,8 @@ export default function FileListItem(
 		return `${Math.round(sizeKb / 1048576)} GB`
 	}
 
-	const handleFileSelect = () => {
-		onFileSelect();
+	const handleFileSelected = () => {
+		onFileSelected();
 	}
 
 	const handleFileNameClick = () => {
@@ -98,16 +105,7 @@ export default function FileListItem(
 		}
 
 		setIsEditFormDisplayed(false);
-		const result = await changeFileName(id, name, newName, parentDirectoryId);
-		if (!result.rawResponse?.ok) {
-			onErrorSet({
-				message: result.message,
-				statusCode: result.rawResponse?.status.toString() ?? 'unknown'
-			});
-		} else {
-			onFileNameChanged();
-			onErrorSet(null);
-		}
+		onFileNameChanged(id, name, newName, currentDirectoryId);
 	}
 
 	const handleFileClicked = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {
@@ -122,7 +120,6 @@ export default function FileListItem(
 	}
 
 	const fileSizeText = getFileSizeText(size);
-	const fileTypeText = getFileTypeText(isDirectory);
 
 	return (
 		<tr
@@ -139,12 +136,13 @@ export default function FileListItem(
 						: ''
 				}
 				`}
+			onClick={handleFileSelected}
 			onDoubleClick={handleFileClicked}>
 			<td className='py-1 pl-2 pr-1'>
 				<input
 					type='checkbox'
 					className='w-8 h-8'
-					onChange={handleFileSelect}
+					onChange={handleFileSelected}
 					checked={selected}/>
 			</td>
 			<td className='text-left'>

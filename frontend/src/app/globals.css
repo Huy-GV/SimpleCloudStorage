@@ -9,5 +9,5 @@
 }
 
 td {
-  border-bottom: 1px solid theme('colors.slate.300')
+  border-top: 1px solid theme('colors.slate.300')
 }

@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Simple File Storage",
+  title: "Simple Cloud",
   description: "Simple Cloud Storage",
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className={`${inter.className} p-2`}>
+      <body className={`${inter.className} bg-slate-50`}>
         {children}
       </body>
     </html>
