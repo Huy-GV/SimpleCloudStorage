@@ -1,6 +1,6 @@
 import { ChangeEvent, useState } from 'react';
 
-interface CreateDirectoryFormProps  {
+type CreateDirectoryFormProps = {
 	onDirectoryCreated: (directoryName: string) => void;
 	onCancel: () => void;
 }

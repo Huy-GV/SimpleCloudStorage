@@ -2,7 +2,7 @@ import { ChangeEvent } from 'react';
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-interface FileUploadFormProps  {
+type FileUploadFormProps = {
 	onFileUploaded: (fileLists: FileList) => Promise<void>;
 }
 

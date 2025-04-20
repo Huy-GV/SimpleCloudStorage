@@ -1,0 +1,37 @@
+name: Build Backend
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Run Prisma generate with dummy database URL
+        run: npx prisma generate --schema=./src/data/models/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgres://test:test@test:0000/test
+      - name: Run Prisma generate
+        run: npm run test

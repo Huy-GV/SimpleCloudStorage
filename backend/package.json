@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "env:dev": "dotenv -e .env.development --",
+    "env:dev": "npx dotenv -e .env.development --",
     "start": "npm run env:dev -- nest start",
     "start:dev": "npm run env:dev -- nest start --watch",
     "start:debug": "nest start --debug --watch",

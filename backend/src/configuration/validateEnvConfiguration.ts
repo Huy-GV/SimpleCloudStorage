@@ -1,5 +1,5 @@
 import { plainToInstance } from "class-transformer";
-import { IsDataURI, IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
 import * as os from 'os';
 
 class EnvironmentVariables {

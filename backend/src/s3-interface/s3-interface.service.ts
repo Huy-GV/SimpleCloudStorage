@@ -5,7 +5,7 @@ import { DataResult, EmptyResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
 import { randomUUID } from 'crypto';
 
-interface S3Object {
+type S3Object = {
   key: string;
   bucket: string;
   region: string;
@@ -27,6 +27,10 @@ export class S3InterfaceService {
 		this.s3Client = new S3({
 			region: this.region,
 		});
+	}
+
+	private formatS3ObjectKey(objectKey: string) {
+		return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${objectKey}`;
 	}
 
 	async downloadFile(objectUrl: string): Promise<NodeJS.ReadableStream> {
@@ -68,7 +72,7 @@ export class S3InterfaceService {
 
 		return new DataResult(
 			ResultCode.Success,
-			`https://${this.bucket}.s3.${this.region}.amazonaws.com/${objectKey}`
+			this.formatS3ObjectKey(objectKey)
 		);
 	}
 

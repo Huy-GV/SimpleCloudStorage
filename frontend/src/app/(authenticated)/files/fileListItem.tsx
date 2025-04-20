@@ -20,8 +20,7 @@ function getFileExtension(filename: string): string {
 	return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
 }
 
-
-export interface FileItemProps {
+type FileItemProps = {
 	id: number;
 	name: string;
 	size: number;

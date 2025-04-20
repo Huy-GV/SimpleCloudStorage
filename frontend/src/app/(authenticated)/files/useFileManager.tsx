@@ -22,11 +22,11 @@ export default function useFileManager() {
 			setFileItemMap(new Map(result.files.map(x => [x.id, x])))
             setError(null);
 		}
-    }, []);
+    }, [signOutAfterDelay]);
 
     useEffect(() => {
         handleFilesReloaded(null)
-    }, [])
+    }, [handleFilesReloaded])
 
     const handleFilesDeselected = () => {
         setSelectedFiles(new Set());
