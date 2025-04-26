@@ -1,18 +1,28 @@
-FROM node:20
-EXPOSE 80
-EXPOSE 5432
+# Build
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
+COPY package*.json ./
+RUN npm ci --include=dev
+
 COPY . .
 
-RUN npm ci
-RUN npm install -g dotenv-cli
-
-RUN cd ./src/data/models; npx prisma generate
-
+RUN npm run prisma:generate
 RUN npm run build
 
+# Production
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/data/models/prisma ./src/data/models/prisma
+
 ENV NODE_ENV=production
+EXPOSE 80
 
 CMD [ "node", "dist/main.js" ]
