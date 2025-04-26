@@ -14,24 +14,35 @@ jobs:
     defaults:
       run:
         working-directory: backend
-
+    env:
+      AWS_REGION: ap-southeast-2
+      ECR_REPO_NAME: scs-ecr-repo
+      APP_NAME: scs-backend
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          node-version: '22'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
-      - name: Build backend
-        run: npm run build
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.APP_NAME }} .
 
-      - name: Run Prisma generate with dummy database URL
-        run: npx prisma generate --schema=./src/data/models/prisma/schema.prisma
-        env:
-          DATABASE_URL: postgres://test:test@test:0000/test
-      - name: Run Prisma generate
-        run: npm run test
+      - name: Tag Docker image
+        run: |
+          docker tag ${{ env.APP_NAME }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}:latest

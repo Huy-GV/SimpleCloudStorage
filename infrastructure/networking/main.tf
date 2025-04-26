@@ -20,6 +20,7 @@ resource "aws_subnet" "public" {
   }
 }
 
+# TODO: replace with S3 endpoint 
 resource "aws_subnet" "private_egress" {
   count             = var.az_count
   vpc_id            = aws_vpc.scs_vpc.id
