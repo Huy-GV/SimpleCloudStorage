@@ -18,7 +18,7 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier              = "scs-cdk-rds"
+  identifier              = data.aws_ssm_parameter.db_name.value
   engine                  = "postgres"
   engine_version          = "16"
   instance_class          = "db.t3.micro"
@@ -28,16 +28,10 @@ resource "aws_db_instance" "postgres" {
   db_subnet_group_name    = aws_db_subnet_group.default.name
   vpc_security_group_ids  = [data.terraform_remote_state.networking.outputs.db_sg_id]
   skip_final_snapshot     = false
-  final_snapshot_identifier = "scs-cdk-rds-final"
+  final_snapshot_identifier = "scs-rds-final"
   publicly_accessible     = false
 
   tags = {
-    Name = "scs-cdk-postgres"
+    Name = data.aws_ssm_parameter.db_name.value
   }
-}
-
-resource "aws_ecr_repository" "ecr_repo" {
-  name                 = "scs-cdk-repository"
-  force_delete         = true
-  image_tag_mutability = "MUTABLE"
 }

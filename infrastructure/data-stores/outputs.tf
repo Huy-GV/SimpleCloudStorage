@@ -13,11 +13,3 @@ output "db_instance_endpoint" {
 output "db_instance_id" {
   value = aws_db_instance.postgres.id
 }
-
-output "ecr_repository_url" {
-  value = aws_ecr_repository.ecr_repo.repository_url
-}
-
-output "ecr_repository_name" {
-  value = aws_ecr_repository.ecr_repo.name
-}
