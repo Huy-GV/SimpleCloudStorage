@@ -14,7 +14,7 @@
     "start:prod": "node dist/main",
     "prisma:generate": "npm run env:dev -- prisma generate --schema=./src/data/models/prisma/schema.prisma",
     "prisma:migrate:dev": "npm run env:dev -- prisma migrate dev --create-only --schema=./src/data/models/prisma/schema.prisma",
-    "prisma:migrate:deploy": "npm run env:dev -- prisma migrate deploy --schema=./src/data/models/prisma/schema.prisma",
+    "prisma:migrate:deploy": "npx prisma migrate deploy --schema=./src/data/models/prisma/schema.prisma",
     "prisma:reset": "npm run env:dev -- prisma migrate reset --schema=./src/data/models/prisma/schema.prisma",
     "prisma:push": "npm run env:dev -- prisma db push --schema=./src/data/models/prisma/schema.prisma",
     "prisma.schema": "src/data/models/prisma/schema.prisma",
