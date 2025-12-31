@@ -20,9 +20,6 @@ class EnvironmentVariables {
     @Max(65535)
     SERVER_PORT: number = 5000
 
-    @IsOptional()
-    DOWNLOAD_DIR: string = `${os.tmpdir()}/simple-cloud-storage/downloads`;
-
     @IsIn(['development', 'production'])
     NODE_ENV: string = "development";
 
