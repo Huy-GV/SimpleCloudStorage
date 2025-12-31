@@ -33,7 +33,7 @@ export class S3InterfaceService {
 		return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${objectKey}`;
 	}
 
-	async downloadFile(objectUrl: string): Promise<NodeJS.ReadableStream> {
+	async downloadFile(objectUrl: string) {
 		const { bucket, key } = this.extractS3ObjectProperties(objectUrl);
 		const getObjectCommand = new GetObjectCommand({
 			Bucket: bucket,
@@ -41,7 +41,7 @@ export class S3InterfaceService {
 		});
 
 		const response = await this.s3Client.send(getObjectCommand);
-		return response.Body as NodeJS.ReadableStream
+		return response.Body;
 	}
 
 	async uploadFile(fileToUpload: Express.Multer.File, userId: number): Promise<Result<string>> {

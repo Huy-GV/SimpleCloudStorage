@@ -33,4 +33,6 @@ model File {
 	parentFile		File? @relation("FileHierarchy", fields: [parentFileId], references: [id], onDelete: Cascade)
 
 	childFiles		File[] @relation("FileHierarchy")
+
+	@@unique([ownerUserId, parentFileId, name])
 }
