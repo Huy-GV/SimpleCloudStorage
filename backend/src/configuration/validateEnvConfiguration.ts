@@ -1,5 +1,5 @@
 import { plainToInstance } from "class-transformer";
-import { IsIn, IsNotEmpty, IsNumber, IsOptional, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
+import { IsArray, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, MinLength, registerDecorator, validateSync, ValidationArguments, ValidationOptions } from "class-validator";
 import * as os from 'os';
 
 class EnvironmentVariables {
@@ -25,6 +25,9 @@ class EnvironmentVariables {
 
     @IsNotEmptyInDevelopment()
     AWS_PROFILE: string;
+
+    @IsNotEmpty()
+    CORS_ALLOWED_ORIGINS: string;
 }
 
 function IsNotEmptyInDevelopment(validationOptions?: ValidationOptions) {
