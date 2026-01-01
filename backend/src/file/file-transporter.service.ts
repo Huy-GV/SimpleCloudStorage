@@ -101,7 +101,9 @@ export class FileTransporter {
 
 			const rootZipFileName = '';
 			await this.downloadFilesInDirectory(files, archive, rootZipFileName)
-			await archive.finalize();
+
+			// removed 'await' to avoid potential deadlock for large files
+			archive.finalize();
 			return new DataResult(
 				ResultCode.Success,
 				new StreamableFile(archive),
