@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DataResult, EmptyResult, Result } from '../data/results/result';
 import { ResultCode } from '../data/results/resultCode';
 import { randomUUID } from 'crypto';
+import { Upload } from '@aws-sdk/lib-storage';
 
 type S3Object = {
   key: string;
@@ -46,16 +47,24 @@ export class S3InterfaceService {
 
 	async uploadFile(fileToUpload: Express.Multer.File, userId: number): Promise<Result<string>> {
 		const objectKey = `${userId}_${randomUUID()}`
-		const putObjectCommand = new PutObjectCommand({
-			Bucket: this.bucket,
-			Key: objectKey,
-			Body: fileToUpload.buffer,
-			Metadata: {
-				"userId": userId.toString()
-			}
-		});
 
-		const s3Result = await this.s3Client.send(putObjectCommand);
+		const newUpload = new Upload({
+			client: this.s3Client,
+			params: {
+				Bucket: this.bucket,
+				Key: objectKey,
+				Body: fileToUpload.buffer,
+				Metadata: {
+					"userId": userId.toString(),
+					"originalName": fileToUpload.originalname,
+					"contentType": fileToUpload.mimetype,
+					"size": fileToUpload.size.toString(),
+					"extension": fileToUpload.originalname.split('.').pop() || '',
+				}
+			}
+		})
+
+		const s3Result = await newUpload.done();
 		if (
 			s3Result.$metadata.httpStatusCode != 200 &&
 			s3Result.$metadata.httpStatusCode != 201
